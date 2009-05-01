@@ -29,13 +29,18 @@
 (defn parse-line [#^String line]
   (try
    (let [[link add-date tags description] 
-         (drop 1 (re-matches #".+HREF=\"([^\"]+).*?ADD_DATE=\"([^\"]+).*?TAGS=\"([^\"]+).*?>([^<]+)</A>.*" line))]
+         (drop 1 (re-matches #".+HREF=\"([^\"]+)\".*?ADD_DATE=\"([^\"]+)\".*?TAGS=\"([^\"]*)\".*?>([^<]+)</A>.*" line))]
      {:link        link
       :add-date    add-date
       :tags        (vec (.split tags ","))
       :description description})
    (catch Exception ex
-     (prn (format "unable to parse line='%s' ex=%s" line ex)))))
+     (do
+       (prn "stacktrace:")
+       (.printStackTrace ex)
+       (prn "...stacktrace")
+       (prn (format "unable to parse line='%s' ex=%s" line ex))
+       {}))))
 
 ;; (parse-line (first (filter #(.startsWith %1 "<DT>") (line-seq (ds/reader *bookmarks-file*)))))
 
@@ -44,14 +49,36 @@
 (defn dump-to-tab [#^String fname]
   (with-open [out (ds/writer fname)]
     (binding [*out* out]
+      (println (str-utils/str-join "\t" ["link" "add_date" "description" "tag"]))
       (dorun
        (doseq [bmrk (map parse-line (filter #(.startsWith %1 "<DT>") (line-seq (ds/reader *bookmarks-file*))))
                tag (:tags bmrk)]
          (println (str-utils/str-join "\t" [(:link bmrk) (:add-date bmrk) (:description bmrk) tag])))))))
 
 
+(defn tab-view [file]
+  (let [lines (line-seq (ds/reader file))
+        columns (.split (first lines)
+                        "\t")]
+    (loop [lines (rest lines)
+           lnum 1]
+      (if (empty? lines)
+        true
+        (do
+          (println (format "[% 4d]--------------------------------" lnum))
+          (let [row (.split (first lines) "\t")]
+            (dotimes [ii (count row)]
+                     (println (format "%15s: %s" 
+                                      (nth columns ii)
+                                      (nth row ii)))))
+          (recur (rest lines) (inc lnum)))))))
 
-(dump-to-tab (proj-file "delicious.tab"))
 
-(map parse-line (filter #(.startsWith %1 "<DT>") (line-seq (ds/reader *bookmarks-file*))))
+;;(dump-to-tab (proj-file "delicious.tab"))
+
+(do
+  (tab-view (proj-file "delicious.tab"))
+  (System/exit 0))
+
+;;(map parse-line (filter #(.startsWith %1 "<DT>") (line-seq (ds/reader *bookmarks-file*))))
 
