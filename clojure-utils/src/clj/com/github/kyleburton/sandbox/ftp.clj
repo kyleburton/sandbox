@@ -22,18 +22,13 @@
          ~client (open u#)
          res# (atom nil)
          ~@extra-bindings]
-     (prn "u=" u#)
      (if (.getUserInfo u#)
        (let [[uname# pass#] (.split (.getUserInfo u#) ":" 2)]
-         (prn "uname=" uname#)
-         (prn "pass=" pass#)
          (.login ~client uname# pass#)))
-     (prn "path=" (.getPath u#))
      (.changeWorkingDirectory ~client (.getPath u#))
      (reset! res# 
             (do
               ~@body))
-     (prn "disconnecting: " ~client)
      (.disconnect ~client)
      @res#))
 
