@@ -1,6 +1,11 @@
 (ns com.github.kyleburton.sandbox.landmark-parser
+  (:import (java.util.regex Pattern Matcher))
+  (:use [com.github.kyleburton.sandbox.utils :as kutils])
+  (:use [com.github.kyleburton.sandbox.regex :as regex-util])
   (:use [clojure.contrib.str-utils :as str]
         [clojure.contrib.fcase :only (case)]))
+
+(def *cmds*)
 
 (defstruct parser :pos :doc :ldoc :doclen)
 
@@ -73,6 +78,42 @@
         (reset! (:pos p) pos)
         @(:pos p)))))
 
+;; support either '((:fp "foo") (:fp "bar")) 
+;;             or '(:fp "foo" :fp "bar")
+(defn parse-cmds [cmds]
+  (cond (and (seq? cmds)
+             (seq? (first cmds))
+             (= 2 (count (first cmds))))
+        cmds
+        (= 1 (mod (count cmds) 2)) 
+        (kutils/raise (format "parse-cmds: error, odd number of commands (expected even, symbol/landmark): cmds=%s" cmds))
+        true
+        (partition 2 cmds)))
+
+(defn apply-commands [parser & cmds]
+  (loop [[[cmd & args] & cmds] (parse-cmds cmds)]
+    (if cmd
+      (do
+        ;(prn (format  "cmd=%s args=%s" cmd args))
+        (if (apply (*cmds* cmd) (cons parser args))
+          (do
+            (recur cmds))
+          false))
+      true)))
+
+(defn do-commands [parser cmds]
+  ;; (prn "do-commands: cmds=" cmds)
+  (loop [[[cmd & args] & cmds] (parse-cmds cmds)]
+    (if cmd
+      (do
+        ;(prn (format  "pos:%d cmd=%s args=%s" @(:pos parser) cmd args))
+        (if (apply (*cmds* cmd) (cons parser args))
+          (do
+            ;(prn (format  "pos:%d cmd=%s args=%s" @(:pos parser) cmd args))
+            (recur cmds))
+          false))
+      true)))
+
 (def *cmds*
      {:apply-commands  apply-commands
       :a               apply-commands
@@ -92,30 +133,6 @@
       :rp              rewind-past})
 
 
-(defn apply-commands [parser & cmds]
-  (loop [[[cmd & args] & cmds] cmds]
-    (if cmd
-      (do
-        ;(prn (format  "cmd=%s args=%s" cmd args))
-        (if (apply (*cmds* cmd) (cons parser args))
-          (do
-            (recur cmds))
-          false))
-      true)))
-
-(defn do-commands [parser cmds]
-  (loop [[[cmd & args] & cmds] cmds]
-    (if cmd
-      (do
-        ;(prn (format  "pos:%d cmd=%s args=%s" @(:pos parser) cmd args))
-        (if (apply (*cmds* cmd) (cons parser args))
-          (do
-            ;(prn (format  "pos:%d cmd=%s args=%s" @(:pos parser) cmd args))
-            (recur cmds))
-          false))
-      true)))
-
-;; TODO: forward-to-regex, forward-past-regex, rewind-to-regex, rewind-past-regex
 
 (defn doc-substr [parser cnt]
   (.substring (:doc parser)
@@ -141,6 +158,7 @@
 (defn extract-from [html start-cmds end-cmds]
   (extract (make-parser html) start-cmds end-cmds))
 
+
 (defn extract-all [p start-cmds end-cmds]
   (loop [res []]
     (if (do-commands p start-cmds)
@@ -155,12 +173,57 @@
 
 (defn table-rows [html]
   (extract-all-from html
-                    '((:ft "<tr"))
-                    '((:fp "</tr"))))
+                    '(:ft "<tr")
+                    '(:fp "</tr")))
 
 (defn row->cells [html]
   (extract-all-from html
-                    '((:fp "<td")
-                      (:fp ">"))
-                    '((:ft "</td>"))))
+                    '(:fp "<td" :fp ">")
+                    '(:ft "</td>")))
 
+(defn html->links [html]
+  (extract-all-from html
+                    '(:fp "href=\"")
+                    '(:ft "\"")))
+
+(defn html->tables [html]
+  (extract-all-from html
+                    '(:ft "<table")
+                    '(:fp "</table>")))
+
+(defn html-table->matrix [html]
+  (map row->cells (table-rows html)))
+
+(defn forward-past-regex [p regex]
+  (kutils/log "forward-past-regex regex=%s" regex)
+  (let [pat (if (and (keyword? regex) (regex regex-util/*common-regexes*))
+              (regex regex-util/*common-regexes*)
+              (Pattern/compile (str regex) (bit-or Pattern/MULTILINE Pattern/CASE_INSENSITIVE)))
+        m   (.matcher pat (:doc p))]
+    (kutils/log "forward-past-regex: pat=%s m=%s" pat m)
+    (if (.find m @(:pos p))
+      (do
+        (kutils/log "forward-past-regex: found reg:%s at:(%d,%d,)" regex (.start m) (.end m))
+        (reset! (:pos p) (.end m))
+        @(:pos p))
+      false)))
+
+(defn forward-to-regex [p regex]
+  (let [pat (if (and (keyword? regex) (regex regex-util/*common-regexes*))
+              (regex regex-util/*common-regexes*)
+              (Pattern/compile (str regex) (bit-or Pattern/MULTILINE Pattern/CASE_INSENSITIVE)))
+        m   (.matcher pat (:doc p))]
+    (kutils/log "forward-to-regex: using pat=%s" pat)
+    (if (.find m @(:pos p))
+      (do
+        (reset! (:pos p) (.start m))
+        @(:pos p))
+      false)))
+
+
+;; (def p (make-parser (com.github.kyleburton.sandbox.web/get->string "http://asymmetrical-view.com/")))
+;; (forward-past-regex p :num-real)
+;; (forward-to-regex p #"\d{4}")
+
+;; (def pat (Pattern/compile (str #"\d{4}") (bit-or Pattern/MULTILINE Pattern/CASE_INSENSITIVE)))
+;; (def m (.matcher pat (:doc p)))
