@@ -73,12 +73,29 @@
                                       (nth row ii)))))
           (recur (rest lines) (inc lnum)))))))
 
+(defn build-tag-map [file]
+  (let [[header & lines] 
+        (map #(seq (.split % "\t"))
+             (line-seq (ds/reader file)))
+        res (java.util.HashMap.)]
+    (doseq [[link add-date description tag] lines]
+      (if (not (empty? tag))
+        (.put res tag (doto (or (.get res tag) (java.util.ArrayList.))
+                        (.add link)))))
+    res))
 
-;;(dump-to-tab (proj-file "delicious.tab"))
+(def *links-by-tag* (build-tag-map (proj-file "delicious.tab")))
 
-(do
-  (tab-view (proj-file "delicious.tab"))
-  (System/exit 0))
+(defn reverse-map [m]
+  (let [res (java.util.HashMap.)]
+    (doseq [[tag urls] (.entrySet *links-by-tag*)
+            url urls]
+      (.put res url (doto (or (.get res url) (java.util.ArrayList.))
+                      (.add tag))))
+    res))
 
-;;(map parse-line (filter #(.startsWith %1 "<DT>") (line-seq (ds/reader *bookmarks-file*))))
+(def *tags-by-link* (reverse-map *links-by-tag*))
+
+(first (reverse (sort-by #(.size (.getValue %)) (seq *links-by-tag*))))
+
 
