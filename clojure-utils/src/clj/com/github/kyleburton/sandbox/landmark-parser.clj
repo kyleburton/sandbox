@@ -55,8 +55,7 @@
 
 
 ;; TODO: rewind-to, rewind-past, forward-to-regex, forward-past-regex,
-;;       rewind-to-regex, rewind-past-regex, apply-commands, 
-;;       extract (from to), extract-all (from to)
+;;       rewind-to-regex, rewind-past-regex
 
 (def *cmds*
      {:apply-commands  apply-commands
@@ -116,6 +115,12 @@
       (do (set-pos! p orig-pos)
           false))))
 
+(defn extract-from [html start-cmds end-cmds]
+  (extract (make-parser html) start-cmds end-cmds))
+
+(defn extract-all-from [html start-cmds end-cmds]
+  (extract-all (make-parser html) start-cmds end-cmds))
+
 (defn extract-all [p start-cmds end-cmds]
   (loop [res []]
     (if (do-commands p start-cmds)
@@ -125,23 +130,20 @@
           res))
       res)))
 
-;; (def p (make-parser (.getResponseBodyAsString user/req)))
-;; (set-pos! p 0)
-;; (def tbl (extract p 
-;;                   '((:fp "Storage of dBASE")
-;;                     (:fp "</tr>"))
-;;                   '((:ft "</table"))))
-
 (defn table-rows [html]
   (let [p (make-parser html)]
     (extract-all p
                  '((:ft "<tr"))
                  '((:fp "</tr")))))
 
-;; (first (table-rows
-;;         (extract
-;;          (make-parser (.getResponseBodyAsString user/req))
-;;          '((:fp "Storage of dBASE")
-;;            (:fp "</tr>"))
-;;          '((:ft "</table")))))
+;; (map #(extract-from % 
+;;                     '((:fp "<td")
+;;                       (:fp ">"))
+;;                     '((:ft "</td>")))
+;;      (table-rows
+;;       (extract-from
+;;        (.getResponseBodyAsString user/req)
+;;        '((:fp "Storage of dBASE")
+;;          (:fp "</tr>"))
+;;        '((:ft "</table")))))
 
