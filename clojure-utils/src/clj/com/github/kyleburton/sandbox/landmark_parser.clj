@@ -153,10 +153,9 @@
   (extract-all (make-parser html) start-cmds end-cmds))
 
 (defn table-rows [html]
-  (let [p (make-parser html)]
-    (extract-all p
-                 '((:ft "<tr"))
-                 '((:fp "</tr")))))
+  (extract-all-from html
+                    '((:ft "<tr"))
+                    '((:fp "</tr"))))
 
 (defn row->cells [html]
   (extract-all-from html

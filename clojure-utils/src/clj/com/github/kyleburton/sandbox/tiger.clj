@@ -125,9 +125,9 @@
                       '((:fp "Storage of dBASE")
                         (:fp "</tr>"))
                       '((:ft "</table")))))]
-       (map #(let [cell ( lparse/extract-from % '((:ft "</font>")
-                                                  (:rt ">"))
-                                              '((:ft "</font>")))]
+       (map #(let [cell (lparse/extract-from % '((:ft "</font>")
+                                                 (:rt ">"))
+                                             '((:ft "</font>")))]
                (.replaceAll
                 (.replaceAll cell "[\r\n]+" "")
                 " +" " "))
