@@ -1,24 +1,16 @@
-(ns com.github.kyleburton.sandbox.utils)
+;; fetch dependencies and set things up
 
 (defn raise [args]
   (throw (RuntimeException. (apply format args))))
 
-(defn- get-user-home []
-  (System/getProperty "user.home"))
+(defn log [& args]
+  (prn (apply format args)))
+
+(defn ->file [thing]
+  (java.io.File. (str thing)))
 
 (defn $HOME [& paths]
   (->file (apply str (cons (str (System/getProperty "user.home") "/") (apply str (interpose "/" paths))))))
-
-(defmulti expand-file-name class)
-
-(defmethod expand-file-name String [#^String path]
-  (cond (.startsWith path "~/")
-        (.replaceFirst path "^~(/|$)" (str (get-user-home) "/"))
-        (.startsWith path "file://~/")
-        (.replaceFirst path "^file://~/" (str "file://" (get-user-home) "/"))
-        true
-        path))
-
 
 (defn mkdir [path]
   (let [f (->file path)]
@@ -63,6 +55,8 @@
     (if (.exists path)
       (.delete path))))
 
+(def *deps-location*  "http://asymmetrical-view.com/personal/repo/")
+
 (defn url-get [url]
   (with-open [is (.openStream (java.net.URL. url))]
     (loop [sb (StringBuffer.)
@@ -95,6 +89,23 @@
        (recur m (conj res (vec (all-groups m))))
        res))))
 
+(defn list-deps []
+  (filter #(.endsWith % ".jar") 
+          (map #(nth % 0)
+               (re-find-all #"href=\"(.+?)\">" (.toString (url-get *deps-location*))))))
+
+
+(def *target-dir* ($HOME "/.clojure"))
+
+(defn get-deps []
+  (doseq [dep (list-deps)]
+    (if (.exists ($HOME ".clojure/" dep))
+      (log "[INFO] already have: %s" dep)
+      (do
+        (log "[INFO] getting: %s from %s => %s" dep (str *deps-location* dep) ($HOME ".clojure/" dep))
+        (url-download (str *deps-location* dep)
+                      ($HOME ".clojure/"))))))
+
 (defn chmod [perms file]
   (let [cmd (format "chmod %s %s" perms file)
         res (exec cmd)]
@@ -102,3 +113,38 @@
     (if (not (= 0 (:exit res)))
       (log "[ERROR] %s" (:error res)))))
 
+(defn make-clojure-bin [fnum port]
+  (let [target ($HOME (format "bin/clojure%s" fnum))]
+    (if (.exists target)
+      (log "[INFO] already exists: %s" target)
+      (with-open [outp (java.io.PrintWriter. target)]
+        (binding [*out* outp]
+          (print (str "
+CLOJURE_JAR=\"$HOME/.clojure/clojure.jar\"
+CONTRIB_JAR=\"$HOME/.clojure/clojure-contrib.jar\"
+
+CLASSPATH=\"$CLOJURE_JAR:$CONTRIB_JAR\" 
+
+for f in $HOME/.clojure/*; do
+    CLASSPATH=\"$CLASSPATH:$f\"
+done
+
+java -server \\
+  -Xdebug \\
+  -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=" port " \\
+  -cp \"$CLASSPATH\" \\
+  clojure.lang.Repl \\
+  \"$@\"
+")))))
+    (chmod 755 target)))
+
+(defn main []
+  (mkdir ($HOME "/.clojure"))
+  (symlink  ($HOME "/personal/projects/sandbox/clojure-utils/src/clj/") ($HOME "/.clojure/krb-clj-utils"))
+  (get-deps)
+  (make-clojure-bin "" 8888)
+  (make-clojure-bin "2" 8889)
+  (make-clojure-bin "3" 8890))
+
+
+;; (main)

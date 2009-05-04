@@ -73,6 +73,25 @@
         (reset! (:pos p) pos)
         @(:pos p)))))
 
+(def *cmds*
+     {:apply-commands  apply-commands
+      :a               apply-commands
+      :do-commands     do-commands
+      :d               do-commands
+      :forward         forward
+      :f               forward
+      :forward-to      forward-to
+      :ft              forward-to
+      :forward-past    forward-past 
+      :fp              forward-past
+      :rewind          rewind
+      :r               rewind
+      :rewind-to       rewind-to
+      :rt              rewind-to
+      :rewind-past     rewind-past
+      :rp              rewind-past})
+
+
 (defn apply-commands [parser & cmds]
   (loop [[[cmd & args] & cmds] cmds]
     (if cmd
@@ -97,24 +116,6 @@
       true)))
 
 ;; TODO: forward-to-regex, forward-past-regex, rewind-to-regex, rewind-past-regex
-
-(def *cmds*
-     {:apply-commands  apply-commands
-      :a               apply-commands
-      :do-commands     do-commands
-      :d               do-commands
-      :forward         forward
-      :f               forward
-      :forward-to      forward-to
-      :ft              forward-to
-      :forward-past    forward-past 
-      :fp              forward-past
-      :rewind          rewind
-      :r               rewind
-      :rewind-to       rewind-to
-      :rt              rewind-to
-      :rewind-past     rewind-past
-      :rp              rewind-past})
 
 (defn doc-substr [parser cnt]
   (.substring (:doc parser)
