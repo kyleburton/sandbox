@@ -5,7 +5,7 @@
   [args]
   (throw (RuntimeException. (apply format args))))
 
-(defn- log [& args]
+(defn log [& args]
   (prn (apply format args)))
 
 (defn #^String get-user-home
@@ -141,4 +141,76 @@
     (log "[INFO] chmod: %s" cmd)
     (if (not (= 0 (:exit res)))
       (log "[ERROR] %s" (:error res)))))
+
+
+;; reflection class and doc utils
+(defn methods-seq
+  ([thing]
+   (if (= Class (class thing))
+     (seq (.getDeclaredMethods thing))
+     (seq (.getDeclaredMethods (class thing))))))
+
+(defn fields-seq
+  ([thing]
+   (if (= Class (class thing))
+     (seq (.getDeclaredFields thing))
+     (seq (.getDeclaredFields (class thing))))))
+
+(defn constructors-seq
+  ([thing]
+   (if (= Class (class thing))
+     (seq (.getConstructors thing))
+     (seq (.getConstructors (class thing))))))
+
+(defn method-modifiers-as-strings [#^java.lang.reflect.Method method]
+  (str (.getModifiers method)))
+
+(defn method-return-type [#^java.lang.reflect.Method method]
+  (.getReturnType method))
+
+(defn method-name-short [#^java.lang.reflect.Method method]
+  (.getReturnType method))
+
+(defn method-argument-list [#^java.lang.reflect.Method method]
+  (.getParameterTypes method))
+
+(defn short-method-sig [#^java.lang.reflect.Method method]
+  (str (method-modifiers-as-strings method)
+        " "
+       (method-return-type method)
+        " "
+       (method-name-short method)
+        "("
+       (method-argument-list method)
+        ")"))
+
+(defn make-subst-fn [pattern replacement]
+  (fn [str]
+      (.replaceAll (.toString str)
+                    pattern replacement)))
+
+
+;; TODO: add in abstract/interface/class info, then list all parent
+;; classes and interfaces
+(defn doc-class [thing]
+  "Prints (to *out*) a summary of the class, it's members and its
+methods."
+  (let [tclass (if (= Class (class thing))
+                 (identity thing)
+                 (class thing))
+        trimmer (make-subst-fn "java.lang." "")]
+    (println (format "Class %s (%s)" (.getName tclass) (.getSuperclass tclass)))
+  (println (format "  Interfaces:"))
+  (doseq [interf (seq (.getInterfaces tclass))]
+    (println (str "    " (trimmer interf))))
+  (println (str "  Constructors:"))
+  (doseq [constructor (constructors-seq tclass)]
+    (println (str "    " (trimmer constructor))))
+  (println (str "  Members:"))
+  (doseq [field (fields-seq tclass)]
+    (println (str "    " (trimmer field))))
+  (println (str "  Methods:"))
+  (doseq [method (methods-seq tclass)]
+    (println (str "    " (trimmer method))))))
+
 
