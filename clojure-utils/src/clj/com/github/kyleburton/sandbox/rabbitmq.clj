@@ -18,6 +18,7 @@
 (def *default-host*         "localhost")
 (def *default-exchange*     "com.github.kyleburton.sandbox.rabbitmq.default.exchange.name")
 (def *default-queue*        "com.github.kyleburton.sandbox.rabbitmq.default.queue.name")
+(def *default-timeout*      250)
 (def *default-binding-key*  *default-queue*)
 (def *default-message-properties*
      (let [prop (com.rabbitmq.client.AMQP$BasicProperties.)]
@@ -110,19 +111,19 @@
            (binding [*connection* conn#]
              (with-open [channel# (.createChannel *connection*)]
                (binding [*channel* channel#]
-;;                  (prn (format "with-connection: declaring exchange: %s" (:exchange *env* *default-exchange*)))
-;;                  (.exchangeDeclare *channel*
-;;                                    (:exchange *env* *default-exchange*)
-;;                                    (:exchange-type *env* "direct")
-;;                                    (:exchange-durable *env* false))
+                 (prn (format "with-connection: declaring exchange: %s" (:exchange *env* *default-exchange*)))
+                 (.exchangeDeclare *channel*
+                                   (:exchange *env* *default-exchange*)
+                                   (:exchange-type *env* "direct")
+                                   (:exchange-durable *env* false))
                  (prn (format "with-connection: declaring queue: %s" (:queue *env* *default-queue*)))
                  (.queueDeclare *channel* 
                                 (:queue *env* *default-queue*)
                                 (:queue-durable *env* false))
-;;                  (.queueBind *channel*
-;;                              (:queue *env* *default-queue*)
-;;                              (:exchange *env* *default-exchange*)
-;;                              (:binding-key *env* *default-binding-key*))
+                 (.queueBind *channel*
+                             (:queue *env* *default-queue*)
+                             (:exchange *env* *default-exchange*)
+                             (:binding-key *env* *default-binding-key*))
                  ~@body))))))))
 
 ;; params must be a hash...
@@ -137,17 +138,17 @@
          (binding [*connection* connection]
            (with-open [channel (.createChannel *connection*)]
              (binding [*channel* channel]
-;;                (prn (format "do-connection: declaring exchange: %s" (:exchange *env* *default-exchange*)))
-;;                (.exchangeDeclare *channel*
-;;                                  (:exchange *env* *default-exchange*)
-;;                                  (:exchange-type *env* "direct")
-;;                                  (:exchange-durable *env* false))
+               (prn (format "do-connection: declaring exchange: %s" (:exchange *env* *default-exchange*)))
+               (.exchangeDeclare *channel*
+                                 (:exchange *env* *default-exchange*)
+                                 (:exchange-type *env* "direct")
+                                 (:exchange-durable *env* false))
                (prn (format "do-connection: declaring queue: %s" (:queue *env* *default-queue*)))
                (.queueDeclare *channel* (:queue *env* *default-queue*) (:queue-durable *env* false))
-;;                (.queueBind *channel*
-;;                            (:queue *env* *default-queue*)
-;;                            (:exchange *env* *default-exchange*)
-;;                            (:binding-key *env* *default-binding-key*))
+               (.queueBind *channel*
+                           (:queue *env* *default-queue*)
+                           (:exchange *env* *default-exchange*)
+                           (:binding-key *env* *default-binding-key*))
                (fn))))))))
 
 ;; (with-connection
@@ -173,18 +174,17 @@
    (fn []
      (.basicPublish 
       *channel*
-      "" ; (:exchange *env* *default-exchange*)
-      (:queue *env* *default-queue*)
+      (:exchange *env* *default-exchange*)
+      (:routing-key *env* *default-queue*)
       (:mandatory *env* false)
       (:immediate *env* false)
       nil   ; (:message-properties *env* *default-message-properties*)
       (.getBytes message)))))
 
-;; (basic-publish {} (format "[%s] this is my message" (java.util.Date.)))
+;; (basic-publish {} (format "[%s] this is my message..." (java.util.Date.)))
 ;; (String. (.getBody (basic-get)))
 ;; (String. (.getBody (basic-get {:queue "SimpleQueue"})))
 
-;; params must be a map
 (defn basic-get [& [#^java.util.Map params]]
   (do-connection
    params
@@ -194,107 +194,55 @@
                 (:queue *env* *default-queue*) 
                 (:acknowledge *env* true)))))
 
+(defn do-consume [params f]
+  (do-connection 
+   params
+   (fn []
+     (let [consumer (let [consumer (QueueingConsumer. *channel*)]
+                      (.basicConsume *channel* (:routing-key *env* *default-queue*) consumer)
+                      consumer)]
+       (f consumer)))))
 
-'(
-  (with-connection [
-                    ;;:queue "SimpleQueue" 
-                    :exchange ""
-                    ]
-    (prn (format "publishing to exchange[%s], queue[%s]: " 
-                 (:exchange *env* *default-queue*)
-                 (:queue *env* *default-queue*)))
-    (.basicPublish 
-     *channel*
-     (:exchange *env* *default-exchange*)
-     (:queue *env* *default-queue*)
-     nil    ; (:message-properties *env* *default-message-properties*)
-     (.getBytes (format "[%s] this is my message" (java.util.Date.)))))
+(defn ack-delivery [consumer delivery]
+  (.basicAck (.getChannel consumer)
+             (.getDeliveryTag (.getEnvelope delivery))
+             true))
 
-)
 
-'(String. (.getBody (basic-get {:queue "SimpleQueue"})))
+;; (basic-publish {} (format "[%s] this is my message..." (java.util.Date.)))
 
+
+
+(defn try-get
+  "Using QueueingConsumer, try to pull off a message, returning nil if none were ready."
+  [& [#^java.util.Map params]]
+  (do-consume
+   params
+   (fn [consumer]
+     (if-let [delivery (.nextDelivery consumer (:timeout *env* *default-timeout*))]
+       (do
+         (if (:acknowledge *env* true)
+           (ack-delivery consumer delivery))
+         (String. (.getBody delivery)))))))
+
+;; (basic-publish {} (format "[%s] this is my message..." (java.util.Date.)))
+;; (try-get {:acknowledge false})
+;; (try-get)
+
+
+
+;; (with-connection [] (.queueDelete *channel* "SimpleQueue"))
 ;; (with-connection [] (.queueDelete *channel* "test.queue.name"))
 ;; (with-connection [] (.exchangeDelete *channel* "test.exchange.name"))
 
 ;; (with-connection [] (.queueDelete *channel* *default-queue*))
 ;; (with-connection [] (.exchangeDelete *channel* *default-exchange*))
 
-;; (def *msg-persistent-params* 
-;;      (let [prop (com.rabbitmq.client.AMQP$BasicProperties.)]
-;;        (set! (.deliveryMode prop) DELIVERY_MODE_PERSISTENT)
-;;        prop))
-
-
-;; (basic-get {})
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (comment
 
-
-;; (publish-message "test message 2")
-
-(defn consume-message []
-  (with-connection conn
-    (let [channel (open-channel conn *default-exchange-name* *default-routing-key*)]
-      (prn (format "declared routing key:%s" *default-routing-key*))
-      (let [queueing-consumer (let [consumer (QueueingConsumer. channel)]
-                                (.basicConsume channel *default-routing-key* consumer)
-                                consumer)]
-        (prn (format "queueing-consumer:%s" queueing-consumer))
-        (prn (format "queueing-consumer: queue.size=%s" (.size (.getQueue queueing-consumer))))
-        (let [delivery (.nextDelivery queueing-consumer)]
-          (prn (format "queueing-consumer:%s delivery:%s" queueing-consumer delivery))
-          (if delivery
-            (prn (format "consumed: message=%s" (String. (.getBody delivery))))))))))
 ;; (consume-message)
-
-'(def *queueing-consumer*
-      (let [channel (open-channel *client-connection* *default-exchange-name* *default-routing-key*)]
-        (.queueDeclare channel *default-routing-key* true)
-        (let [consumer (QueueingConsumer. channel)]
-          (.basicConsume channel *default-routing-key* consumer)
-          consumer)))
-
-
-'(
-
-  (publish-message "test message 2")
-
-  (let [delivery (.nextDelivery *queueing-consumer* 500)]
-    (if delivery
-      (let [msg (String. (.getBody delivery))]
-        (.basicAck (.getChannel *queueing-consumer*)
-                   (.getDeliveryTag (.getEnvelope delivery))
-                   true)
-        (prn (format "delivery=%s => %s" delivery msg)))))
-  
-
-  (.close (.getChannel *queueing-consumer*))
-
-
-  )
-
-'(
-  (def x
-       (let [channel (open-channel *client-connection* *default-exchange-name* *default-routing-key*)]
-         (.basicGet channel *default-routing-key* false)))
-
-  (String. (.getBody x))
-
-  (let [channel (open-channel *client-connection* *default-exchange-name* *default-routing-key*)]
-    (.basicAck channel
-               (.getDeliveryTag (.getEnvelope x))
-               true))
-
-  (let [channel (open-channel *client-connection* *default-exchange-name* *default-routing-key*)]
-    (seq (.getKnownHosts (.getConnection channel))))
-
-
-  
-)
-
 
 ;; play w/the rpc client/server
 
