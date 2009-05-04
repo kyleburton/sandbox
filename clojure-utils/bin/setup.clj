@@ -1,4 +1,10 @@
-;; fetch dependencies and set things up
+;; fetch dependencies and set up clojure for local execution
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; NB: many of these are also in com.github.kyleburton.sandbox.utils,
+;; they are included here explicitly so that setup.clj can remain
+;; standalone - many of the clj utilities
 
 (defn raise [args]
   (throw (RuntimeException. (apply format args))))
@@ -55,8 +61,6 @@
     (if (.exists path)
       (.delete path))))
 
-(def *deps-location*  "http://asymmetrical-view.com/personal/repo/")
-
 (defn url-get [url]
   (with-open [is (.openStream (java.net.URL. url))]
     (loop [sb (StringBuffer.)
@@ -89,13 +93,24 @@
        (recur m (conj res (vec (all-groups m))))
        res))))
 
+(defn chmod [perms file]
+  (let [cmd (format "chmod %s %s" perms file)
+        res (exec cmd)]
+    (log "[INFO] chmod: %s" cmd)
+    (if (not (= 0 (:exit res)))
+      (log "[ERROR] %s" (:error res)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;
+(def *deps-location*  "http://asymmetrical-view.com/personal/repo/")
+(def *target-dir* ($HOME "/.clojure"))
+;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defn list-deps []
   (filter #(.endsWith % ".jar") 
           (map #(nth % 0)
                (re-find-all #"href=\"(.+?)\">" (.toString (url-get *deps-location*))))))
-
-
-(def *target-dir* ($HOME "/.clojure"))
 
 (defn get-deps []
   (doseq [dep (list-deps)]
@@ -105,13 +120,6 @@
         (log "[INFO] getting: %s from %s => %s" dep (str *deps-location* dep) ($HOME ".clojure/" dep))
         (url-download (str *deps-location* dep)
                       ($HOME ".clojure/"))))))
-
-(defn chmod [perms file]
-  (let [cmd (format "chmod %s %s" perms file)
-        res (exec cmd)]
-    (log "[INFO] chmod: %s" cmd)
-    (if (not (= 0 (:exit res)))
-      (log "[ERROR] %s" (:error res)))))
 
 (defn make-clojure-bin [fnum port]
   (let [target ($HOME (format "bin/clojure%s" fnum))]
