@@ -9,6 +9,11 @@
 
 (def *ua* (org.apache.commons.httpclient.HttpClient.))
 
+(defn map->nvpairs [m]
+  (if-let [names (keys m)]
+    (into-array (vec (map #(NameValuePair. (.getName %) (m %)) (keys m))))
+    nil))
+
 (defn #^String get->string [#^String url & [params]]
   (let [req (GetMethod. url)
         pairs (map->nvpairs params)]
@@ -18,7 +23,3 @@
     (.executeMethod *ua* req)
     (.getResponseBodyAsString req)))
 
-(defn map->nvpairs [m]
-  (if-let [names (keys m)]
-    (into-array (vec (map #(NameValuePair. (.getName %) (m %)) (keys m))))
-    nil))
