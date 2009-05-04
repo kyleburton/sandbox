@@ -12,8 +12,7 @@
     :doc doc))
 
 (defn forward-past [parser landmark]
-  (let [start (:post parser)
-        pos (.indexOf (:ldoc parser) (.toLowerCase landmark) @(:pos parser))]
+  (let [pos (.indexOf (:ldoc parser) (.toLowerCase landmark) @(:pos parser))]
     (if (= -1 pos)
       false
       (do
@@ -54,22 +53,25 @@
         true))))
 
 
-;; TODO: rewind-to, rewind-past, forward-to-regex, forward-past-regex,
-;;       rewind-to-regex, rewind-past-regex
+(defn rewind-to [p landmark]
+  (let [pos (.lastIndexOf (:ldoc p)
+                          (.toLowerCase landmark)
+                          @(:pos p))]
+    (if (= -1 pos)
+      false
+      (do
+        (reset! (:pos p) (+ pos (count landmark)))
+        @(:pos p)))))
 
-(def *cmds*
-     {:apply-commands  apply-commands
-      :a               apply-commands
-      :do-commands     do-commands
-      :d               do-commands
-      :forward         forward
-      :f               forward
-      :forward-to      forward-to
-      :ft              forward-to
-      :forward-past    forward-past 
-      :fp              forward-past
-      :rewind          rewind
-      :r               rewind})
+(defn rewind-past [p landmark]
+  (let [pos (.lastIndexOf (:ldoc p)
+                          (.toLowerCase landmark)
+                          @(:pos p))]
+    (if (= -1 pos)
+      false
+      (do
+        (reset! (:pos p) pos)
+        @(:pos p)))))
 
 (defn apply-commands [parser & cmds]
   (loop [[[cmd & args] & cmds] cmds]
@@ -93,6 +95,26 @@
             (recur cmds))
           false))
       true)))
+
+;; TODO: forward-to-regex, forward-past-regex, rewind-to-regex, rewind-past-regex
+
+(def *cmds*
+     {:apply-commands  apply-commands
+      :a               apply-commands
+      :do-commands     do-commands
+      :d               do-commands
+      :forward         forward
+      :f               forward
+      :forward-to      forward-to
+      :ft              forward-to
+      :forward-past    forward-past 
+      :fp              forward-past
+      :rewind          rewind
+      :r               rewind
+      :rewind-to       rewind-to
+      :rt              rewind-to
+      :rewind-past     rewind-past
+      :rp              rewind-past})
 
 (defn doc-substr [parser cnt]
   (.substring (:doc parser)
@@ -118,9 +140,6 @@
 (defn extract-from [html start-cmds end-cmds]
   (extract (make-parser html) start-cmds end-cmds))
 
-(defn extract-all-from [html start-cmds end-cmds]
-  (extract-all (make-parser html) start-cmds end-cmds))
-
 (defn extract-all [p start-cmds end-cmds]
   (loop [res []]
     (if (do-commands p start-cmds)
@@ -130,20 +149,18 @@
           res))
       res)))
 
+(defn extract-all-from [html start-cmds end-cmds]
+  (extract-all (make-parser html) start-cmds end-cmds))
+
 (defn table-rows [html]
   (let [p (make-parser html)]
     (extract-all p
                  '((:ft "<tr"))
                  '((:fp "</tr")))))
 
-;; (map #(extract-from % 
-;;                     '((:fp "<td")
-;;                       (:fp ">"))
-;;                     '((:ft "</td>")))
-;;      (table-rows
-;;       (extract-from
-;;        (.getResponseBodyAsString user/req)
-;;        '((:fp "Storage of dBASE")
-;;          (:fp "</tr>"))
-;;        '((:ft "</table")))))
+(defn row->cells [html]
+  (extract-all-from html
+                    '((:fp "<td")
+                      (:fp ">"))
+                    '((:ft "</td>"))))
 
