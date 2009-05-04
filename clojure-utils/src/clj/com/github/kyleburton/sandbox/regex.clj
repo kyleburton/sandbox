@@ -29,10 +29,16 @@
    :us-state-names   (Pattern/compile (format "(?-xism:%s)" (str/str-join "|" (vals ref-data/*us-states*))))
    :us-airport-codes (Pattern/compile (format "(?-xism:%s)" (str/str-join "|" (map #(nth % 2) ref-data/*us-airport-codes*))))
    :us-area-codes    (Pattern/compile (format "(?-xism:%s)" (str/str-join "|" ref-data/*us-area-codes*)))
+
+
+   :word           #"(?:[\w-]+)"
+   :punctuation    #"(?:[\.,\?/'\";:\\`~!\(\)]+)"
    })
 
 ;; (re-find (:us-airport-codes *common-regexes*) "foo PHL bar")
-;; (re-find (:us-area-codes *common-regexes*) "foo 215 bar")
+;; (re-find (:us-area-codes *common-regexes*) "foo 484 bar")
+;; (re-find (:word *common-regexes*) "foo 484 bar")
+;; (re-find (:punctuation *common-regexes*) "foo 484 , bar")
 
 
 ;; (:us-state-names *common-regexes*)

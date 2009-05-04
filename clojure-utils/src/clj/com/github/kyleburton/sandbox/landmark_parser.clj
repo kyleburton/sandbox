@@ -114,24 +114,56 @@
           false))
       true)))
 
-(def *cmds*
-     {:apply-commands  apply-commands
-      :a               apply-commands
-      :do-commands     do-commands
-      :d               do-commands
-      :forward         forward
-      :f               forward
-      :forward-to      forward-to
-      :ft              forward-to
-      :forward-past    forward-past 
-      :fp              forward-past
-      :rewind          rewind
-      :r               rewind
-      :rewind-to       rewind-to
-      :rt              rewind-to
-      :rewind-past     rewind-past
-      :rp              rewind-past})
+(defn forward-past-regex 
+  "See also regex-util/*common-regexes*"
+  [p regex]
+  (kutils/log "forward-past-regex regex=%s" regex)
+  (let [pat (if (and (keyword? regex) (regex regex-util/*common-regexes*))
+              (regex regex-util/*common-regexes*)
+              (Pattern/compile (str regex) (bit-or Pattern/MULTILINE Pattern/CASE_INSENSITIVE)))
+        m   (.matcher pat (:doc p))]
+    (kutils/log "forward-past-regex: pat=%s m=%s" pat m)
+    (if (.find m @(:pos p))
+      (do
+        (kutils/log "forward-past-regex: found reg:%s at:(%d,%d,)" regex (.start m) (.end m))
+        (reset! (:pos p) (.end m))
+        @(:pos p))
+      false)))
 
+(defn forward-to-regex [p regex]
+  "See also regex-util/*common-regexes*"
+  (let [pat (if (and (keyword? regex) (regex regex-util/*common-regexes*))
+              (regex regex-util/*common-regexes*)
+              (Pattern/compile (str regex) (bit-or Pattern/MULTILINE Pattern/CASE_INSENSITIVE)))
+        m   (.matcher pat (:doc p))]
+    (kutils/log "forward-to-regex: using pat=%s" pat)
+    (if (.find m @(:pos p))
+      (do
+        (reset! (:pos p) (.start m))
+        @(:pos p))
+      false)))
+
+(def *cmds*
+     {:apply-commands        apply-commands
+      :a                     apply-commands
+      :do-commands           do-commands
+      :d                     do-commands
+      :forward               forward
+      :f                     forward
+      :forward-past          forward-past 
+      :fp                    forward-past
+      :forward-past-regex    forward-past-regex
+      :fpr                   forward-past-regex
+      :forward-to            forward-to
+      :ft                    forward-to
+      :forward-to-regex      forward-to-regex
+      :ftr                   forward-to-regex
+      :rewind                rewind
+      :r                     rewind
+      :rewind-to             rewind-to
+      :rt                    rewind-to
+      :rewind-past           rewind-past
+      :rp                    rewind-past})
 
 
 (defn doc-substr [parser cnt]
@@ -193,32 +225,6 @@
 
 (defn html-table->matrix [html]
   (map row->cells (table-rows html)))
-
-(defn forward-past-regex [p regex]
-  (kutils/log "forward-past-regex regex=%s" regex)
-  (let [pat (if (and (keyword? regex) (regex regex-util/*common-regexes*))
-              (regex regex-util/*common-regexes*)
-              (Pattern/compile (str regex) (bit-or Pattern/MULTILINE Pattern/CASE_INSENSITIVE)))
-        m   (.matcher pat (:doc p))]
-    (kutils/log "forward-past-regex: pat=%s m=%s" pat m)
-    (if (.find m @(:pos p))
-      (do
-        (kutils/log "forward-past-regex: found reg:%s at:(%d,%d,)" regex (.start m) (.end m))
-        (reset! (:pos p) (.end m))
-        @(:pos p))
-      false)))
-
-(defn forward-to-regex [p regex]
-  (let [pat (if (and (keyword? regex) (regex regex-util/*common-regexes*))
-              (regex regex-util/*common-regexes*)
-              (Pattern/compile (str regex) (bit-or Pattern/MULTILINE Pattern/CASE_INSENSITIVE)))
-        m   (.matcher pat (:doc p))]
-    (kutils/log "forward-to-regex: using pat=%s" pat)
-    (if (.find m @(:pos p))
-      (do
-        (reset! (:pos p) (.start m))
-        @(:pos p))
-      false)))
 
 
 ;; (def p (make-parser (com.github.kyleburton.sandbox.web/get->string "http://asymmetrical-view.com/")))
