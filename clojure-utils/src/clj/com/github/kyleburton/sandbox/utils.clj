@@ -156,6 +156,26 @@
      (seq (.getDeclaredFields thing))
      (seq (.getDeclaredFields (class thing))))))
 
+(defn fields-value-seq
+  ([thing]
+     (map #(.get % thing) (fields-seq thing))))
+
+(defn fields-and-values-seq
+  ([thing]
+     (for [field (fields-seq thing)]
+       [(.getName field)
+        (.get field thing)])))
+
+;; this is not the same as 'bean' - bean doesn't grab fields, this
+;; grabs only fields...
+(defn fields-and-values-map
+  ([thing]
+     (reduce 
+      (fn [m [k v]]
+        (assoc m (keyword k) v))
+      {}
+      (fields-and-values-seq thing))))
+
 (defn constructors-seq
   ([thing]
    (if (= Class (class thing))
