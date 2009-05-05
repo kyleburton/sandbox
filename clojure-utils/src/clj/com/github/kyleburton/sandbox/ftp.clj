@@ -56,3 +56,5 @@
         (.retrieveFile client fname outstream))
       (.retrieveFile client fname))))
 
+;; (retrieve-file "ftp://anonymous:user%40host.com@ftp2.census.gov/geo/tiger/TIGER2008/42_PENNSYLVANIA/" "tl_2008_42_place.zip" "/home/mortis/tl_2008_42_place.zip") 
+;; (list-files "ftp://anonymous:user%40host.com@ftp2.census.gov/geo/tiger/TIGER2008/42_PENNSYLVANIA/")

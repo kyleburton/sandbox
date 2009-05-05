@@ -101,13 +101,33 @@
            (println (str/str-join "\t" (map #(.trim (.get %)) fields))))
          dbf)))))
 
-(dbf->tabfile 
+'(dbf->tabfile 
  (kutils/expand-file-name "~/data-sets/tiger-line/data/tmp/tl_2008_us_state.dbf") 
  (kutils/expand-file-name  "~/us_state.tab"))
 
-(dbf->tabfile 
+'(dbf->tabfile 
  (kutils/expand-file-name "~/data-sets/tiger-line/data/tmp/tl_2008_us_county.dbf") 
  (kutils/expand-file-name "~/us_county.tab"))
+
+'(dbf->tabfile 
+ (kutils/expand-file-name "~/data-sets/tiger-line/data/tmp/tl_2008_us_zcta5.dbf") 
+ (kutils/expand-file-name "~/us_zip_city.tab"))
+
+'(dbf->tabfile 
+ (kutils/expand-file-name "~/data-sets/tiger-line/data/PENNSYLVANIA/tmp/tl_2008_42_place.dbf") 
+ (kutils/expand-file-name "~/pa_place.tab"))
+
+'(dbf->tabfile 
+ (kutils/expand-file-name "~/data-sets/tiger-line/data/PENNSYLVANIA/42045_Delaware_County/tmp/tl_2008_42045_addr.dbf") 
+ (kutils/expand-file-name "~/pa_deleware_addr.tab"))
+
+'(dbf->tabfile 
+ (kutils/expand-file-name "~/data-sets/tiger-line/data/PENNSYLVANIA/42045_Delaware_County/tmp/tl_2008_42045_addrfn.dbf") 
+ (kutils/expand-file-name "~/pa_deleware_addrfn.tab"))
+
+'(dbf->tabfile 
+ (kutils/expand-file-name "~/data-sets/tiger-line/data/PENNSYLVANIA/42045_Delaware_County/tmp/tl_2008_42045_featnames.dbf") 
+ (kutils/expand-file-name "~/pa_deleware_featnames.tab"))
 
 
 ;; (def ua (org.apache.commons.httpclient.HttpClient.))
@@ -117,7 +137,7 @@
 ;; #'req
 
 
-(def type-descr
+'(def type-descr
      (for [row (map lparse/row->cells
                     (lparse/table-rows
                      (lparse/extract-from
@@ -133,7 +153,7 @@
                 " +" " "))
             row)))
 
-(print (str/str-join "\n" (map #(str/str-join "\t" %) type-descr)))
+'(print (str/str-join "\n" (map #(str/str-join "\t" %) type-descr)))
 
 ;; B	Binary, a string	10 digits representing a .DBT block number. 
 ;;                              The number is stored as a string, right justified and padded with blanks.
