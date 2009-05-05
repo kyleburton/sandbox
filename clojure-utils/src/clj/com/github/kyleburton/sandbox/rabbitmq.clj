@@ -18,7 +18,7 @@
 (def *default-host*         "localhost")
 (def *default-exchange*     "com.github.kyleburton.sandbox.rabbitmq.default.exchange.name")
 (def *default-queue*        "com.github.kyleburton.sandbox.rabbitmq.default.queue.name")
-(def *default-rpc-exchange* "com.github.kyleburton.sandbox.rabbitmq.default.rpc.exchange.name")
+(def *default-rpc-exchange* "com.github.kyleburton.sandbox.rabbitmq.default.rpc.queue.name")
 (def *default-rpc-queue*    "com.github.kyleburton.sandbox.rabbitmq.default.rpc.queue.name")
 (def *default-timeout*      250)
 (def *default-binding-key*  *default-queue*)
@@ -238,7 +238,7 @@
 ;; (with-connection [] (.queueDelete *channel* *default-queue*))
 ;; (with-connection [] (.exchangeDelete *channel* *default-exchange*))
 
-;; (with-connection [] (.queueDelete *channel* "rpc.channel.key"))
+;; (with-connection [] (.queueDelete *channel* "com.github.kyleburton.sandbox.rabbitmq.default.queue.name"))
 
 ;; (def x (make-rpc-state))
 ;; (:factory x)
@@ -258,10 +258,16 @@
                      :channel channel
                      :env *env* }
           queue    (:queue (:env rpc-state))
+          exchange (:exchange *env* *default-rpc-exchange*)
           map-call (:map-call callbacks)
           map-cast (:map-cast callbacks)]
-      (.exchangeDeclare channel (:exchange *env* *default-rpc-exchange*) "direct" true)
+      (.exchangeDeclare channel exchange "direct" true)
       (.queueDeclare channel queue true)
+      (.queueBind channel
+                  queue
+                  exchange
+                  queue ;(:binding-key *env* *default-binding-key*)
+                  )
       (prn (format "make-rpc-server: channel:%s queue:%s map-call:%s map-cast:%s"
                    channel
                    queue
@@ -278,17 +284,24 @@
         (assoc rpc-state :server server)))))
 
 (defn shutdown-rpc-server [state]
-  (.close (:channel state))
-  (.close (:connection state)))
+  (try 
+   (.close (:channel state))
+   (finally
+    (try 
+     (.close (:connection state))
+     (finally
+      (.close (:server state)))))))
+
 
 (def rpc-server
      (make-rpc-server 
-      {:queue "rpc.test"}
+      {};;{:queue "rpc.test"}
       {:map-call (fn rpc-map-call [rpc-state this request props]
                    (prn (format "in the map-call handler! rpc-state:%s this:%s request:%s props:%s" 
                                 rpc-state this request props))
-                   ;; do this conditionally
-                   (.terminateMainloop this)
+                   (if (and (.get request "command")
+                            (= "exit" (.get request "command")))
+                     (.terminateMainloop this))
                    {"resp" "i hunger"
                     "time" (java.util.Date.)})
        :map-cast (fn rpc-map-cast [rpc-state this request]
@@ -301,15 +314,21 @@
 
 
 (do (.mainloop (:server rpc-server)) 
-    (prn "mainloop returned"))
+    (prn "mainloop returned")
+    (shutdown-rpc-server rpc-server))
 
 (.getQueueName (:server rpc-server))
 
+(defn close-rpc-client [client]
+  (.close (.getChannel client))
+  (.close client))
+
 (def rpc-client
      (RpcClient. 
-      (.createChannel (.newConnection (:factory rpc-server)
-                                      (:host *env* *default-host*) 
-                                      (:port *env* *default-port*)))
+      (.createChannel 
+       (.newConnection (:factory rpc-server)
+                       (:host *env* *default-host*) 
+                       (:port *env* *default-port*)))
       (:exchange (:env rpc-server) *default-rpc-exchange*)
       (:queue (:env rpc-server))))
 
@@ -317,6 +336,8 @@
 
 (let [res (.mapCall rpc-client {"ping" "value2"})]
   (prn (format "returned: %s" res)))
+
+(close-rpc-client rpc-client)
 
 )
 
