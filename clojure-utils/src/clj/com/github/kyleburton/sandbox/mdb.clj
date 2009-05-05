@@ -115,10 +115,10 @@
 ;; (mdb->tables (kutils/$HOME "test.mdb"))
 
 
-(table->tab-file
- (kutils/$HOME "test.mdb")
- "TABLE_A"
- (kutils/$HOME "table_a.tab"))
+;; (table->tab-file
+;;  (kutils/$HOME "test.mdb")
+;;  "TABLE_A"
+;;  (kutils/$HOME "table_a.tab"))
 
 (defn tab-file->table [mdb table file]
   (with-database [db mdb]
