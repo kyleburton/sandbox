@@ -48,9 +48,9 @@
     (apply create-table db table-name cols)))
 
 
-(kutils/doc-class
- (with-database [db (kutils/$HOME "test.mdb")]
-   (.getTableNames db)))
+;; (kutils/doc-class
+;;  (with-database [db (kutils/$HOME "test.mdb")]
+;;    (.getTableNames db)))
 
 
 (defn insert-row [tbl & fields]
