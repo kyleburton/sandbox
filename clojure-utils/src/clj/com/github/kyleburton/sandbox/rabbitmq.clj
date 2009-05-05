@@ -18,6 +18,8 @@
 (def *default-host*         "localhost")
 (def *default-exchange*     "com.github.kyleburton.sandbox.rabbitmq.default.exchange.name")
 (def *default-queue*        "com.github.kyleburton.sandbox.rabbitmq.default.queue.name")
+(def *default-rpc-exchange* "com.github.kyleburton.sandbox.rabbitmq.default.rpc.exchange.name")
+(def *default-rpc-queue*    "com.github.kyleburton.sandbox.rabbitmq.default.rpc.queue.name")
 (def *default-timeout*      250)
 (def *default-binding-key*  *default-queue*)
 (def *default-message-properties*
@@ -37,8 +39,8 @@
      *amqp-factory* 
      (ConnectionFactory. *connection-params*))
 
-(def #^{:doc "Var used to hold the connection to the broker."} 
-     *broker* nil)
+(def #^{:doc "Var used to hold the connection to the factory."} 
+     *factory* nil)
 
 (def #^{:doc "Var used to hold the open connection on the broker."} 
      *connection* nil)
@@ -55,9 +57,6 @@
             :user nil
             :pass nil
             })
-
-;; (def *connection* (.newConnection *factory* *rabbit-host-name* *rabbit-port*))
-;; (def *client-connection* (.newConnection *factory* *rabbit-host-name* *rabbit-port*))
 
 (defn- parse-args [args]
   (if (map? args)
@@ -90,7 +89,7 @@
     (if (:frame-max props)    (.setRequestedFrame       params (:frame-max   props)))
     (if (:heartbeat props)    (.setRequestedHeartbeat   params (:heartbeat   props)))
     (if (:heart-beat props)   (.setRequestedHeartbeat   params (:heart-beat  props)))
-    (prn "make-connection-params: params=" (bean params))
+    ;; (prn "make-connection-params: params=" (bean params))
     params))
 
 ;; set these if you want to override...
@@ -99,13 +98,14 @@
                            :pass "guest"}))
 
 
-;; supported arguments:
+;; TODO: refactor with-connection and do-connection, too much shared
+;; behavior for them to be so cut&paste
 (defmacro with-connection [params & body]
   (let [[positional named] (parse-args params)]
     ;; (prn "positional=" positional)
     `(binding [*env* ~(merge *env* @*default-param-map* named)]
-       (binding [*broker*  (ConnectionFactory. (make-connection-params *env*))]
-         (with-open [conn# (.newConnection *broker* 
+       (binding [*factory*  (ConnectionFactory. (make-connection-params *env*))]
+         (with-open [conn# (.newConnection *factory* 
                                                 (:host *env* *default-host*)
                                                 (:port *env* *default-port*))]
            (binding [*connection* conn#]
@@ -131,8 +131,8 @@
   "Functional equivalent of with-connection macro"
   [params fn]
   (binding [*env* (merge *env* @*default-param-map* params)]
-     (binding [*broker*  (ConnectionFactory. (make-connection-params *env*))]
-       (with-open [connection (.newConnection *broker* 
+     (binding [*factory*  (ConnectionFactory. (make-connection-params *env*))]
+       (with-open [connection (.newConnection *factory* 
                                               (:host *env* *default-host*)
                                               (:port *env* *default-port*))]
          (binding [*connection* connection]
@@ -155,7 +155,7 @@
 ;;     [:exchange "test.exchange.name" 
 ;;      :exchange-durable false
 ;;      :queue "test.queue.name" :queue-durable false]
-;;   (prn "broker=" *broker*)
+;;   (prn "broker=" *factory*)
 ;;   (prn "connection=" *connection*)
 ;;   (prn "env=" *env*))
 
@@ -164,7 +164,7 @@
 ;;   :exchange-durable false
 ;;   :queue "test.queue.name" :queue-durable false}
 ;;  (fn []
-;;    (prn "broker=" *broker*)
+;;    (prn "broker=" *factory*)
 ;;    (prn "connection=" *connection*)
 ;;    (prn "env=" *env*)))
 
@@ -238,6 +238,112 @@
 ;; (with-connection [] (.queueDelete *channel* *default-queue*))
 ;; (with-connection [] (.exchangeDelete *channel* *default-exchange*))
 
+;; (with-connection [] (.queueDelete *channel* "rpc.channel.key"))
+
+;; (def x (make-rpc-state))
+;; (:factory x)
+;; (:channel x)
+;; (:connection x)
+;; (shutdown-rpc-state x)
+
+(defn make-rpc-server [params callbacks]
+  (binding [*env* (merge {:queue *default-rpc-queue*} *env* params)]
+    (let [factory    (ConnectionFactory. (make-connection-params *env*))
+          connection (.newConnection factory
+                                     (:host *env* *default-host*) 
+                                     (:port *env* *default-port*))
+          channel    (.createChannel connection)
+          rpc-state {:factory factory
+                     :connection connection
+                     :channel channel
+                     :env *env* }
+          queue    (:queue (:env rpc-state))
+          map-call (:map-call callbacks)
+          map-cast (:map-cast callbacks)]
+      (.exchangeDeclare channel (:exchange *env* *default-rpc-exchange*) "direct" true)
+      (.queueDeclare channel queue true)
+      (prn (format "make-rpc-server: channel:%s queue:%s map-call:%s map-cast:%s"
+                   channel
+                   queue
+                   (:map-call callbacks)
+                   (:map-cast callbacks)))
+      (let [server (proxy [com.rabbitmq.client.MapRpcServer]
+                       [channel queue]
+                     (handleMapCall [request props]
+                                    ;;(prn (format "handleMapCall: this=%s request=%s props=%s" this request props))
+                                    (map-call rpc-state this request props))
+                     (handleMapCast [request]
+                                    ;;(prn (format "handleMapCast: this=%s request=%s=%s" this request))
+                                    (map-cast rpc-state this request)))]
+        (assoc rpc-state :server server)))))
+
+(defn shutdown-rpc-server [state]
+  (.close (:channel state))
+  (.close (:connection state)))
+
+(def rpc-server
+     (make-rpc-server 
+      {:queue "rpc.test"}
+      {:map-call (fn rpc-map-call [rpc-state this request props]
+                   (prn (format "in the map-call handler! rpc-state:%s this:%s request:%s props:%s" 
+                                rpc-state this request props))
+                   ;; do this conditionally
+                   (.terminateMainloop this)
+                   {"resp" "i hunger"
+                    "time" (java.util.Date.)})
+       :map-cast (fn rpc-map-cast [rpc-state this request]
+                   (prn (format "in the map-cast handler! rpc-state:%s this:%s request:%s" 
+                                rpc-state this request)))}))
+
+'(
+
+(:exchange (:env rpc-server) *default-rpc-exchange*)
+
+
+(do (.mainloop (:server rpc-server)) 
+    (prn "mainloop returned"))
+
+(.getQueueName (:server rpc-server))
+
+(def rpc-client
+     (RpcClient. 
+      (.createChannel (.newConnection (:factory rpc-server)
+                                      (:host *env* *default-host*) 
+                                      (:port *env* *default-port*)))
+      (:exchange (:env rpc-server) *default-rpc-exchange*)
+      (:queue (:env rpc-server))))
+
+(.getExchange rpc-client)
+
+(let [res (.mapCall rpc-client {"ping" "value2"})]
+  (prn (format "returned: %s" res)))
+
+)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; (def *rpc-server-channel-key* "rpc.channel.key")
+;; (def *rpc-server-connection* (.newConnection *amqp-factory* *default-host* *default-port*))
+;; (def *rpc-server-channel*
+;;      (let [channel (.createChannel *rpc-server-connection*)]
+;;        (.exchangeDeclare channel "rpc.exchange" "direct" true)
+;;        (.queueDeclare channel *rpc-server-channel-key* true)
+;;        channel))
+
+;; (def *rpc-server*
+;;      (let [server (proxy [com.rabbitmq.client.MapRpcServer]
+;;                       [*rpc-server-channel* *rpc-server-channel-key*]
+;;                     (handleMapCall [request props]
+;;                                    (prn "handle-map-call! req=" request)
+;;                                    (if (.get request "exit")
+;;                                      (do
+;;                                        (prn "exiting...")
+;;                                        (.terminateMainloop this)
+;;                                        (.close this)))
+;;                                    {"resp" "I hunger!"}))]
+;;        (.queueDeclare (.getChannel server) *rpc-server-channel-key*)
+;;        server))
+
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (comment
@@ -247,11 +353,8 @@
 ;; play w/the rpc client/server
 
 (def *rpc-server-channel-key* "rpc-test")
-
 (def *rpc-server-connection* (.newConnection *factory* *rabbit-host-name* *rabbit-port*))
-
 (def *rpc-server-channel*    (open-channel *rpc-server-connection* *default-exchange-name* *rpc-server-channel-key*))
-
 (def *rpc-server*
      (let [server (proxy [com.rabbitmq.client.MapRpcServer]
                       [*rpc-server-channel* *rpc-server-channel-key*]
