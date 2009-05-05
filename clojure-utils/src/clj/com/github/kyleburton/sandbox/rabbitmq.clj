@@ -238,8 +238,6 @@
 ;; (with-connection [] (.queueDelete *channel* *default-queue*))
 ;; (with-connection [] (.exchangeDelete *channel* *default-exchange*))
 
-;; (with-connection [] (.queueDelete *channel* "com.github.kyleburton.sandbox.rabbitmq.default.queue.name"))
-
 ;; (def x (make-rpc-state))
 ;; (:factory x)
 ;; (:channel x)
@@ -286,24 +284,41 @@
 (defn shutdown-rpc-server [state]
   (try 
    (.close (:channel state))
+   (catch Exception ex
+     (prn "channel close failed: " ex)
+     (throw ex))
    (finally
     (try 
      (.close (:connection state))
+     (catch Exception ex
+       (prn "connection close failed: " ex)
+       (throw ex))     
      (finally
-      (.close (:server state)))))))
+      (try
+       (.close (:server state))
+       (catch Exception ex
+         (prn "server close failed: " ex)
+         (throw ex))))))))
 
+(defn map-call-handler [rpc-state this request props]
+  (prn (format "map-call-handler: this=%s command=%s %s"
+               this
+               (.get request "command")
+               (if (.get request "command")
+                 (.toString (.get request "command"))
+                 "")))
+  (if (and (.get request "command")
+           (= "exit" (.toString (.get request "command"))))
+    (.terminateMainloop this))
+  {"resp" (str "you pinged: " (if (.get request "ping")
+                                (.toString (.get request "ping"))
+                                "*nothing*"))
+   "time" (java.util.Date.)})
 
 (def rpc-server
      (make-rpc-server 
       {};;{:queue "rpc.test"}
-      {:map-call (fn rpc-map-call [rpc-state this request props]
-                   (prn (format "in the map-call handler! rpc-state:%s this:%s request:%s props:%s" 
-                                rpc-state this request props))
-                   (if (and (.get request "command")
-                            (= "exit" (.get request "command")))
-                     (.terminateMainloop this))
-                   {"resp" "i hunger"
-                    "time" (java.util.Date.)})
+      {:map-call map-call-handler
        :map-cast (fn rpc-map-cast [rpc-state this request]
                    (prn (format "in the map-cast handler! rpc-state:%s this:%s request:%s" 
                                 rpc-state this request)))}))
@@ -312,10 +327,14 @@
 
 (:exchange (:env rpc-server) *default-rpc-exchange*)
 
+(with-connection [] (.queueDelete *channel* "com.github.kyleburton.sandbox.rabbitmq.default.rpc.queue.name"))
 
 (do (.mainloop (:server rpc-server)) 
     (prn "mainloop returned")
-    (shutdown-rpc-server rpc-server))
+    (try (shutdown-rpc-server rpc-server)
+         (catch Exception ex
+           (prn "error shutting down: " ex)
+           (throw ex))))
 
 (.getQueueName (:server rpc-server))
 
@@ -335,6 +354,9 @@
 (.getExchange rpc-client)
 
 (let [res (.mapCall rpc-client {"ping" "value2"})]
+  (prn (format "returned: %s" res)))
+
+(let [res (.mapCall rpc-client {"command" "exit"})]
   (prn (format "returned: %s" res)))
 
 (close-rpc-client rpc-client)
