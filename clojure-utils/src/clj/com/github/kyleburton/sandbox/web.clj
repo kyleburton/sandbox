@@ -1,3 +1,4 @@
+;; TODO: support authorization
 (ns com.github.kyleburton.sandbox.web
   (:import (org.apache.commons.httpclient HttpClient NameValuePair))
   (:import (org.apache.commons.httpclient.methods GetMethod))
