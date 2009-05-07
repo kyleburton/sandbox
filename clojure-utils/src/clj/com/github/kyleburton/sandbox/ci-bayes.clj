@@ -3,13 +3,19 @@
 ;; then copied dep/*.jar to $HOME/.clojure, removing duplicate libs
 
 (ns com.github.kyleburton.sandbox.cl-bayes
-  (:import (com.enigmastation.classifier.impl NaiveClassifierImpl))
+  (:import (com.enigmastation.classifier.impl NaiveClassifierImpl FisherClassifierImpl))
   (:require [com.github.kyleburton.sandbox.utils :as kutils]
             [com.github.kyleburton.sandbox.web :as web]
             [clojure.contrib.duck-streams :as ds]
             [clojure.contrib.str-utils :as str]))
 
 (def classifier (NaiveClassifierImpl.))
+
+;; The fisher classifier doesn't do as well with these exmple
+;; documents - likely needs more training, and only using <10
+;; documents is questaionable anyway
+;;
+;; (def classifier (FisherClassifierImpl.))
 
 (def non-prof-urls
      ["http://www.uhmchealth.com/"
@@ -58,6 +64,8 @@
 ;; so lets train it some more:
 (.train classifier (web/memoized-get->string "http://www.uhhospitals.org/PhysicianFinder/PhysicianDetails/tabid/1709/phyID/9300/Default.aspx") "has-profile")
 (.train classifier (web/memoized-get->string "http://www.uhhospitals.org/PhysicianFinder/PhysicianDetails/tabid/1709/phyID/3518/Default.aspx") "has-profile")
+;; (.train classifier (web/memoized-get->string "http://www.uhhospitals.org/") "no-profile)
+;; (.train classifier (web/memoized-get->string "http://www.uhhospitals.org/PhysicianFinder/tabid/1473/Default.aspx") "no-profile")
 
 ;; now how does it do?
 (.getClassification classifier (web/memoized-get->string "http://www.uhhospitals.org/PhysicianFinder/PhysicianDetails/tabid/1709/phyID/9300/Default.aspx"))
@@ -71,3 +79,17 @@
 ;; "has-profile"
 (.getClassification classifier (web/memoized-get->string "http://www.uhhospitals.org/PhysicianFinder/PhysicianDetails/tabid/1709/phyID/3293/Default.aspx"))
 ;; "has-profile"
+
+
+(.getDocumentProbabilityForCategory classifier (web/memoized-get->string "http://www.uhhospitals.org/PhysicianFinder/PhysicianDetails/tabid/1709/phyID/3293/Default.aspx") "no-profile")
+;; 0.0
+(.getDocumentProbabilityForCategory classifier (web/memoized-get->string "http://www.uhhospitals.org/PhysicianFinder/PhysicianDetails/tabid/1709/phyID/3293/Default.aspx") "has-profile")
+;; 6.827379160681081E-225
+
+(java.util.Arrays/toString (.getProbabilities classifier (web/memoized-get->string "http://www.uhhospitals.org/PhysicianFinder/PhysicianDetails/tabid/1709/phyID/3293/Default.aspx")))
+;;"[[ClassifierProbability:category=\"has-profile\",score=0], [ClassifierProbability:category=\"no-profile\",score=0]]"
+
+;; (kutils/object->file classifier (kutils/$HOME "tmp" "classifier.bin"))
+;; (def c2 (kutils/file->object (kutils/$HOME "tmp" "classifier.bin")))
+;; (java.util.Arrays/toString (.getProbabilities c2 (web/memoized-get->string "http://www.uhhospitals.org/PhysicianFinder/PhysicianDetails/tabid/1709/phyID/3293/Default.aspx")))
+;; (.getClassification c2 (web/memoized-get->string "http://www.uhhospitals.org/PhysicianFinder/tabid/1473/sIsSearch/1/Default.aspx"))

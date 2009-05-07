@@ -245,3 +245,14 @@ methods."
     (println (str "    " (trimmer method))))))
 
 
+(defn object->file [obj file]
+  (with-open [outp (java.io.ObjectOutputStream. (java.io.FileOutputStream. file))]
+    (.writeObject outp obj)))
+
+
+(defn file->object [file]
+  (with-open [inp (java.io.ObjectInputStream. (java.io.FileInputStream. file))]
+    (.readObject inp)))
+
+;; (object->file "foo" ($HOME "/foo.bin"))
+;; (file->object ($HOME "/foo.bin"))
