@@ -218,6 +218,23 @@
                     '(:fp "href=\"")
                     '(:ft "\"")))
 
+(defn html->anchors [html]
+  (extract-all-from html
+                    '(:ft "<a ")
+                    '(:fp "</a>")))
+
+(defn anchor->href [html]
+  (first (kutils/re-find-first #"href=\"([^\"]+)\"" html)))
+
+(defn html-find-link-with-body [html text]
+  (first
+   (kutils/re-find-first 
+    #"href=\"([^\"]+)\"" 
+    (first
+     (filter #(.contains % text) 
+             (html->anchors html))))))
+
+
 (defn html->tables [html]
   (extract-all-from html
                     '(:ft "<table")

@@ -133,6 +133,17 @@
        (recur m (conj res (vec (all-groups m))))
        res))))
 
+(defn re-find-first
+  "Retreive the first set of match groups for a regex in a given string."
+  [re str]
+  (first
+   (doall
+    (loop [m (re-matcher (if (isa? (class re) String) (re-pattern re) re) str)
+           res []]
+      (if (.find m)
+        (recur m (conj res (vec (all-groups m))))
+        res)))))
+
 (defn chmod
   "Change a file or directory's permissions.  Shells out to perform the chmod."
   [perms file]

@@ -17,9 +17,32 @@
 (defn #^String get->string [#^String url & [params]]
   (let [req (GetMethod. url)
         pairs (map->nvpairs params)]
-    (prn "setQueryString: " pairs)
     (if pairs
       (.setQueryString req pairs))
     (.executeMethod *ua* req)
     (.getResponseBodyAsString req)))
+
+(def memoized-get->string
+     (fn [& params]
+       (apply get->string params)))
+
+(defn strip-html [#^String html]
+  (.replaceAll html "<[^>]+>" ""))
+
+(def *ligature->chr* 
+     {"&gt;"   ">"
+      "&lt;"   "<"
+      "&nbsp;" " "
+      })
+
+(defn html-decode [#^String html]
+  (.replaceAll 
+   (loop [html html
+          [lg & lgs] (keys *ligature->chr*)]
+     (prn (format "html-decode: html=%s lg=%s lgs=%s" html lg lgs))
+     (if lg
+       (recur (.replceAll html lg (*ligature->chr* lg))
+              lgs)
+       html))
+   "&amp;" "&"))
 
