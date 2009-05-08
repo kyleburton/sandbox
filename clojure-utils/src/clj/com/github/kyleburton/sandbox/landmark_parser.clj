@@ -243,6 +243,11 @@
 (defn html-table->matrix [html]
   (map row->cells (table-rows html)))
 
+(defn html->form-blocks [html]
+  (extract-all-from html
+                    '(:ft "<form")
+                    '(:fp "</form>")))
+
 
 ;; (def p (make-parser (com.github.kyleburton.sandbox.web/get->string "http://asymmetrical-view.com/")))
 ;; (forward-past-regex p :num-real)
@@ -253,3 +258,30 @@
 
 
 ;; (html->links (com.github.kyleburton.sandbox.web/get->string "http://asymmetrical-view.com/"))
+
+(defn parse-input-element [html]
+  {:tag   :input
+   :type  (first (kutils/re-find-first "(?-ims:type=\"([^\"]+)\")" html))
+   :name  (first (kutils/re-find-first "(?-ims:name=\"([^\"]+)\")" html))
+   :value (first (kutils/re-find-first "(?-ims:value=\"([^\"]+)\")" html))
+   })
+
+;; This technique won't work reliably...need to implement :forward-to-first-of '(:ft "<input") '(:ftfo "/>" "</input>"
+;; TODO: parse out textarea, button and select
+(defn parse-form-elements [html]
+  (apply concat [(map parse-input-element (extract-all-from html '(:ft "<input") '(:fp ">")))
+;;                  (extract-all-from html '(:ft "<textarea") '(:fp "</textarea>"))
+;;                  (extract-all-from html '(:ft "<button") '(:fp ">"))
+;;                  (extract-all-from html '(:ft "<select") '(:fp "</select>"))
+                 ]))
+
+(parse-form-elements (first (html->form-blocks com.github.kyleburton.sandbox.web/html)))
+
+(defn parse-form [html]
+  {:method (or (first (kutils/re-find-first "(?-ims:method=\"([^\"]+)\")" html))
+               "GET")
+   :action (or (first (kutils/re-find-first "(?-ims:action=\"([^\"]+)\")" html))
+               nil)
+   :params (vec (parse-form-elements html))
+   })
+

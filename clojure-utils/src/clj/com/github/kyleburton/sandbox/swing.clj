@@ -10,8 +10,9 @@
   (:use [clojure.contrib.str-utils :as str]
         [clojure.contrib.fcase :only (case)]))
 
-(defn get-password-dialog []
-  (let [dlg-complete  (CountDownLatch. 1)
+(defn get-password-dialog [& args]
+  (let [params        (kutils/parse-paired-arglist args)
+        dlg-complete  (CountDownLatch. 1)
         frame         (JFrame. "Password")
         password      (atom nil)
         pass-field    (JPasswordField. 20)
@@ -22,10 +23,13 @@
                           []
                         (actionPerformed
                          [#^ActionEvent e]
-                         (prn (format "actionPerformed: this=%s event=%s" this e))
                          (let [command (.getActionCommand e)
                                done (atom false)]
-                           (prn (format "WindowAdapter.windowActivated, this=%s event=%s cmd=%s" this e command))
+                           (prn (format "WindowAdapter.windowActivated, done=%s event=%s cmd=%s this=%s" 
+                                        @done
+                                        e
+                                        command
+                                        this))
                            (if (= ok-txt command)
                              (do
                                (reset! password (.getPassword pass-field))
@@ -74,9 +78,9 @@
                 (prn (format "WindowAdapter.windowActivated, this=%s event=%s" this e)))))
             (.pack frame)
             (.setVisible frame true))))
-    (.await dlg-complete 5 TimeUnit/SECONDS)
-    (prn (format "pass=%s" @password))
-    (prn (format "pass=%s:%s" @password (if (nil? @password) "*null*" (String. @password))))
+    (if (:timeout params)
+      (.await dlg-complete (:timeout params) TimeUnit/SECONDS)
+      (.await dlg-complete))
     @password))
 
 ;; (let [pass (get-password-dialog)] (prn "pass=" pass))

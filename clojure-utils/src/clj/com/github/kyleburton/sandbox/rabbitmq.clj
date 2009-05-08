@@ -58,25 +58,6 @@
             :pass nil
             })
 
-(defn- parse-args [args]
-  (if (map? args)
-    [[] args]
-    (loop [res {} 
-           unnamed []
-           [arg & args] args]
-      (if (not arg)
-        [unnamed res]
-        (if (keyword? arg)
-          (recur (assoc res arg (first args))
-                 unnamed
-                 (rest args))
-          (recur res
-                 (conj unnamed arg)
-                 args))))))
-
-;; (parse-args '[:foo bar this that :other thing])
-;; (parse-args {:foo 'bar :other 'thing})
-
 (defn- make-connection-params [props]
   (let [params (ConnectionParameters.)]
     (if (:user props)         (.setUsername             params (:user        props)))
@@ -101,7 +82,7 @@
 ;; TODO: refactor with-connection and do-connection, too much shared
 ;; behavior for them to be so cut&paste
 (defmacro with-connection [params & body]
-  (let [[positional named] (parse-args params)]
+  (let [[positional named] (kutils/parse-paired-arglist params)]
     ;; (prn "positional=" positional)
     `(binding [*env* ~(merge *env* @*default-param-map* named)]
        (binding [*factory*  (ConnectionFactory. (make-connection-params *env*))]

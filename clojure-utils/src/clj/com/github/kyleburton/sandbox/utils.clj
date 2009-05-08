@@ -325,3 +325,26 @@ methods."
 
 
 
+;; console is not available through slime :(, but X is - try using swing/get-password-dialog instead
+;; (String. (.readPassword console "[%s]", (into-array ["password"])))
+
+
+(defn parse-paired-arglist [args]
+  (if (map? args)
+    [[] args]
+    (loop [res {} 
+           unnamed []
+           [arg & args] args]
+      (if (not arg)
+        [unnamed res]
+        (if (keyword? arg)
+          (recur (assoc res arg (first args))
+                 unnamed
+                 (rest args))
+          (recur res
+                 (conj unnamed arg)
+                 args))))))
+
+;; (parse-paired-arglist '[:foo bar this that :other thing])
+;; (parse-paired-arglist {:foo 'bar :other 'thing})
+
