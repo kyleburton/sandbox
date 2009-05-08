@@ -1,7 +1,7 @@
 ;; TODO: support authorization
 (ns com.github.kyleburton.sandbox.web
-  (:import (org.apache.commons.httpclient HttpClient NameValuePair))
-  (:import (org.apache.commons.httpclient.methods GetMethod))
+  (:import (org.apache.commons.httpclient HttpClient NameValuePair)
+           (org.apache.commons.httpclient.methods GetMethod))
   (:require [com.github.kyleburton.sandbox.landmark-parser :as lparse]
             [com.github.kyleburton.sandbox.utils :as kutils])
   (:use [clojure.contrib.str-utils :as str]

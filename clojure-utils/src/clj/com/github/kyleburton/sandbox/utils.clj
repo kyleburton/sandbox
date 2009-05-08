@@ -1,4 +1,5 @@
-(ns com.github.kyleburton.sandbox.utils)
+(ns com.github.kyleburton.sandbox.utils
+  (:require [clojure.contrib.duck-streams :as ds]))
 
 (defn raise 
   "Simple wrapper around throw."
@@ -17,6 +18,13 @@
   "Coerce into a File."
   [thing]
   (java.io.File. (str thing)))
+
+(defn basename [fname]
+  (cond (isa? fname java.io.File)
+        (.getParent fname)
+        true
+        (.getParent (java.io.File. (str fname)))))
+
 
 (defn #^java.io.File $HOME
   "Construct a path relative to the user's home directory."
@@ -254,5 +262,66 @@ methods."
   (with-open [inp (java.io.ObjectInputStream. (java.io.FileInputStream. file))]
     (.readObject inp)))
 
+(defn freeze 
+  ([obj]
+     (with-open [baos (java.io.ByteArrayOutputStream. 1024)
+                 oos  (java.io.ObjectOutputStream. baos)]
+       (.writeObject oos obj)
+       (.toByteArray baos)))
+  ([obj & objs]
+     (freeze (vec (cons obj objs)))))
+
+;; (freeze "foo")
+;; (freeze "foo" "bar" "qux")
+
+
+(defn thaw [bytes]
+  (with-open [bais (java.io.ByteArrayInputStream. bytes)
+              ois  (java.io.ObjectInputStream. bais)]
+    (.readObject ois)))
+
+;; (thaw (freeze "foo"))
+
 ;; (object->file "foo" ($HOME "/foo.bin"))
 ;; (file->object ($HOME "/foo.bin"))
+
+(defmacro with-stdout-to-file [file & body]
+  `(with-open [out# (ds/writer ~file)]
+     (binding [*out* out#]
+       ~@body)))
+
+(defmacro with-stderr-to-file [file & body]
+  `(with-open [out# (ds/writer ~file)]
+     (binding [*err* out#]
+       ~@body)))
+
+(defn pairs->map [pairs]
+  (if (not (even? (count pairs)))
+    (throw (RuntimeException. (format "Error, pairs->map on odd # of fields? %d:(%s)" (count pairs) pairs)))
+    (reduce (fn [m [k v]] (assoc m k v))
+            {}
+            (partition 2 pairs))))
+
+
+(defn md5->string [bytes]
+  (let [digester (java.security.MessageDigest/getInstance "MD5")]
+    (.update digester bytes)
+    (apply str (map (fn [byte]
+                      (Integer/toHexString (bit-and 0xFF byte)))
+                    (.digest digester)))))
+
+(defn sha1->string [bytes]
+  (let [digester (java.security.MessageDigest/getInstance "SHA1")]
+    (.update digester bytes)
+    (apply str (map (fn [byte]
+                      (Integer/toHexString (bit-and 0xFF byte)))
+                    (.digest digester)))))
+
+;; (md5->string (.getBytes "foo bar\n"))
+;; (sha1->string (.getBytes "foo bar\n"))
+
+
+
+
+
+

@@ -6,7 +6,7 @@
         [clojure.contrib.fcase :only (case)]))
 
 
-;; regexes pulled from Regex::Common CPAN module
+;; regexes, initial set pulled from Regex::Common CPAN module
 (def *common-regexes* 
   {:num-real #"(?-xism:(?:(?i)(?:[+-]?)(?:(?=[0123456789]|[.])(?:[0123456789]*)(?:(?:[.])(?:[0123456789]{0,}))?)(?:(?:[E])(?:(?:[+-]?)(?:[0123456789]+))|)))"
    :num-int #"(?-xism:(?:(?:[+-]?)(?:[0123456789]+)))"

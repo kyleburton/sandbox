@@ -1,60 +1,41 @@
 (ns com.github.kyleburton.sandbox.delicious
-  (:require [clojure.contrib.duck-streams :as ds])
-  (:require [ clojure.contrib.str-utils :as str-utils]))
+  (:require [clojure.contrib.duck-streams :as ds]
+            [clojure.contrib.str-utils :as str-utils]
+            [com.github.kyleburton.sandbox.landmark-parser :as lparse]
+            [com.github.kyleburton.sandbox.utils :as kutils]
+            [com.github.kyleburton.sandbox.web :as web]))
 
-(defn basename [fnane]
-  (.getParent (java.io.File. *file*)))
+(def *bookmarks-file* 
+     (str (kutils/$HOME "/personal/projects/sandbox/del.icio.us/data/delicious-20090429.htm")))
 
-(def *this-dir* (basename *file*))
-
-
-(defn relative-file [fname]
-  (if (.startsWith fname "/")
-    (str *this-dir* fname)
-    (str *this-dir* "/" fname)))
-
-(def *proj-root*
-     (loop [here (ds/file *this-dir*)]
-       (if (= "src" (.getName here))
-         (.getParent here)
-         (recur (ds/file (.getParent here))))))
-
-(defn proj-file [fname]
-  (.replaceAll (str *proj-root* "/" fname)
-               "//" "/"))
-
-(def *bookmarks-file* (proj-file "/data/delicious-20090429.htm"))
+(def *bookmarks*
+     (lparse/html->anchors (slurp *bookmarks-file*)))
 
 ;; "<DT><A HREF=\"http://hopper.squarespace.com/blog/2008/6/22/introducing-shovel-an-amqp-relay.html\" LAST_VISIT=\"1239821460\" ADD_DATE=\"1239821460\" TAGS=\"shovel,erlang,rabbit-mq,messaging,amqp\">No Clumps, Fisheyes or Microgels  -  Blog   - Introducing Shovel: An AMQP Relay</A>"
-(defn parse-line [#^String line]
-  (try
-   (let [[link add-date tags description] 
-         (drop 1 (re-matches #".+HREF=\"([^\"]+)\".*?ADD_DATE=\"([^\"]+)\".*?TAGS=\"([^\"]*)\".*?>([^<]+)</A>.*" line))]
-     {:link        link
-      :add-date    add-date
-      :tags        (vec (.split tags ","))
-      :description description})
-   (catch Exception ex
-     (do
-       (prn "stacktrace:")
-       (.printStackTrace ex)
-       (prn "...stacktrace")
-       (prn (format "unable to parse line='%s' ex=%s" line ex))
-       {}))))
-
-;; (parse-line (first (filter #(.startsWith %1 "<DT>") (line-seq (ds/reader *bookmarks-file*)))))
-
-;; (map :tags (take 3 (map parse-line (filter #(.startsWith %1 "<DT>") (line-seq (ds/reader *bookmarks-file*))))))
+(defn parse-bookmark [#^String bkmrk]
+  (let [bkmrk   (if (nil? bkmrk) "" bkmrk)
+        tag-str (first (kutils/re-find-first #"TAGS=\"([^\"]+)\"" bkmrk))
+        tags    (if (or (empty? tag-str) (nil? tag-str))
+                  nil
+                  (vec (.split tag-str ",")))]
+    {:name       (.trim (web/strip-html bkmrk))
+     :url        (first (kutils/re-find-first #"HREF=\"([^\"]+)\"" bkmrk))
+     :last-visit (first (kutils/re-find-first #"LAST_VISIT=\"([^\"]+)\"" bkmrk))
+     :add-date   (first (kutils/re-find-first #"ADD_DATE=\"([^\"]+)\"" bkmrk))
+     :tags       tags}))
 
 (defn dump-to-tab [#^String fname]
-  (with-open [out (ds/writer fname)]
-    (binding [*out* out]
-      (println (str-utils/str-join "\t" ["link" "add_date" "description" "tag"]))
-      (dorun
-       (doseq [bmrk (map parse-line (filter #(.startsWith %1 "<DT>") (line-seq (ds/reader *bookmarks-file*))))
-               tag (:tags bmrk)]
-         (println (str-utils/str-join "\t" [(:link bmrk) (:add-date bmrk) (:description bmrk) tag])))))))
+  (kutils/with-stdout-to-file 
+   fname
+   (println (str-utils/str-join "\t" ["url" "add_date" "last_visit" "description" "tag"]))
+   (dorun
+    (doseq [bmrk (map parse-bookmark *bookmarks*)
+            tag (:tags bmrk)]
+      (println (str-utils/str-join "\t"
+                                   [(:url bmrk) (:add-date bmrk) (:last-visit bmrk) (:description bmrk) tag]))))))
 
+
+;; (dump-to-tab (str (kutils/$HOME "del.tab")))
 
 (defn tab-view [file]
   (let [lines (line-seq (ds/reader file))
@@ -72,30 +53,5 @@
                                       (nth columns ii)
                                       (nth row ii)))))
           (recur (rest lines) (inc lnum)))))))
-
-(defn build-tag-map [file]
-  (let [[header & lines] 
-        (map #(seq (.split % "\t"))
-             (line-seq (ds/reader file)))
-        res (java.util.HashMap.)]
-    (doseq [[link add-date description tag] lines]
-      (if (not (empty? tag))
-        (.put res tag (doto (or (.get res tag) (java.util.ArrayList.))
-                        (.add link)))))
-    res))
-
-(def *links-by-tag* (build-tag-map (proj-file "delicious.tab")))
-
-(defn reverse-map [m]
-  (let [res (java.util.HashMap.)]
-    (doseq [[tag urls] (.entrySet *links-by-tag*)
-            url urls]
-      (.put res url (doto (or (.get res url) (java.util.ArrayList.))
-                      (.add tag))))
-    res))
-
-(def *tags-by-link* (reverse-map *links-by-tag*))
-
-(first (reverse (sort-by #(.size (.getValue %)) (seq *links-by-tag*))))
 
 
