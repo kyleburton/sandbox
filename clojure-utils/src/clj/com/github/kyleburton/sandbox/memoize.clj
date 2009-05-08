@@ -9,9 +9,9 @@
       (if (not @atm)
         (do
           (prn "resetting the atom, args=" args)
-          (reset! atm (apply f args))
+          (reset! atm {:run true :result (apply f args)})
           @atm))
-      @atm)))
+      (:result @atm))))
 
 (defmacro def-once-only [name & args]
   `(def ~name (make-once-only (fn ~@args))))
