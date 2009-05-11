@@ -146,13 +146,34 @@ java -server \\
 ")))))
     (chmod 755 target)))
 
+(defn make-log4j-props []
+  (let [target ($HOME "/.clojure/log4j.properties" )]
+    (if (.exists target)
+      (log "[INFO] already exists: %s" target)
+      (with-open [outp (java.io.PrintWriter. target)]
+        (binding [*out* outp]
+          (print (str "
+# Set root logger level to DEBUG and its only appender to A1.
+log4j.rootLogger=DEBUG, A1
+
+# A1 is set to be a ConsoleAppender.
+log4j.appender.A1=org.apache.log4j.ConsoleAppender
+
+# A1 uses PatternLayout.
+log4j.appender.A1.layout=org.apache.log4j.PatternLayout
+log4j.appender.A1.layout.ConversionPattern=%-4r [%t] %-5p %c %x - %m%n
+")))))
+    (chmod 755 target)))
+
+
 (defn main []
   (mkdir ($HOME "/.clojure"))
   (symlink  ($HOME "/personal/projects/sandbox/clojure-utils/src/clj/") ($HOME "/.clojure/krb-clj-utils"))
   (get-deps)
   (make-clojure-bin "" 8888)
   (make-clojure-bin "2" 8889)
-  (make-clojure-bin "3" 8890))
+  (make-clojure-bin "3" 8890)
+  (make-log4j-props))
 
 
 ;; (main)
