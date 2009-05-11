@@ -10,9 +10,28 @@
   (:use [clojure.contrib.str-utils :as str]
         [clojure.contrib.fcase :only (case)]))
 
+(def *ui-latch* (atom (CountDownLatch. 1)))
+
+(defn ui-latch-reset! [& [count]]
+  (reset! *ui-latch* (CountDownLatch. (or count 1))))
+
+(defn ui-latch-relese! []
+  (.countDown @*ui-latch*))
+
+(def *current-ui* (atom nil))
+
+(defn current-ui-set! [ui]
+  (reset! *current-ui* ui))
+
+(defn close-and-destroy-ui []
+  (.setVisible @*current-ui* false)
+  (.dispose @*current-ui*)
+  (reset! *current-ui* nil)
+  (ui-latch-relese!))
+
 (defn get-password-dialog [& args]
+  (ui-latch-reset!)
   (let [params        (kutils/parse-paired-arglist args)
-        dlg-complete  (CountDownLatch. 1)
         frame         (JFrame. "Password")
         password      (atom nil)
         pass-field    (JPasswordField. 20)
@@ -39,9 +58,7 @@
                                (reset! done true)))
                            (if @done
                              (do
-                               (.countDown dlg-complete)
-                               (.setVisible frame false)
-                               (.dispose frame))))))
+                               (close-and-destroy-ui))))))
         pass-label   (JLabel. "Password: ")
         button-panel (let [button-panel       (JPanel. (GridLayout. 0 1))
                            ok-button     (JButton. "OK")
@@ -54,11 +71,11 @@
                        (.add button-panel cancel-button)
                        button-panel)
         text-pane    (JPanel. (FlowLayout. FlowLayout/TRAILING))]
+    (current-ui-set! frame)
     (SwingUtilities/invokeAndWait
      (proxy [Runnable] []
        (run []
             (UIManager/put "swing.boldMetal" Boolean/FALSE)
-            ;; (.setDefaultCloseOperation frame  JFrame/EXIT_ON_CLOSE)
             (.setActionCommand  pass-field ok-txt)
             (.addActionListener pass-field panel)
             (.setLabelFor       pass-label pass-field)
@@ -79,8 +96,13 @@
             (.pack frame)
             (.setVisible frame true))))
     (if (:timeout params)
-      (.await dlg-complete (:timeout params) TimeUnit/SECONDS)
-      (.await dlg-complete))
+      (.await @*ui-latch* (:timeout params) TimeUnit/SECONDS)
+      (.await @*ui-latch*))
     @password))
 
-;; (let [pass (get-password-dialog)] (prn "pass=" pass))
+;; (let [pass (get-password-dialog)] (prn (format "pass=%s/%s" (or pass "*null*") (String. (or pass "*null*")))))
+;;
+;; (close-and-destroy-ui)
+
+
+
