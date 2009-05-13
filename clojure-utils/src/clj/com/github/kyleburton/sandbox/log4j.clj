@@ -11,6 +11,8 @@
 (defn reset-configuration! []
   (reset! *configured* false))
 
+;; (reset-configuration!)
+
 (defn ensure-configured []
   (if @*configured*
     true
@@ -22,12 +24,13 @@
   (ensure-configured)
   (Logger/getLogger category))
 
+;; TODO: wrap in (if LOG.isDebug) to prevent unnecessary evaluation of arguments
 (defmacro LOG []
   `(do (def ~'*log* (logger (.toString ~'*ns*)))
        (defn ~'log-fatal [& args#] (.fatal ~'*log* (str args#)))
        (defn ~'log-error [& args#] (.error ~'*log* (str args#)))
-       (defn ~'log-warn [& args#]  (.warn ~'*log* (str args#)))
-       (defn ~'log-info [& args#]  (.info ~'*log* (str args#)))
+       (defn ~'log-warn  [& args#] (.warn  ~'*log* (str args#)))
+       (defn ~'log-info  [& args#] (.info  ~'*log* (str args#)))
        (defn ~'log-debug [& args#] (.debug ~'*log* (str args#)))
        (defn ~'log-trace [& args#] (.trace ~'*log* (str args#)))))
 
