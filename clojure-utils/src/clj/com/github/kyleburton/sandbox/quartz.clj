@@ -37,14 +37,18 @@
                      (.setName "My Minute Trigger")))
 
 ;; myJob, no-group (nil)
-(def job-detail (JobDetail. "myJob", nil, ))
+(def job-detail (JobDetail. "myJob" nil ClojureJob))
+
+(defn testfn []
+  (prn (str "within testfn, the time is: " (java.util.Date.))))
+
+(.put (.getJobDataMap job-detail) "job.clojure.namespace" "com.github.kyleburton.sandbox.quartz")
+(.put (.getJobDataMap job-detail) "job.clojure.function" "testfn")
+
+
+;; this works:
 ;; (.scheduleJob *scheduler* job-detail *min-trigger*)
 
+;; TODO: determine how to pass arguments into the function!
 
-;; (def job-detail
-;;      (proxy [Job] []
-;;        (execute
-;;         [job-execution-context]
-;;         (prn (format "job-detail's execute, context=%s" job-execution-context)))))
 
-;; (.scheduleJob *scheduler* job-detail *min-trigger*)
