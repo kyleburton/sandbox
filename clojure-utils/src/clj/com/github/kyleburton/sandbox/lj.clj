@@ -7,7 +7,9 @@
         [com.github.kyleburton.sandbox.utils :as kutils]
         [clojure.contrib.duck-streams :as ds]))
 
-(def *ljurl* "http://kyle-burton.livejournal.com/")
+;; (def *ljurl* "http://kyle-burton.livejournal.com/")
+;; (def *ljurl* "http://kyle-burton.livejournal.com/?skip=20")
+(def *ljurl* "http://kyle-burton.livejournal.com/?skip=40")
 (def *jekyll-root* (kutils/$HOME "personal/projects/this-blog"))
 
 (def main-page (web/get->string *ljurl*))
