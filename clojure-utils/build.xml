@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="krb-clojure-utils" default="jar" basedir=".">
+
+  <property file="build.properties" />
+  <property name="clojure.jar.repo" value="${user.home}/.clojure/"/>
+  <property name="target.dir" value="${basedir}/target/"/>
+  <property name="classes.dir" value="${target.dir}/classes"/>
+  <property name="module.name" value="krb-clojure-utils"/>
+  <property name="clojure.src.dir" value="${basedir}/src/clj"/>
+  <property name="module.version" value="0.1"/>
+  <property name="jar.file.name" value="${module.name}-${module.version}.jar"/>
+
+
+  <target name="compile" description="Compile the code">
+    <mkdir dir="${classes.dir}"/>
+    <javac destdir="${classes.dir}">
+      <src>
+        <pathelement location="${basedir}/src/java"/>
+      </src>
+      <classpath>
+        <fileset dir="${clojure.jar.repo}">
+          <include name="*" />
+        </fileset>
+      </classpath>
+    </javac>
+  </target>
+
+  <target name="jar" depends="compile" description="Build the JAR">
+    <jar jarfile="${target.dir}/${jar.file.name}">
+      <fileset dir="${classes.dir}" includes="**/*.class"/>
+    </jar>
+  </target>
+
+  <target name="fulljar" depends="compile" description="Build the JAR (inclusive of .clj sources)">
+    <jar jarfile="${target.dir}/${jar.file.name}">
+      <fileset dir="${clojure.src.dir}" includes="**/*.clj"/>
+      <fileset dir="${classes.dir}" includes="**/*.class"/>
+    </jar>
+  </target>
+
+  <target name="install" depends="jar" description="Create jar symlink in $HOME/.clojure/${jar.file.name}">
+    <delete file="${user.home}/.clojure/${jar.file.name}"/>
+    <symlink link="${user.home}/.clojure/${jar.file.name}" resource="${target.dir}/${jar.file.name}" />
+  </target>
+
+  <target name="clean" description="Clean the output directory">
+    <delete dir="${target.dir}"/>
+  </target>
+
+
+</project>

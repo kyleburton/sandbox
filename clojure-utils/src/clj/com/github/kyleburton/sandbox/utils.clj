@@ -152,6 +152,25 @@
         (recur m (conj res (vec (all-groups m))))
         res)))))
 
+
+;; There is no pattern matching in clojure atm, and Java6 doesn't yet
+;; support named capture groups (sure wish it did), what about a
+;; re-bind macro that created bindings for the parts?  Here is an
+;; example of what it might look like:
+
+;; (re-bind "[Nov. 18th, 2008|<b>10:03 pm</b>]"
+;;          ["\s*"
+;;           [month-name "(\S+)"] 
+;;           "\s+" 
+;;           [day-of-month "(\S+)"] ",\s+"
+;;           [year "(\S+)"] ]
+;;          {:month month-name
+;;           :day   day-of-month
+;;           :year  year})
+
+
+
+
 (defn chmod
   "Change a file or directory's permissions.  Shells out to perform the chmod."
   [perms file]
@@ -347,4 +366,5 @@ methods."
 
 ;; (parse-paired-arglist '[:foo bar this that :other thing])
 ;; (parse-paired-arglist {:foo 'bar :other 'thing})
+
 

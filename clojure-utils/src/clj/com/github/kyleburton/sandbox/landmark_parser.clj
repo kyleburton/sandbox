@@ -275,7 +275,7 @@
 ;;                  (extract-all-from html '(:ft "<select") '(:fp "</select>"))
                  ]))
 
-(parse-form-elements (first (html->form-blocks com.github.kyleburton.sandbox.web/html)))
+;;(parse-form-elements (first (html->form-blocks com.github.kyleburton.sandbox.web/html)))
 
 (defn parse-form [html]
   {:method (or (first (kutils/re-find-first "(?-ims:method=\"([^\"]+)\")" html))
