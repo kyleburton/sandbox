@@ -28,27 +28,66 @@
 
 (def *schedule-factory* (StdSchedulerFactory.))
 
-(def *scheduler* (.getScheduler *schedule-factory*))
+(def *scheduler* (atom nil))
 
-(.start *scheduler*)
+(defn ensure-scheduler-started []
+  (if (or (not @*scheduler*)
+          (.isShutdown @*scheduler*)
+          (not (.isStarted @*scheduler*)))
+    (do
+      (reset! *scheduler* (.getScheduler *schedule-factory*))
+      (.start @*scheduler*)
+      true)
+    nil))
 
-(def *min-trigger* (doto (TriggerUtils/makeMinutelyTrigger)
-                     (.setStartTime (TriggerUtils/getEvenMinuteDate (java.util.Date.)))
-                     (.setName "My Minute Trigger")))
+(defn stop-scheduler []
+  (if (and @*scheduler*
+           (.isStarted @*scheduler*))
+    (.shutdown @*scheduler*)))
 
-;; myJob, no-group (nil)
-(def job-detail (JobDetail. "myJob" nil ClojureJob))
+(defn schedule-job [job-detail trigger]
+  (ensure-scheduler-started)
+  (.scheduleJob @*scheduler* job-detail trigger))
 
-(defn testfn []
-  (prn (str "within testfn, the time is: " (java.util.Date.))))
+(defn delete-job [job-detail]
+  (.deleteJob @*scheduler*
+              (.getName job-detail)
+              (.getGroup job-detail)))
 
-(.put (.getJobDataMap job-detail) "job.clojure.namespace" "com.github.kyleburton.sandbox.quartz")
-(.put (.getJobDataMap job-detail) "job.clojure.function" "testfn")
+(defn job-exists? [job-detail]
+  (not (nil? (.getJobDetail @*scheduler*
+                            (.getName job-detail)
+                            (.getGroup job-detail)))))
 
+(defn testfn [context]
+  (prn (format "testfn: context=%s time=%s" 
+               context
+               (java.util.Date.))))
 
-;; this works:
-;; (.scheduleJob *scheduler* job-detail *min-trigger*)
+(defn quartz-test []
+  (let [job-detail (JobDetail. "myJob" nil ClojureJob)
+        trigger (doto (TriggerUtils/makeSecondlyTrigger 10)
+                  (.setStartTime (TriggerUtils/getEvenSecondDate (java.util.Date.)))
+                  (.setName "My Second Trigger"))]
+    (.put (.getJobDataMap job-detail) ClojureJob/NAMESPACE_PARAMETER "com.github.kyleburton.sandbox.quartz")
+    (.put (.getJobDataMap job-detail) ClojureJob/FUNCTION_NAME_PARAMETER "testfn")
+    (schedule-job job-detail trigger)))
 
-;; TODO: determine how to pass arguments into the function!
+(defn quartz-test-fn [fn]
+  (let [job-detail (JobDetail. "myJob" nil ClojureJob)
+        trigger (doto (TriggerUtils/makeSecondlyTrigger 10)
+                  (.setStartTime (TriggerUtils/getEvenSecondDate (java.util.Date.)))
+                  (.setName "My Second Trigger"))]
+    (.put (.getJobDataMap job-detail) ClojureJob/NAMESPACE_PARAMETER "com.github.kyleburton.sandbox.quartz")
+    (.put (.getJobDataMap job-detail) ClojureJob/FUNCTION_PARAMETER fn)
+    (schedule-job job-detail trigger)))
 
+;; (quartz-test)
 
+;; (def *count* (atom 0))
+
+;; (quartz-test-fn (fn [context] 
+;;                   (reset! *count* (inc @*count*))
+;;                   (prn (format "anon scheduled function! context=%s called %d times!" context @*count*))))
+
+;; (stop-scheduler)
