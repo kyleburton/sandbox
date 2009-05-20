@@ -88,6 +88,6 @@
 
 ;; (quartz-test-fn (fn [context] 
 ;;                   (reset! *count* (inc @*count*))
-;;                   (prn (format "anon scheduled function! context=%s callled %d times!" context @*count*))))
+;;                   (prn (format "anon scheduled function! context=%s called %d times!" context @*count*))))
 
 ;; (stop-scheduler)
