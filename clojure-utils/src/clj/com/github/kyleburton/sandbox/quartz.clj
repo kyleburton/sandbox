@@ -40,10 +40,6 @@
       true)
     nil))
 
-;; (.isShutdown @*scheduler*)
-
-;; (ensure-scheduler-started)
-
 (defn stop-scheduler []
   (if (and @*scheduler*
            (.isStarted @*scheduler*))
@@ -63,14 +59,10 @@
                             (.getName job-detail)
                             (.getGroup job-detail)))))
 
-;; NB: the function has to be named for ClojureJob to be able to call
-;; it.
 (defn testfn [context]
   (prn (format "testfn: context=%s time=%s" 
                context
                (java.util.Date.))))
-
-;;(parents (class testfn))
 
 (defn quartz-test []
   (let [job-detail (JobDetail. "myJob" nil ClojureJob)
@@ -90,15 +82,12 @@
     (.put (.getJobDataMap job-detail) ClojureJob/FUNCTION_PARAMETER fn)
     (schedule-job job-detail trigger)))
 
-;; (job-exists? (JobDetail. "myJob" nil ClojureJob))
-;; (delete-job (JobDetail. "myJob" nil ClojureJob))
-
 ;; (quartz-test)
 
-(def *count* (atom 0))
+;; (def *count* (atom 0))
 
-(quartz-test-fn (fn [context] 
-                  (reset! *count* (inc @*count*))
-                  (prn (format "anon scheduled function! context=%s callled %d times!" context @*count*))))
+;; (quartz-test-fn (fn [context] 
+;;                   (reset! *count* (inc @*count*))
+;;                   (prn (format "anon scheduled function! context=%s callled %d times!" context @*count*))))
 
 ;; (stop-scheduler)
