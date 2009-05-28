@@ -3,60 +3,115 @@
        [com.github.kyleburton.sandbox.utils :as kutils]))
 
 
-;; TODO: this apporoach only works if it's oracle
-;; (with-db *db*
-;;  (with-query-results rs ["SELECT * FROM ALL_TABLES"]
-;;    (dorun
-;;     (doseq [row rs]
-;;       (prn (format "table: %s" (:table_name row)))))))
-
-;; (with-db *db*
-;;   (prn "conn: " (class (.getMetaData (connection)))))
-
-;; (with-db *db*
-;;   (prn "schemas: " (.getSchemas (.getMetaData (connection)))))
+(defn- range-sql [end]
+    (range 1 (+ 1 end)))
 
 
-;; (defn table-names [db]
-;;   (with-connection db
-;;     (with-query-results rs ["SELECT TABLE_NAME FROM ALL_TABLES"]
-;;       (doall (map :table_name rs)))))
+(defn db-schemas
+  "Returns a list of the schema names in the database."
+  [db]
+  (with-connection db
+    (let [schemas (.getSchemas (.getMetaData (connection)))]
+      (loop [has-next (.next schemas)
+             res []]
+        (if has-next
+          (let [schema  (.getString schemas 1)]
+            (recur (.next schemas) 
+                   (conj res schema)))
+          res)))))
 
-;; (defn user-table-names [db]
-;;   (with-connection db
-;;     (with-query-results rs ["SELECT TABLE_NAME FROM USER_TABLES"]
-;;       (doall (map :table_name rs)))))
+(defn schema-tables
+  "Returns a list of maps describing the tables in the database.  The
+  maps include: :catalog, :schema, :name, :type and :remarks as per
+  the JDBC spec."  
+  [db schema]
+  (with-connection db
+    (let [db-meta (.getMetaData (connection))
+          tables (.getTables db-meta nil schema "%" nil)]
+      (loop [has-next (.next tables)
+             res []]
+        (if has-next
+          (let [table {:catalog  (.getString tables  1)
+                       :schema   (.getString tables  2)
+                       :name     (.getString tables  3)
+                       :type     (.getString tables  4)
+                       :remakrs  (.getString tables  5)}]
+            (recur (.next tables)
+                   (conj res table)))
+          res)))))
+
+(defn describe-table
+  "Returns a list of column descriptions (maps) for the table.  The
+   maps
+   contain: :name, :catalog, :display-zie, :type, :precision, :scale,
+   :is-auto-increment, :is-case-sensitive, :is-currency,
+   :is-definitely-writable, :is-nullable, :is-read-only,
+   :is-searchable, :is-signed, :is-writable."
+  [db table-name]
+  (with-connection db
+    (let [ps (.prepareStatement (connection) (format "SELECT * FROM %s WHERE 0 = 1" table-name))
+          rs (.executeQuery ps)
+          rs-meta (.getMetaData rs)]
+      (loop [[idx & idxs] (range-sql (.getColumnCount rs-meta))
+             res []]
+        (if idx
+          (recur idxs (conj res {:name                   (.getColumnName rs-meta idx)
+                                 :catalog                (.getCatalogName rs-meta idx)
+                                 :display-zie            (.getColumnDisplaySize rs-meta idx)
+                                 :type                   (.getColumnType rs-meta idx)
+                                 :precision              (.getPrecision rs-meta idx)
+                                 :scale                  (.getScale rs-meta idx)
+                                 :is-auto-increment      (.isAutoIncrement rs-meta idx)
+                                 :is-case-sensitive      (.isCaseSensitive rs-meta idx)
+                                 :is-currency            (.isCurrency rs-meta idx)
+                                 :is-definitely-writable (.isDefinitelyWritable rs-meta idx)
+                                 :is-nullable            (.isNullable rs-meta idx)
+                                 :is-read-only           (.isReadOnly rs-meta idx)
+                                 :is-searchable          (.isSearchable rs-meta idx)
+                                 :is-signed              (.isSigned rs-meta idx)
+                                 :is-writable            (.isWritable rs-meta idx)}))
+          res)))))
 
 
-;; (defn describe-table [db table-name]
-;;   (with-connection db
-;;       (with-query-results rs [(format "SELECT * FROM %s WHERE 0 = 1" table-name)]
-;;         (prn (format "class of rs=%s/%s" rs (class rs))))))
+(defn rs->record [rs]
+  (loop [[idx & idxs] (range-sql (.getColumnCount (.getMetaData rs)))
+         res []]
+    (if idx
+      (recur idxs
+             (conj res (.getString rs idx)))
+      res)))
 
-;; (describe-table *db* "FOO")
+(defn rs->map [rs]
+  (loop [meta (.getMetaData rs)
+         [idx & idxs] (range-sql (.getColumnCount meta))
+         res {}]
+    (if idx
+      (recur meta
+             idxs
+             (assoc res (.getColumnName meta idx) (.getString rs idx)))
+      res)))
 
-;; (user-table-names *db*)
+;; TODO: support bind variables...
+(defn sql->records [db sql]
+  (with-connection db
+    (let [ps (.prepareStatement (connection) sql)
+          rs (.executeQuery ps)]
+      (loop [has-next (.next rs)
+             res []]
+        (if has-next
+          (let [rec (rs->record rs)]
+            (recur (.next rs) 
+                   (conj res rec)))
+          res)))))
 
-;; (filter #(.contains % "USER") (user-table-names *db*))
-
-;; http://www.java2s.com/Code/Java/Database-SQL-JDBC/Listtablesinadatabase.htm
-;; import java.sql.Connection;
-;; import java.sql.DatabaseMetaData;
-;; import java.sql.DriverManager;
-;; import java.sql.ResultSet;
-;; public class Main {
-;;   public static void main (String args [])  throws Exception {
-;;     Class.forName ("sun.jdbc.odbc.JdbcOdbcDriver");
-;;     String URL = "jdbc:odbc:dbName";
-;;     Connection conn = DriverManager.getConnection (URL, "user", "passw");
-;;     DatabaseMetaData dmd = conn.getMetaData ();
-;;     ResultSet rs1 = dmd.getSchemas ();
-;;     while (rs1.next ())  {
-;;       String ss = rs1.getString (1);
-;;       ResultSet rs2 = dmd.getTables (null, ss, "%", null);
-;;       while (rs2.next ())
-;;         System.out.println (rs2.getString (3) + " " + rs2.getString (4));
-;;     }
-;;     conn.close ();
-;;   }
-;; }
+(defn sql->maps [db sql]
+  (with-connection db
+    (let [ps (.prepareStatement (connection) sql)
+          rs (.executeQuery ps)]
+      (loop [has-next (.next rs)
+             res []]
+        (if has-next
+          (let [rec (rs->map rs)]
+            (recur (.next rs) 
+                   (conj res rec)))
+          res)))))
