@@ -115,3 +115,27 @@
             (recur (.next rs) 
                    (conj res rec)))
           res)))))
+
+(defmacro do-rs-rows
+  [db sql var & body]
+  `(with-connection ~db
+     (let [ps# (.prepareStatement (connection) ~sql)
+           rs# (.executeQuery ps#)
+           fn# (fn [~var] ~@body)]
+       (loop [has-next# (.next rs#)]
+         (if has-next#
+           (do
+             (fn# (rs->record rs#))
+             (recur (.next rs#))))))))
+
+(defmacro do-rs-maps [db sql var & body]
+  `(with-connection ~db
+     (let [ps# (.prepareStatement (connection) ~sql)
+           rs# (.executeQuery ps#)
+           fn# (fn [~var] ~@body)]
+       (loop [has-next# (.next rs#)]
+         (if has-next#
+           (do
+             (fn# (rs->map rs#))
+             (recur (.next rs#))))))))
+
