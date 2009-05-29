@@ -1,8 +1,9 @@
 ;; http://java.sun.com/docs/books/tutorial/uiswing/components/passwordfield.html
 (ns com.github.kyleburton.sandbox.swing
   (:import (javax.swing JPanel JPasswordField JFrame JLabel JComponent
-                        JButton SwingUtilities UIManager)
-           (java.awt GridLayout FlowLayout)
+                        JButton SwingUtilities UIManager
+                        JTable JScrollPane)
+           (java.awt GridLayout FlowLayout GridBagLayout BorderLayout GridLayout)
            (java.awt.event ActionListener ActionEvent WindowAdapter)
            (java.util.concurrent CountDownLatch TimeUnit))
   (:require [com.github.kyleburton.sandbox.landmark-parser :as lparse]
@@ -104,5 +105,21 @@
 ;;
 ;; (close-and-destroy-ui)
 
+
+(defn display-table-data [title cols data]
+  (let [frame (JFrame. (str title))
+        panel (JPanel.)
+        table (JTable. (to-array-2d data)
+                       (to-array cols))
+        scroller (JScrollPane. table)]
+    (.setResizingAllowed (.getTableHeader table) true)
+    (.setAutoResizeMode table JTable/AUTO_RESIZE_SUBSEQUENT_COLUMNS)
+    (.setLayout frame (GridLayout. 1 1))
+    (.setContentPane frame panel)
+    (.setLayout panel (BorderLayout. 2 1))
+    (.add panel scroller)
+    (.pack frame)
+    (.setVisible frame true)
+    frame))
 
 
