@@ -40,6 +40,9 @@
                    (conj res table)))
           res)))))
 
+(defn select-all [table]
+  (format "SELECT * FROM %s" table))
+
 (defn describe-table
   "Returns a list of column descriptions (maps) for the table.  The
    maps
@@ -57,7 +60,7 @@
         (if idx
           (recur idxs (conj res {:name                   (.getColumnName rs-meta idx)
                                  :catalog                (.getCatalogName rs-meta idx)
-                                 :display-zie            (.getColumnDisplaySize rs-meta idx)
+                                 :display-size           (.getColumnDisplaySize rs-meta idx)
                                  :type                   (.getColumnType rs-meta idx)
                                  :precision              (.getPrecision rs-meta idx)
                                  :scale                  (.getScale rs-meta idx)
