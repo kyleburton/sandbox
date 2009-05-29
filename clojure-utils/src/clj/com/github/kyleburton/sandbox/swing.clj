@@ -7,7 +7,8 @@
            (java.awt.event ActionListener ActionEvent WindowAdapter)
            (java.util.concurrent CountDownLatch TimeUnit))
   (:require [com.github.kyleburton.sandbox.landmark-parser :as lparse]
-            [com.github.kyleburton.sandbox.utils :as kutils])
+            [com.github.kyleburton.sandbox.utils :as kutils]
+            [com.github.kyleburton.sandbox.sql :as ksql])
   (:use [clojure.contrib.str-utils :as str]
         [clojure.contrib.fcase :only (case)]))
 
@@ -122,4 +123,36 @@
     (.setVisible frame true)
     frame))
 
+(defn display-table-data-from-map [title data]
+  (display-table-data title (keys (first data))
+                      (map (fn [m]
+                             (map #(% m) (keys m)))
+                           data)))
 
+(defn sql-browse-db [db]
+  (display-table-data
+   "DATABASE"
+   ["SCHEMA_NAME"]
+   (map (fn [x] [x]) (ksql/db-schemas db))))
+
+;; TODO:  double-clicking on a name should either invoke sql-browse-table or sql-describe-table
+(defn sql-browse-schema [db schema-name]
+  (display-table-data
+   schema-name
+   ["TABLE_NAME" "SCHEMA" "TYPE" "CATALOG"]
+   (map (fn [x] (map x [:name :schema :type :catalog])) (ksql/schema-tables db schema-name))))
+
+(defn sql-browse-table [db table-name]
+  (display-table-data 
+   table-name
+   (map :name (ksql/describe-table db table-name))
+   (ksql/sql->records db (ksql/select-all table-name))))
+
+(defn sql-describe-table [db table-name]
+  (let [columns [:name :type :size :scale :is-nullable :precision]]
+    (display-table-data
+     table-name
+     columns
+     (map 
+      (fn [x] (map x columns))
+      (ksql/describe-table db table-name)))))
