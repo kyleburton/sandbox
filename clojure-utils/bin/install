@@ -1,0 +1,36 @@
+REPO="http://asymmetrical-view.com/personal/repo/"
+
+function ensure_exists() {
+  BIN="$1"
+  FND="$(which $BIN)"
+  echo "FIND: $FND"
+  if [ -z "$FND" ]; then
+    echo "required program: '$BIN' not found"
+    exit 1;
+  fi
+
+  if [ -x "$FND" ]; then
+    return 0;
+  fi
+
+  echo "required program: '$BIN' not executable"
+  exit 1;
+}
+
+
+function download_repo() {
+  test -d ~/.clojure || mkdir ~/.clojure
+
+  for file in $(wget -q -O - "$REPO" | grep href | cut -f2 -d= | cut -f2 -d'"' | grep -v '/$'); do
+    TGT="$HOME/.clojure/$file"
+    test -e "$TGT" || wget -O "$TGT" "$REPO$file" 
+  done
+}
+
+ensure_exists wget
+ensure_exists java
+
+download_repo
+
+java -cp $HOME/.clojure/clojure.jar:$HOME/.clojure/clojure-contrib.jar clojure.lang.Repl bin/setup.clj 
+
