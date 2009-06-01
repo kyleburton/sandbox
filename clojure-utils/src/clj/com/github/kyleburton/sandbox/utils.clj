@@ -348,7 +348,30 @@ methods."
 ;; (String. (.readPassword console "[%s]", (into-array ["password"])))
 
 
-(defn parse-paired-arglist [args]
+(defn parse-paired-arglist
+  "Ensures the given set of key/value pairs is a map, extracting non
+'pair' arguments into an additional list.  Eg:
+
+  (parse-paired-arglist [:foo 1 :bar 2])     => [[]    {:bar 2, :foo 1}]
+  (parse-paired-arglist [:foo 1 :bar 2])     => [[]    {:bar 2, :foo 1}]
+  (parse-paired-arglist [:foo 1 3 4 :bar 2]) => [[3 4] {:bar 2, :foo 1}]
+
+This is most useful in functions where you want to be able to take
+sets of optional parameters:
+
+  (defn my-func [arg1 & params]
+    (let [[additional args] (parse-paired-arglist params)
+          args (merge {:foo \"default\" :bar \"default\"} args)]
+      (prn (format \"foo=%s; bar=%s; qux=%s\"
+                   (:foo args)
+                   (:bar args)
+                   (:qux args)))))
+  (my-func 1)                      => \"foo=default; bar=default; qux=null\"
+  (my-func 1 :foo 2)               => \"foo=2; bar=default; qux=null\"
+  (my-func 1 :bar 3 :qux 4)        => \"foo=default; bar=3; qux=4\"
+  (my-func 1 :foo 2 :bar 3 :qux 4) => \"foo=2; bar=3; qux=4\"
+"
+  [args]
   (if (map? args)
     [[] args]
     (loop [res {} 
@@ -366,5 +389,4 @@ methods."
 
 ;; (parse-paired-arglist '[:foo bar this that :other thing])
 ;; (parse-paired-arglist {:foo 'bar :other 'thing})
-
 
