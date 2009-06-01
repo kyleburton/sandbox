@@ -1,10 +1,17 @@
-(ns krb
+(ns clojutura
   (:use [com.github.kyleburton.sandbox.utils]
         [clojure.contrib.duck-streams]
         [clojure.contrib.str-utils]))
 
 (def *cobertura-project-data* (file->object ($HOME "personal/projects/sandbox/clojure-utils/cobertura.ser")))
 
+;; hack for now, so it runs from ant
+(defmacro mwith-out-writer
+  "Opens a writer on f, binds it to *out*, and evalutes body."
+  [f & body]
+  `(with-open [stream# (writer ~f)]
+     (binding [*out* stream#]
+       ~@body)))
 
 ;; see: package net.sourceforge.cobertura.reporting.html.HTMLReport for an example
 
@@ -29,7 +36,7 @@
 
 (defn make-style-sheet []
   (mkdir (format "%s/css" *report-dir*))
-  (with-out-writer (format "%s/css/main.css" *report-dir*)
+  (mwith-out-writer (format "%s/css/main.css" *report-dir*)
     (println ".covered-false {")
     (println " background: #F77;")
     (println "}")
@@ -39,7 +46,7 @@
 
 
 (defn gen-rep-for-package [project-data cover-info]
-  (with-out-writer (format "%s/package-%s.html" *report-dir* (.getName cover-info))
+  (mwith-out-writer (format "%s/package-%s.html" *report-dir* (.getName cover-info))
     (print *html-header*)
     (print (format "<h2>%s</h2>" (.getName cover-info)))
     (println (format "<pre>"))
@@ -77,7 +84,7 @@
   (let [fname (cover-name->path file-info)]
     (.println System/err (format "gen-rep-for-file: fname=%s" fname))
     (mkdir (basename fname))
-    (with-out-writer fname
+    (mwith-out-writer fname
       (print *html-header*)
       (print (format "<h2>%s</h2>" (.getName file-info)))
       (println (format "<pre>"))
@@ -110,7 +117,7 @@
       (print *html-footer*))))
 
 (defn gen-package-list [project-data]
-  (with-out-writer (str *report-dir* "/packages.html")  
+  (mwith-out-writer (str *report-dir* "/packages.html")  
     (print *html-header*)
     (print "<h1>[Cojutura] Coverage Report</h1>
 <h2>Packages</h2>
@@ -128,7 +135,7 @@
     (print *html-footer*)))
 
 (defn gen-files-list [project-data]
-  (with-out-writer (str *report-dir* "/files.html")  
+  (mwith-out-writer (str *report-dir* "/files.html")  
     (print *html-header*)
     (print "<h1>[Cojutura] Coverage Report</h1>")
     (print "</table>")
