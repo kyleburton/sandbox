@@ -46,7 +46,7 @@ public class ClojureJob implements Job {
    * @throws JobExecutionContext if the function can not be looked up,
    * or if the function throws an exception.
    */
-  @Override
+  // @Override
   public void execute(JobExecutionContext context) throws JobExecutionException {
     if ( null != contextParameter(context,FUNCTION_PARAMETER) ) {
       executeFunction(context,(IFn)contextParameter(context,FUNCTION_PARAMETER));

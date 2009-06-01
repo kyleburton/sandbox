@@ -58,20 +58,25 @@
             :pass nil
             })
 
-(defn- make-connection-params [props]
+(defn make-connection-params
+  "Simplified constructor for ConnectionParameters."
+  [props]
   (let [params (ConnectionParameters.)]
-    (if (:user props)         (.setUsername             params (:user        props)))
-    (if (:username props)     (.setUsername             params (:username    props)))
-    (if (:user-name props)    (.setUsername             params (:user-name   props)))
-    (if (:pass props)         (.setPassword             params (:pass        props)))
-    (if (:password props)     (.setPassword             params (:password    props)))
+    (if-let [val (:user props)]      (.setUsername params val))
+    (if-let [val (:username props)]  (.setUsername params val))
+    (if-let [val (:user-name props)] (.setUsername params val))
+    (if-let [val (:pass props)]      (.setPassword params val))
+    (if-let [val (:password props)]  (.setPassword params val))
+;;     (if (:pass props)         (.setPassword             params (:pass        props)))
+;;     (if (:password props)     (.setPassword             params (:password    props)))
     (if (:vhost props)        (.setVirtualHost          params (:vhost       props)))
     (if (:channel-max props)  (.setRequestedChannelMax  params (:channel-max props)))
     (if (:frame-max props)    (.setRequestedFrame       params (:frame-max   props)))
     (if (:heartbeat props)    (.setRequestedHeartbeat   params (:heartbeat   props)))
     (if (:heart-beat props)   (.setRequestedHeartbeat   params (:heart-beat  props)))
-    ;; (prn "make-connection-params: params=" (bean params))
     params))
+
+(bean (make-connection-params {:user "guest" :pass "guest"}))
 
 ;; set these if you want to override...
 (def *default-param-map* (atom
@@ -83,7 +88,6 @@
 ;; behavior for them to be so cut&paste
 (defmacro with-connection [params & body]
   (let [[positional named] (kutils/parse-paired-arglist params)]
-    ;; (prn "positional=" positional)
     `(binding [*env* ~(merge *env* @*default-param-map* named)]
        (binding [*factory*  (ConnectionFactory. (make-connection-params *env*))]
          (with-open [conn# (.newConnection *factory* 
@@ -155,18 +159,20 @@
    (fn []
      (.basicPublish 
       *channel*
-      (:exchange *env* *default-exchange*)
+      (:exchange    *env* *default-exchange*)
       (:routing-key *env* *default-queue*)
-      (:mandatory *env* false)
-      (:immediate *env* false)
-      nil   ; (:message-properties *env* *default-message-properties*)
+      (:mandatory   *env* false)
+      (:immediate   *env* false)
+      nil   ;; (:message-properties *env* *default-message-properties*)
       (.getBytes message)))))
 
 ;; (basic-publish {} (format "[%s] this is my message..." (java.util.Date.)))
 ;; (String. (.getBody (basic-get)))
 ;; (String. (.getBody (basic-get {:queue "SimpleQueue"})))
 
-(defn basic-get [& [#^java.util.Map params]]
+(defn basic-get
+  "Immediate pull, even if there are no messages waiting."
+  [& [#^java.util.Map params]]
   (do-connection
    params
    (fn []
@@ -296,6 +302,10 @@
                                 "*nothing*"))
    "time" (java.util.Date.)})
 
+
+
+'(
+
 (def rpc-server
      (make-rpc-server 
       {};;{:queue "rpc.test"}
@@ -303,8 +313,6 @@
        :map-cast (fn rpc-map-cast [rpc-state this request]
                    (prn (format "in the map-cast handler! rpc-state:%s this:%s request:%s" 
                                 rpc-state this request)))}))
-
-'(
 
 (:exchange (:env rpc-server) *default-rpc-exchange*)
 

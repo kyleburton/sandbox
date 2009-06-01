@@ -3,15 +3,40 @@
 <project name="krb-clojure-utils" default="jar" basedir=".">
 
   <property file="build.properties" />
-  <property name="clojure.jar.repo" value="${user.home}/.clojure/"/>
-  <property name="target.dir" value="${basedir}/target/"/>
+  <property name="clojure.jar.repo" value="${user.home}/.clojure"/>
+  <property name="source.dir" value="${basedir}/src"/>
+  <property name="test.source.dir" value="${basedir}/test/src"/>
+  <property name="target.dir" value="${basedir}/target"/>
   <property name="classes.dir" value="${target.dir}/classes"/>
   <property name="module.name" value="krb-clojure-utils"/>
   <property name="clojure.src.dir" value="${basedir}/src/clj"/>
   <property name="module.version" value="0.1"/>
   <property name="jar.file.name" value="${module.name}-${module.version}.jar"/>
   <property name="krb.repo.url" value="http://asymmetrical-view.com/personal/repo/"/>
+  <property name="deps.dir" value="${basedir}/deps"/>
 
+  <path id="classpath">
+    <path location="${classes.dir}" />
+    <path location="${source.dir}" />
+    <path location="${test.source.dir}/clj" />
+    <fileset dir="${basedir}/deps">
+      <include name="*.jar" />
+    </fileset>
+  </path>
+
+  <!-- Emma support -->
+  <path id="emma.lib">
+    <fileset dir="${deps.dir}">
+      <include name="*.jar" />
+    </fileset>
+  </path>
+  
+  <taskdef resource="emma_ant.properties" classpathref="emma.lib" />
+
+  <target name="emma" description="turns on EMMA instrumentation/reporting" >
+    <property name="emma.enabled" value="true" />
+  </target>
+  <!-- Emma support -->
 
   <target name="compile" description="Compile the code">
     <mkdir dir="${classes.dir}"/>
@@ -30,6 +55,7 @@
   <target name="jar" depends="compile" description="Build the JAR">
     <jar jarfile="${target.dir}/${jar.file.name}">
       <fileset dir="${classes.dir}" includes="**/*.class"/>
+      <fileset dir="${source.dir}/clj" includes="**/*.clj" />
     </jar>
   </target>
 
@@ -49,84 +75,85 @@
     <delete dir="${target.dir}"/>
   </target>
 
-
+  <!-- TODO: pull all the jars at this url...or make 1 zip file, this
+  is too much to be in the build.xml -->
   <target name="fetch-deps" description="download my dependencies from my personal repository">
-    <mkdir dir="${basedir}/lib"/>
-    <get src="${krb.repo.url}/ant-1.7.0.jar" dest="${basedir}/lib/ant-1.7.0.jar" />
-    <get src="${krb.repo.url}/ant-launcher-1.7.0.jar" dest="${basedir}/lib/ant-launcher-1.7.0.jar" />
-    <get src="${krb.repo.url}/antlr-2.7.6.jar" dest="${basedir}/lib/antlr-2.7.6.jar" />
-    <get src="${krb.repo.url}/aopalliance-1.0.jar" dest="${basedir}/lib/aopalliance-1.0.jar" />
-    <get src="${krb.repo.url}/asm-1.5.3.jar" dest="${basedir}/lib/asm-1.5.3.jar" />
-    <get src="${krb.repo.url}/asm-attrs-1.5.3.jar" dest="${basedir}/lib/asm-attrs-1.5.3.jar" />
-    <get src="${krb.repo.url}/aspectjrt-1.5.4.jar" dest="${basedir}/lib/aspectjrt-1.5.4.jar" />
-    <get src="${krb.repo.url}/cglib-2.1_3.jar" dest="${basedir}/lib/cglib-2.1_3.jar" />
-    <get src="${krb.repo.url}/ci-bayes-1.0.8.jar" dest="${basedir}/lib/ci-bayes-1.0.8.jar" />
-    <get src="${krb.repo.url}/clojure-contrib.jar" dest="${basedir}/lib/clojure-contrib.jar" />
-    <get src="${krb.repo.url}/clojure.jar" dest="${basedir}/lib/clojure.jar" />
-    <get src="${krb.repo.url}/commons-cli-1.1.jar" dest="${basedir}/lib/commons-cli-1.1.jar" />
-    <get src="${krb.repo.url}/commons-codec-1.3.jar" dest="${basedir}/lib/commons-codec-1.3.jar" />
-    <get src="${krb.repo.url}/commons-collections-3.2.jar" dest="${basedir}/lib/commons-collections-3.2.jar" />
-    <get src="${krb.repo.url}/commons-fileupload-1.2.1.jar" dest="${basedir}/lib/commons-fileupload-1.2.1.jar" />
-    <get src="${krb.repo.url}/commons-httpclient-3.1.jar" dest="${basedir}/lib/commons-httpclient-3.1.jar" />
-    <get src="${krb.repo.url}/commons-io-1.2.jar" dest="${basedir}/lib/commons-io-1.2.jar" />
-    <get src="${krb.repo.url}/commons-io-1.4.jar" dest="${basedir}/lib/commons-io-1.4.jar" />
-    <get src="${krb.repo.url}/commons-lang-2.4.jar" dest="${basedir}/lib/commons-lang-2.4.jar" />
-    <get src="${krb.repo.url}/commons-logging-1.1.1-sources.jar" dest="${basedir}/lib/commons-logging-1.1.1-sources.jar" />
-    <get src="${krb.repo.url}/commons-logging-1.1.1.jar" dest="${basedir}/lib/commons-logging-1.1.1.jar" />
-    <get src="${krb.repo.url}/commons-logging-adapters-1.1.1.jar" dest="${basedir}/lib/commons-logging-adapters-1.1.1.jar" />
-    <get src="${krb.repo.url}/commons-logging-api-1.1.1.jar" dest="${basedir}/lib/commons-logging-api-1.1.1.jar" />
-    <get src="${krb.repo.url}/commons-math-1.2.jar" dest="${basedir}/lib/commons-math-1.2.jar" />
-    <get src="${krb.repo.url}/commons-net-2.0-sources.jar" dest="${basedir}/lib/commons-net-2.0-sources.jar" />
-    <get src="${krb.repo.url}/commons-net-2.0.jar" dest="${basedir}/lib/commons-net-2.0.jar" />
-    <get src="${krb.repo.url}/commons-net-ftp-2.0.jar" dest="${basedir}/lib/commons-net-ftp-2.0.jar" />
-    <get src="${krb.repo.url}/compojure.jar" dest="${basedir}/lib/compojure.jar" />
-    <get src="${krb.repo.url}/dom4j-1.6.1.jar" dest="${basedir}/lib/dom4j-1.6.1.jar" />
-    <get src="${krb.repo.url}/ehcache-1.2.3.jar" dest="${basedir}/lib/ehcache-1.2.3.jar" />
-    <get src="${krb.repo.url}/ejb3-persistence-1.0.1.GA.jar" dest="${basedir}/lib/ejb3-persistence-1.0.1.GA.jar" />
-    <get src="${krb.repo.url}/ftplet-api-1.0.0.jar" dest="${basedir}/lib/ftplet-api-1.0.0.jar" />
-    <get src="${krb.repo.url}/ftpserver-core-1.0.0.jar" dest="${basedir}/lib/ftpserver-core-1.0.0.jar" />
-    <get src="${krb.repo.url}/grizzly-http-servlet-1.9.10.jar" dest="${basedir}/lib/grizzly-http-servlet-1.9.10.jar" />
-    <get src="${krb.repo.url}/grizzly-http-webserver-1.9.10.jar" dest="${basedir}/lib/grizzly-http-webserver-1.9.10.jar" />
-    <get src="${krb.repo.url}/hibernate-3.2.6.ga.jar" dest="${basedir}/lib/hibernate-3.2.6.ga.jar" />
-    <get src="${krb.repo.url}/hibernate-annotations-3.3.1.GA.jar" dest="${basedir}/lib/hibernate-annotations-3.3.1.GA.jar" />
-    <get src="${krb.repo.url}/hibernate-commons-annotations-3.0.0.ga.jar" dest="${basedir}/lib/hibernate-commons-annotations-3.0.0.ga.jar" />
-    <get src="${krb.repo.url}/hibernate-entitymanager-3.3.2.GA.jar" dest="${basedir}/lib/hibernate-entitymanager-3.3.2.GA.jar" />
-    <get src="${krb.repo.url}/hsqldb-1.8.0.7.jar" dest="${basedir}/lib/hsqldb-1.8.0.7.jar" />
-    <get src="${krb.repo.url}/jackcess-1.1.18.jar" dest="${basedir}/lib/jackcess-1.1.18.jar" />
-    <get src="${krb.repo.url}/javassist-3.4.GA.jar" dest="${basedir}/lib/javassist-3.4.GA.jar" />
-    <get src="${krb.repo.url}/javatar-2.5.jar" dest="${basedir}/lib/javatar-2.5.jar" />
-    <get src="${krb.repo.url}/javolution-5.2.6.jar" dest="${basedir}/lib/javolution-5.2.6.jar" />
-    <get src="${krb.repo.url}/jcl-over-slf4j-1.5.2.jar" dest="${basedir}/lib/jcl-over-slf4j-1.5.2.jar" />
-    <get src="${krb.repo.url}/jdom-1.0.jar" dest="${basedir}/lib/jdom-1.0.jar" />
-    <get src="${krb.repo.url}/jetty-6.1.15.jar" dest="${basedir}/lib/jetty-6.1.15.jar" />
-    <get src="${krb.repo.url}/jetty-util-6.1.15.jar" dest="${basedir}/lib/jetty-util-6.1.15.jar" />
-    <get src="${krb.repo.url}/jna.jar" dest="${basedir}/lib/jna.jar" />
-    <get src="${krb.repo.url}/jsch-20090507.jar" dest="${basedir}/lib/jsch-20090507.jar" />
-    <get src="${krb.repo.url}/jta-1.0.1B.jar" dest="${basedir}/lib/jta-1.0.1B.jar" />
-    <get src="${krb.repo.url}/junit-3.8.1.jar" dest="${basedir}/lib/junit-3.8.1.jar" />
-    <get src="${krb.repo.url}/junit.jar" dest="${basedir}/lib/junit.jar" />
-    <get src="${krb.repo.url}/log4j-1.2.14.jar" dest="${basedir}/lib/log4j-1.2.14.jar" />
-    <get src="${krb.repo.url}/lucene-analyzers-2.3.2.jar" dest="${basedir}/lib/lucene-analyzers-2.3.2.jar" />
-    <get src="${krb.repo.url}/lucene-core-2.3.2.jar" dest="${basedir}/lib/lucene-core-2.3.2.jar" />
-    <get src="${krb.repo.url}/lucene-snowball-2.3.2.jar" dest="${basedir}/lib/lucene-snowball-2.3.2.jar" />
-    <get src="${krb.repo.url}/mina-core-2.0.0-M4.jar" dest="${basedir}/lib/mina-core-2.0.0-M4.jar" />
-    <get src="${krb.repo.url}/nekohtml-1.9.6.2.jar" dest="${basedir}/lib/nekohtml-1.9.6.2.jar" />
-    <get src="${krb.repo.url}/quartz-1.6.5.jar" dest="${basedir}/lib/quartz-1.6.5.jar" />
-    <get src="${krb.repo.url}/rabbitmq-client.jar" dest="${basedir}/lib/rabbitmq-client.jar" />
-    <get src="${krb.repo.url}/rome-1.0RC2.jar" dest="${basedir}/lib/rome-1.0RC2.jar" />
-    <get src="${krb.repo.url}/rome-fetcher-1.0RC2.jar" dest="${basedir}/lib/rome-fetcher-1.0RC2.jar" />
-    <get src="${krb.repo.url}/servlet-api-2.5-20081211.jar" dest="${basedir}/lib/servlet-api-2.5-20081211.jar" />
-    <get src="${krb.repo.url}/slf4j-api-1.5.2.jar" dest="${basedir}/lib/slf4j-api-1.5.2.jar" />
-    <get src="${krb.repo.url}/slf4j-log4j12-1.5.2.jar" dest="${basedir}/lib/slf4j-log4j12-1.5.2.jar" />
-    <get src="${krb.repo.url}/spring-2.5.6.jar" dest="${basedir}/lib/spring-2.5.6.jar" />
-    <get src="${krb.repo.url}/spring-beans-2.5.5.jar" dest="${basedir}/lib/spring-beans-2.5.5.jar" />
-    <get src="${krb.repo.url}/spring-context-2.5.5.jar" dest="${basedir}/lib/spring-context-2.5.5.jar" />
-    <get src="${krb.repo.url}/spring-core-2.5.5.jar" dest="${basedir}/lib/spring-core-2.5.5.jar" />
-    <get src="${krb.repo.url}/testng-5.8-jdk15.jar" dest="${basedir}/lib/testng-5.8-jdk15.jar" />
-    <get src="${krb.repo.url}/xBaseJ.jar" dest="${basedir}/lib/xBaseJ.jar" />
-    <get src="${krb.repo.url}/xercesImpl-2.4.0.jar" dest="${basedir}/lib/xercesImpl-2.4.0.jar" />
-    <get src="${krb.repo.url}/xercesImpl.jar" dest="${basedir}/lib/xercesImpl.jar" />
-    <get src="${krb.repo.url}/xml-apis-1.3.03.jar" dest="${basedir}/lib/xml-apis-1.3.03.jar" />
+    <mkdir dir="${deps.dir}"/>
+    <get src="${krb.repo.url}/ant-1.7.0.jar" dest="${deps.dir}/ant-1.7.0.jar" />
+    <get src="${krb.repo.url}/ant-launcher-1.7.0.jar" dest="${deps.dir}/ant-launcher-1.7.0.jar" />
+    <get src="${krb.repo.url}/antlr-2.7.6.jar" dest="${deps.dir}/antlr-2.7.6.jar" />
+    <get src="${krb.repo.url}/aopalliance-1.0.jar" dest="${deps.dir}/aopalliance-1.0.jar" />
+    <get src="${krb.repo.url}/asm-1.5.3.jar" dest="${deps.dir}/asm-1.5.3.jar" />
+    <get src="${krb.repo.url}/asm-attrs-1.5.3.jar" dest="${deps.dir}/asm-attrs-1.5.3.jar" />
+    <get src="${krb.repo.url}/aspectjrt-1.5.4.jar" dest="${deps.dir}/aspectjrt-1.5.4.jar" />
+    <get src="${krb.repo.url}/cglib-2.1_3.jar" dest="${deps.dir}/cglib-2.1_3.jar" />
+    <get src="${krb.repo.url}/ci-bayes-1.0.8.jar" dest="${deps.dir}/ci-bayes-1.0.8.jar" />
+    <get src="${krb.repo.url}/clojure-contrib.jar" dest="${deps.dir}/clojure-contrib.jar" />
+    <get src="${krb.repo.url}/clojure.jar" dest="${deps.dir}/clojure.jar" />
+    <get src="${krb.repo.url}/commons-cli-1.1.jar" dest="${deps.dir}/commons-cli-1.1.jar" />
+    <get src="${krb.repo.url}/commons-codec-1.3.jar" dest="${deps.dir}/commons-codec-1.3.jar" />
+    <get src="${krb.repo.url}/commons-collections-3.2.jar" dest="${deps.dir}/commons-collections-3.2.jar" />
+    <get src="${krb.repo.url}/commons-fileupload-1.2.1.jar" dest="${deps.dir}/commons-fileupload-1.2.1.jar" />
+    <get src="${krb.repo.url}/commons-httpclient-3.1.jar" dest="${deps.dir}/commons-httpclient-3.1.jar" />
+    <get src="${krb.repo.url}/commons-io-1.2.jar" dest="${deps.dir}/commons-io-1.2.jar" />
+    <get src="${krb.repo.url}/commons-io-1.4.jar" dest="${deps.dir}/commons-io-1.4.jar" />
+    <get src="${krb.repo.url}/commons-lang-2.4.jar" dest="${deps.dir}/commons-lang-2.4.jar" />
+    <get src="${krb.repo.url}/commons-logging-1.1.1-sources.jar" dest="${deps.dir}/commons-logging-1.1.1-sources.jar" />
+    <get src="${krb.repo.url}/commons-logging-1.1.1.jar" dest="${deps.dir}/commons-logging-1.1.1.jar" />
+    <get src="${krb.repo.url}/commons-logging-adapters-1.1.1.jar" dest="${deps.dir}/commons-logging-adapters-1.1.1.jar" />
+    <get src="${krb.repo.url}/commons-logging-api-1.1.1.jar" dest="${deps.dir}/commons-logging-api-1.1.1.jar" />
+    <get src="${krb.repo.url}/commons-math-1.2.jar" dest="${deps.dir}/commons-math-1.2.jar" />
+    <get src="${krb.repo.url}/commons-net-2.0-sources.jar" dest="${deps.dir}/commons-net-2.0-sources.jar" />
+    <get src="${krb.repo.url}/commons-net-2.0.jar" dest="${deps.dir}/commons-net-2.0.jar" />
+    <get src="${krb.repo.url}/commons-net-ftp-2.0.jar" dest="${deps.dir}/commons-net-ftp-2.0.jar" />
+    <get src="${krb.repo.url}/compojure.jar" dest="${deps.dir}/compojure.jar" />
+    <get src="${krb.repo.url}/dom4j-1.6.1.jar" dest="${deps.dir}/dom4j-1.6.1.jar" />
+    <get src="${krb.repo.url}/ehcache-1.2.3.jar" dest="${deps.dir}/ehcache-1.2.3.jar" />
+    <get src="${krb.repo.url}/ejb3-persistence-1.0.1.GA.jar" dest="${deps.dir}/ejb3-persistence-1.0.1.GA.jar" />
+    <get src="${krb.repo.url}/ftplet-api-1.0.0.jar" dest="${deps.dir}/ftplet-api-1.0.0.jar" />
+    <get src="${krb.repo.url}/ftpserver-core-1.0.0.jar" dest="${deps.dir}/ftpserver-core-1.0.0.jar" />
+    <get src="${krb.repo.url}/grizzly-http-servlet-1.9.10.jar" dest="${deps.dir}/grizzly-http-servlet-1.9.10.jar" />
+    <get src="${krb.repo.url}/grizzly-http-webserver-1.9.10.jar" dest="${deps.dir}/grizzly-http-webserver-1.9.10.jar" />
+    <get src="${krb.repo.url}/hibernate-3.2.6.ga.jar" dest="${deps.dir}/hibernate-3.2.6.ga.jar" />
+    <get src="${krb.repo.url}/hibernate-annotations-3.3.1.GA.jar" dest="${deps.dir}/hibernate-annotations-3.3.1.GA.jar" />
+    <get src="${krb.repo.url}/hibernate-commons-annotations-3.0.0.ga.jar" dest="${deps.dir}/hibernate-commons-annotations-3.0.0.ga.jar" />
+    <get src="${krb.repo.url}/hibernate-entitymanager-3.3.2.GA.jar" dest="${deps.dir}/hibernate-entitymanager-3.3.2.GA.jar" />
+    <get src="${krb.repo.url}/hsqldb-1.8.0.7.jar" dest="${deps.dir}/hsqldb-1.8.0.7.jar" />
+    <get src="${krb.repo.url}/jackcess-1.1.18.jar" dest="${deps.dir}/jackcess-1.1.18.jar" />
+    <get src="${krb.repo.url}/javassist-3.4.GA.jar" dest="${deps.dir}/javassist-3.4.GA.jar" />
+    <get src="${krb.repo.url}/javatar-2.5.jar" dest="${deps.dir}/javatar-2.5.jar" />
+    <get src="${krb.repo.url}/javolution-5.2.6.jar" dest="${deps.dir}/javolution-5.2.6.jar" />
+    <get src="${krb.repo.url}/jcl-over-slf4j-1.5.2.jar" dest="${deps.dir}/jcl-over-slf4j-1.5.2.jar" />
+    <get src="${krb.repo.url}/jdom-1.0.jar" dest="${deps.dir}/jdom-1.0.jar" />
+    <get src="${krb.repo.url}/jetty-6.1.15.jar" dest="${deps.dir}/jetty-6.1.15.jar" />
+    <get src="${krb.repo.url}/jetty-util-6.1.15.jar" dest="${deps.dir}/jetty-util-6.1.15.jar" />
+    <get src="${krb.repo.url}/jna.jar" dest="${deps.dir}/jna.jar" />
+    <get src="${krb.repo.url}/jsch-20090507.jar" dest="${deps.dir}/jsch-20090507.jar" />
+    <get src="${krb.repo.url}/jta-1.0.1B.jar" dest="${deps.dir}/jta-1.0.1B.jar" />
+    <get src="${krb.repo.url}/junit-3.8.1.jar" dest="${deps.dir}/junit-3.8.1.jar" />
+    <get src="${krb.repo.url}/junit.jar" dest="${deps.dir}/junit.jar" />
+    <get src="${krb.repo.url}/log4j-1.2.14.jar" dest="${deps.dir}/log4j-1.2.14.jar" />
+    <get src="${krb.repo.url}/lucene-analyzers-2.3.2.jar" dest="${deps.dir}/lucene-analyzers-2.3.2.jar" />
+    <get src="${krb.repo.url}/lucene-core-2.3.2.jar" dest="${deps.dir}/lucene-core-2.3.2.jar" />
+    <get src="${krb.repo.url}/lucene-snowball-2.3.2.jar" dest="${deps.dir}/lucene-snowball-2.3.2.jar" />
+    <get src="${krb.repo.url}/mina-core-2.0.0-M4.jar" dest="${deps.dir}/mina-core-2.0.0-M4.jar" />
+    <get src="${krb.repo.url}/nekohtml-1.9.6.2.jar" dest="${deps.dir}/nekohtml-1.9.6.2.jar" />
+    <get src="${krb.repo.url}/quartz-1.6.5.jar" dest="${deps.dir}/quartz-1.6.5.jar" />
+    <get src="${krb.repo.url}/rabbitmq-client.jar" dest="${deps.dir}/rabbitmq-client.jar" />
+    <get src="${krb.repo.url}/rome-1.0RC2.jar" dest="${deps.dir}/rome-1.0RC2.jar" />
+    <get src="${krb.repo.url}/rome-fetcher-1.0RC2.jar" dest="${deps.dir}/rome-fetcher-1.0RC2.jar" />
+    <get src="${krb.repo.url}/servlet-api-2.5-20081211.jar" dest="${deps.dir}/servlet-api-2.5-20081211.jar" />
+    <get src="${krb.repo.url}/slf4j-api-1.5.2.jar" dest="${deps.dir}/slf4j-api-1.5.2.jar" />
+    <get src="${krb.repo.url}/slf4j-log4j12-1.5.2.jar" dest="${deps.dir}/slf4j-log4j12-1.5.2.jar" />
+    <get src="${krb.repo.url}/spring-2.5.6.jar" dest="${deps.dir}/spring-2.5.6.jar" />
+    <get src="${krb.repo.url}/spring-beans-2.5.5.jar" dest="${deps.dir}/spring-beans-2.5.5.jar" />
+    <get src="${krb.repo.url}/spring-context-2.5.5.jar" dest="${deps.dir}/spring-context-2.5.5.jar" />
+    <get src="${krb.repo.url}/spring-core-2.5.5.jar" dest="${deps.dir}/spring-core-2.5.5.jar" />
+    <get src="${krb.repo.url}/testng-5.8-jdk15.jar" dest="${deps.dir}/testng-5.8-jdk15.jar" />
+    <get src="${krb.repo.url}/xBaseJ.jar" dest="${deps.dir}/xBaseJ.jar" />
+    <get src="${krb.repo.url}/xercesImpl-2.4.0.jar" dest="${deps.dir}/xercesImpl-2.4.0.jar" />
+    <get src="${krb.repo.url}/xercesImpl.jar" dest="${deps.dir}/xercesImpl.jar" />
+    <get src="${krb.repo.url}/xml-apis-1.3.03.jar" dest="${deps.dir}/xml-apis-1.3.03.jar" />
   </target>
 
   <target name="repl" depends="jar" description="Run a Clojure Repl">
@@ -134,9 +161,33 @@
       <classpath>
         <pathelement location="${clojure.src.dir}/"/>
         <pathelement location="${classes.dir}/"/>
-        <fileset dir="${basedir}/lib" includes="*.jar"/>
+        <fileset dir="${deps.dir}" includes="*.jar"/>
       </classpath>
     </java>
   </target>
+
+  <target name="test" depends="jar" >
+    <!--
+    <property name="cp" refid="classpath"/>
+    <echo message="Classpath = ${cp}"/>
+    -->
+
+    <mkdir dir="${basedir}/target/emma" />
+    <emmajava classname="clojure.main" fork="true" libclasspathref="emma.lib"
+              fullmetadata="yes" sourcepath="${source.dir}"
+              enabled="${emma.enabled}" >
+      <filter includes="com.github.kyleburton.*" />
+      <html outfile="${basedir}/target/emma/coverage.html"/>
+      <xml  outfile="${basedir}/target/emma/coverage.xml" />
+      <txt  outfile="${basedir}/target/emma/coverage.txt" />
+      <arg value="test/src/clj/com/github/kyleburton/sandbox/suite.clj" />
+      <classpath>
+          <path refid="classpath" />
+          <fileset dir="${target.dir}" includes="*.jar"/>
+      </classpath>
+    </emmajava>
+  </target>
+
+
 
 </project>
