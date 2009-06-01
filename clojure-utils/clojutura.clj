@@ -15,10 +15,10 @@
 
 ;; see: package net.sourceforge.cobertura.reporting.html.HTMLReport for an example
 
-(def *report-dir* ($HOME "tmp/clojutura"))
-(def *src-dir* ($HOME "personal/projects/sandbox/clojure-utils/src/clj"))
+(defn report-dir [] (or (System/getProperty "clojutura.report.dir") ($HOME "tmp/clojutura")))
+(defn src-dir    [] (or (System/getProperty "clojutura.src.dir")    ($HOME "personal/projects/sandbox/clojure-utils/src/clj")))
 
-(mkdir *report-dir*)
+(mkdir (report-dir))
 
 (def *html-header*
      (format "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"
@@ -27,16 +27,21 @@
 <head>
 <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />
 <title>[Cojutura] Coverage Report</title>
-<link title=\"Style\" type=\"text/css\" rel=\"stylesheet\" href=\"%s/css/main.css\" />
-</head>
-<body>" *report-dir*))
-
+<style>
+.covered-false {
+ background: #F77;
+}
+.covered-true {
+ background: #7F7;
+}
+</style>
+</head><body>"))
 
 (def *html-footer* "</body></html>")
 
 (defn make-style-sheet []
-  (mkdir (format "%s/css" *report-dir*))
-  (mwith-out-writer (format "%s/css/main.css" *report-dir*)
+  (mkdir (format "%s/css" (report-dir)))
+  (mwith-out-writer (format "%s/css/main.css" (report-dir))
     (println ".covered-false {")
     (println " background: #F77;")
     (println "}")
@@ -46,7 +51,7 @@
 
 
 (defn gen-rep-for-package [project-data cover-info]
-  (mwith-out-writer (format "%s/package-%s.html" *report-dir* (.getName cover-info))
+  (mwith-out-writer (format "%s/package-%s.html" (report-dir) (.getName cover-info))
     (print *html-header*)
     (print (format "<h2>%s</h2>" (.getName cover-info)))
     (println (format "<pre>"))
@@ -58,7 +63,7 @@
     (print *html-footer*)))
 
 (defn cover-name->path [cover-info]
-  (format "%s/files/%s.html" *report-dir* (.getName cover-info)))
+  (format "%s/files/%s.html" (report-dir) (.getName cover-info)))
 
 (defn line-info-css-classes [lcover]
   (if (not lcover)
@@ -93,7 +98,7 @@
       (println (format "Branch Coverage Rate: %s" (.getBranchCoverageRate file-info)))
       (println (format "    Branches Covered: %s" (.getNumberOfCoveredBranches file-info)))
       (println (format "</pre><table>"))
-      (let [fname (str *src-dir* "/" (.getName file-info))]
+      (let [fname (str (src-dir) "/" (.getName file-info))]
         (.println System/err (format "Looking for:%s" fname))
         (if (.exists (java.io.File. fname))
           (loop [lnum 1
@@ -117,7 +122,7 @@
       (print *html-footer*))))
 
 (defn gen-package-list [project-data]
-  (mwith-out-writer (str *report-dir* "/packages.html")  
+  (mwith-out-writer (str (report-dir) "/packages.html")  
     (print *html-header*)
     (print "<h1>[Cojutura] Coverage Report</h1>
 <h2>Packages</h2>
@@ -135,7 +140,7 @@
     (print *html-footer*)))
 
 (defn gen-files-list [project-data]
-  (mwith-out-writer (str *report-dir* "/files.html")  
+  (mwith-out-writer (str (report-dir) "/files.html")  
     (print *html-header*)
     (print "<h1>[Cojutura] Coverage Report</h1>")
     (print "</table>")

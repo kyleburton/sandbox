@@ -16,6 +16,9 @@
   <property name="deps.file" value="kburton-clojure-utils-deps.zip"/>
   <property name="deps.url" value="http://cloud.github.com/downloads/kyleburton/sandbox/${deps.file}"/>
 
+  <property name="clojutura.report.dir" value="${basedir}/target/clojurtura"/>
+  <property name="clojutura.src.dir" value="${clojure.src.dir}"/>
+
   <path id="classpath">
     <path location="${classes.dir}" />
     <path location="${source.dir}" />
@@ -57,7 +60,6 @@
       <arg value="com.github.kyleburton.sandbox.cl-bayes" />
       <arg value="com.github.kyleburton.sandbox.ftp" />
       <arg value="com.github.kyleburton.sandbox.landmark-parser" />
-      <arg value="com.github.kyleburton.sandbox.lj" />
       <arg value="com.github.kyleburton.sandbox.log4j" />
       <arg value="com.github.kyleburton.sandbox.mdb" />
       <arg value="com.github.kyleburton.sandbox.memoize" />
@@ -65,6 +67,7 @@
       <!-- <arg value="com.github.kyleburton.sandbox.git" /> -->
       <!-- <arg value="com.github.kyleburton.sandbox.jsch" /> -->
       <!-- <arg value="com.github.kyleburton.sandbox.mina-ftp" /> -->
+      <!-- <arg value="com.github.kyleburton.sandbox.lj" /> -->
       <arg value="com.github.kyleburton.sandbox.mvn" />
       <arg value="com.github.kyleburton.sandbox.quartz" />
       <arg value="com.github.kyleburton.sandbox.rabbitmq" />
@@ -138,9 +141,14 @@
         <path location="target/instrumented-classes" />
       </classpath>
     </java>
-    <property name="cp" refid="classpath"/>
-    <echo message="Classpath = ${cp}"/>
+    <!--     <property name="cp" refid="classpath"/> -->
+    <!--     <echo message="Classpath = ${cp}"/> -->
+    <echo message="clojutura.report.dir=${basedir}/target/clojurtura"/>
+    <echo message="clojutura.src.dir=${clojure.src.dir}"/>
+
     <java classname="clojure.main" fork="true">
+      <sysproperty key="clojutura.report.dir" value="${clojutura.report.dir}" />
+      <sysproperty key="clojutura.src.dir"    value="${clojutura.src.dir}" />
       <arg value="${basedir}/clojutura.clj" />
       <classpath>
         <path refid="classpath" />
