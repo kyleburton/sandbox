@@ -141,11 +141,6 @@
         <path location="target/instrumented-classes" />
       </classpath>
     </java>
-    <!--     <property name="cp" refid="classpath"/> -->
-    <!--     <echo message="Classpath = ${cp}"/> -->
-    <echo message="clojutura.report.dir=${basedir}/target/clojurtura"/>
-    <echo message="clojutura.src.dir=${clojure.src.dir}"/>
-
     <java classname="clojure.main" fork="true">
       <sysproperty key="clojutura.report.dir" value="${clojutura.report.dir}" />
       <sysproperty key="clojutura.src.dir"    value="${clojutura.src.dir}" />
@@ -154,6 +149,8 @@
         <path refid="classpath" />
       </classpath>
     </java>
+
+    <cobertura-report format="html" srcdir="${clojure.src.dir}" destdir="target/cobertura/report"/>
   </target>
   <!-- Cobertura -->
 

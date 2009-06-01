@@ -34,6 +34,11 @@
 .covered-true {
  background: #7F7;
 }
+pre.src {
+    background: #ffffff;
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
 </style>
 </head><body>"))
 
@@ -77,7 +82,7 @@
 
 (defn format-clojure-line [line]
   (loop [line line [[pat rep] & repls] [["&" "&amp;"]
-                                        [" " "&nbsp;"]
+                                        ;;[" " "&nbsp;"]
                                         ["<" "&lt;"]
                                         [">" "&gt;"]]]
     (if (not pat)
@@ -85,9 +90,15 @@
       (recur (.replaceAll line pat rep)
              repls))))
 
+(defn lcover-summary [lcover]
+  (if lcover
+    (assoc (bean lcover)
+      :hasBranch (.hasBranch lcover))
+    ""))
+
 (defn gen-rep-for-file [project-data file-info]
   (let [fname (cover-name->path file-info)]
-    (.println System/err (format "gen-rep-for-file: fname=%s" fname))
+    ;(.println System/err (format "gen-rep-for-file: fname=%s" fname))
     (mkdir (basename fname))
     (mwith-out-writer fname
       (print *html-header*)
@@ -99,19 +110,18 @@
       (println (format "    Branches Covered: %s" (.getNumberOfCoveredBranches file-info)))
       (println (format "</pre><table>"))
       (let [fname (str (src-dir) "/" (.getName file-info))]
-        (.println System/err (format "Looking for:%s" fname))
+        ;;(.println System/err (format "Looking for:%s" fname))
         (if (.exists (java.io.File. fname))
           (loop [lnum 1
                  [line & lines] (read-lines fname)]
             (if line
               (let [lcover (.getLineCoverage file-info lnum)]
                 ;; {:covered false, :hits 0, :branchCoverageRate 1.0, :numberOfCoveredLines 0, :lineNumber 24, :class net.sourceforge.cobertura.coveragedata.LineData, :methodName "invoke", :conditionSize 0, :numberOfCoveredBranches 0, :methodDescriptor "(Ljava/lang/Object;)Ljava/lang/Object;", :numberOfValidLines 1, :numberOfValidBranches 0, :lineCoverageRate 0.0} 
-                (println (format "<tr><td><code>%s</code></td><td class=\"%s\"><code>%s</code></td><!-- %s -->" 
+                (println (format "<tr><td><code>&nbsp;%s</code></td><td class=\"%s\"><pre class=\"src\">%s</pre></td><!-- %s -->" 
                                  lnum
                                  (line-info-css-classes lcover)
                                  (format-clojure-line line)
-                                 (if lcover (bean lcover)
-                                     "")))
+                                 (lcover-summary lcover)))
                 (recur (+ lnum 1) lines))))))
       '(doseq [lnum (range 0 (.getNumberOfValidLines file-info))]
         (let [lcover (.getLineCoverage file-info lnum)]

@@ -3,15 +3,11 @@
 
 (defn raise 
   "Simple wrapper around throw."
-  [args]
+  [& args]
   (throw (RuntimeException. (apply format args))))
 
-(defmacro assert-throws [& body]
-  `(let [did-throw# (atom false)]
-     (try 
-      ~body
-      (catch Exception ~'_ (reset! did-throw# true)))
-     (~'clojure.contrib.test-is/is did-throw# "Form did not throw?")))
+(defn perror [& args]
+  (.println System/err (apply format args)))
 
 (defn log [& args]
   (prn (apply format args)))
@@ -44,12 +40,12 @@
        ;; TODO: this will fail if dir is not empty!, should this recrusively remove all the files?
        (.delete ~var)))))
 
-(defn basename [fname]
-  (cond (isa? fname java.io.File)
-        (.getParent fname)
-        true
-        (.getParent (java.io.File. (str fname)))))
-
+(defn basename 
+  "Strip off the last part of the file name."
+  [fname]
+  (if (instance? java.io.File fname)
+    (.getParent fname)
+    (.getParent (java.io.File. (str fname)))))
 
 (defn #^java.io.File $HOME
   "Construct a path relative to the user's home directory."
@@ -67,7 +63,7 @@
         (.replaceFirst path "^~(/|$)" (str (get-user-home) "/"))
         (.startsWith path "file://~/")
         (.replaceFirst path "^file://~/" (str "file://" (get-user-home) "/"))
-        true
+        :else
         path))
 
 
@@ -182,24 +178,6 @@
         res)))))
 
 
-;; There is no pattern matching in clojure atm, and Java6 doesn't yet
-;; support named capture groups (sure wish it did), what about a
-;; re-bind macro that created bindings for the parts?  Here is an
-;; example of what it might look like:
-
-;; (re-bind "[Nov. 18th, 2008|<b>10:03 pm</b>]"
-;;          ["\s*"
-;;           [month-name "(\S+)"] 
-;;           "\s+" 
-;;           [day-of-month "(\S+)"] ",\s+"
-;;           [year "(\S+)"] ]
-;;          {:month month-name
-;;           :day   day-of-month
-;;           :year  year})
-
-
-
-
 (defn chmod
   "Change a file or directory's permissions.  Shells out to perform the chmod."
   [perms file]
@@ -213,13 +191,13 @@
 ;; reflection class and doc utils
 (defn methods-seq
   ([thing]
-   (if (= Class (class thing))
+   (if (instance? Class (class thing))
      (seq (.getDeclaredMethods thing))
      (seq (.getDeclaredMethods (class thing))))))
 
 (defn fields-seq
   ([thing]
-   (if (= Class (class thing))
+   (if (instance? Class (class thing))
      (seq (.getDeclaredFields thing))
      (seq (.getDeclaredFields (class thing))))))
 
@@ -245,7 +223,7 @@
 
 (defn constructors-seq
   ([thing]
-   (if (= Class (class thing))
+   (if (instance? Class (class thing))
      (seq (.getConstructors thing))
      (seq (.getConstructors (class thing))))))
 
@@ -282,7 +260,7 @@
 (defn doc-class [thing]
   "Prints (to *out*) a summary of the class, it's members and its
 methods."
-  (let [tclass (if (= Class (class thing))
+  (let [tclass (if (instance? Class (class thing))
                  (identity thing)
                  (class thing))
         trimmer (make-subst-fn "java.lang." "")]
