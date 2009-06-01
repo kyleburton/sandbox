@@ -6,6 +6,13 @@
   [args]
   (throw (RuntimeException. (apply format args))))
 
+(defmacro assert-throws [& body]
+  `(let [did-throw# (atom false)]
+     (try 
+      ~body
+      (catch Exception ~'_ (reset! did-throw# true)))
+     (~'clojure.contrib.test-is/is did-throw# "Form did not throw?")))
+
 (defn log [& args]
   (prn (apply format args)))
 
