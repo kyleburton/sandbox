@@ -14,6 +14,8 @@
   <property name="jar.file.name" value="${module.name}-${module.version}.jar"/>
   <property name="krb.repo.url" value="http://asymmetrical-view.com/personal/repo/"/>
   <property name="deps.dir" value="${basedir}/deps"/>
+  <property name="deps.file" value="kburton-clojure-utils-deps.zip"/>
+  <property name="deps.url" value="http://cloud.github.com/downloads/kburton/sandbox/${deps.file}"/>
 
   <path id="classpath">
     <path location="${classes.dir}" />
@@ -31,6 +33,11 @@
       <include name="*.jar" />
     </fileset>
   </path>
+
+  <target name="fetch-deps" description="download dependencies">
+    <get usetimestamp="true" description="Java dependencies." src="$deps.url}" dest="${deps.file}" />
+    <unzip src="${deps.file}" dest="." />
+  </target>
 
   <!-- Emma support -->
   <path id="emma.lib">
