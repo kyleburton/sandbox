@@ -28,6 +28,7 @@
       "http://www.uhmchealth.com/PhysRefProfile.asp?guidPhysicianID=%7B54220120-DD11-412A-9F6D-32B786E1E659%7D"
       "http://www.uhmchealth.com/PhysRefProfile.asp?guidPhysicianID=%7BAB6DE9A5-54DE-4AE6-A5D7-00B7FC832767%7D"])
 
+'(
 (do
   (dorun
    (doseq [url non-prof-urls]
@@ -93,3 +94,5 @@
 ;; (def c2 (kutils/file->object (kutils/$HOME "tmp" "classifier.bin")))
 ;; (java.util.Arrays/toString (.getProbabilities c2 (web/memoized-get->string "http://www.uhhospitals.org/PhysicianFinder/PhysicianDetails/tabid/1709/phyID/3293/Default.aspx")))
 ;; (.getClassification c2 (web/memoized-get->string "http://www.uhhospitals.org/PhysicianFinder/tabid/1473/sIsSearch/1/Default.aspx"))
+
+)

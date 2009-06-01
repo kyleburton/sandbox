@@ -5,3 +5,4 @@
 
 (run-tests 'com.github.kyleburton.sandbox.rabbitmq-test
            'com.github.kyleburton.sandbox.utils-test)
+

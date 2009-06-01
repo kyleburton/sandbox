@@ -18,6 +18,14 @@
   <path id="classpath">
     <path location="${classes.dir}" />
     <path location="${source.dir}" />
+    <path location="${clojure.src.dir}" />
+    <path location="${test.source.dir}/clj" />
+    <fileset dir="${basedir}/deps">
+      <include name="*.jar" />
+    </fileset>
+  </path>
+
+  <path id="insturmented-classpath">
     <path location="${test.source.dir}/clj" />
     <fileset dir="${basedir}/deps">
       <include name="*.jar" />
@@ -40,7 +48,7 @@
 
   <target name="compile" description="Compile the code">
     <mkdir dir="${classes.dir}"/>
-    <javac destdir="${classes.dir}">
+    <javac destdir="${classes.dir}" debug="true">
       <src>
         <pathelement location="${basedir}/src/java"/>
       </src>
@@ -50,12 +58,38 @@
         </fileset>
       </classpath>
     </javac>
+    <java classname="clojure.lang.Compile" fork="true">
+      <sysproperty key="clojure.compile.path" value="${classes.dir}" />
+      <classpath refid="classpath" />
+      <arg value="com.github.kyleburton.sandbox.utils" />
+      <arg value="com.github.kyleburton.sandbox.cl-bayes" />
+      <arg value="com.github.kyleburton.sandbox.ftp" />
+      <arg value="com.github.kyleburton.sandbox.landmark-parser" />
+      <arg value="com.github.kyleburton.sandbox.lj" />
+      <arg value="com.github.kyleburton.sandbox.log4j" />
+      <arg value="com.github.kyleburton.sandbox.mdb" />
+      <arg value="com.github.kyleburton.sandbox.memoize" />
+      <!-- <arg value="com.github.kyleburton.sandbox.incanter" /> -->
+      <!-- <arg value="com.github.kyleburton.sandbox.git" /> -->
+      <!-- <arg value="com.github.kyleburton.sandbox.jsch" /> -->
+      <!-- <arg value="com.github.kyleburton.sandbox.mina-ftp" /> -->
+      <arg value="com.github.kyleburton.sandbox.mvn" />
+      <arg value="com.github.kyleburton.sandbox.quartz" />
+      <arg value="com.github.kyleburton.sandbox.rabbitmq" />
+      <arg value="com.github.kyleburton.sandbox.ref-data" />
+      <arg value="com.github.kyleburton.sandbox.regex" />
+      <arg value="com.github.kyleburton.sandbox.sql" />
+      <arg value="com.github.kyleburton.sandbox.swing" />
+      <arg value="com.github.kyleburton.sandbox.tiger" />
+      <arg value="com.github.kyleburton.sandbox.utils" />
+      <arg value="com.github.kyleburton.sandbox.web" />
+    </java>
   </target>
 
   <target name="jar" depends="compile" description="Build the JAR">
     <jar jarfile="${target.dir}/${jar.file.name}">
       <fileset dir="${classes.dir}" includes="**/*.class"/>
-      <fileset dir="${source.dir}/clj" includes="**/*.clj" />
+      <!-- <fileset dir="${source.dir}/clj" includes="**/*.clj" /> -->
     </jar>
   </target>
 
@@ -189,5 +223,38 @@
   </target>
 
 
+
+  <!-- Cobertura -->
+  <property name="cobertura.dir" value="cobertura" />
+  <path id="cobertura.classpath">
+    <fileset dir="deps">
+      <include name="*.jar" />
+    </fileset>
+  </path>
+
+  <taskdef classpathref="cobertura.classpath" resource="tasks.properties"/>
+  <target name="cobertura">
+    <!-- <property name="cp" refid="cobertura.classpath"/> -->
+    <!-- <echo message="Classpath = ${cp}"/> -->
+    <cobertura-instrument todir="target/instrumented-classes">
+      <classpath>
+        <path refid="classpath" />
+      </classpath>
+      <fileset dir="target/classes">
+        <include name="**/*.class"/>
+      </fileset>
+    </cobertura-instrument>
+    <java classname="clojure.main" fork="true">
+      <arg value="test/src/clj/com/github/kyleburton/sandbox/suite.clj" />
+      <classpath>
+        <path refid="insturmented-classpath" />
+        <path location="target/instrumented-classes" />
+      </classpath>
+    </java>
+    <!-- can't use the cobertura-report b/c it tries to analyze the
+         sources and it only knows how to parse java... -->
+    <!-- <cobertura-report srcdir="${clojure.src.dir}" destdir="target/cobertura"/> -->
+  </target>
+  <!-- Cobertura -->
 
 </project>

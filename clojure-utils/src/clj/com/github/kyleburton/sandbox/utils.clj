@@ -26,6 +26,24 @@
   [thing]
   (java.io.File. (str thing)))
 
+(defmacro with-tmp-file [[var & [prefix suffix]] & body]
+  `(let [prefix# ~prefix
+         suffix# ~suffix
+         ~var (java.io.File/createTempFile (or prefix# "pfx") (or suffix# "sfx"))]
+     ~@body))
+
+(defmacro with-tmp-dir [[var & [prefix suffix]] & body]
+  `(let [prefix# ~prefix
+         suffix# ~suffix
+         ~var (java.io.File/createTempFile (or prefix# "pfx") (or suffix# "sfx"))]
+     (try
+      (do
+        (.delete ~var)
+        ~@body)
+      (finally
+       ;; TODO: this will fail if dir is not empty!, should this recrusively remove all the files?
+       (.delete ~var)))))
+
 (defn basename [fname]
   (cond (isa? fname java.io.File)
         (.getParent fname)
@@ -60,12 +78,16 @@
   (let [f (->file path)]
     (if (not (.exists f))
       (do
-        (log "[INFO] mkdir: creating %s" path)
+        ;(log "[INFO] mkdir: creating %s" path)
         (.mkdirs f)
         true)
       (if (not (.isDirectory f))
-        (log "[WARN] mkdir: %s exists and is not a directory!")
-        (log "[DEBUG] mkdir: exists: %s" path)))))
+        (do 
+          ;(log "[WARN] mkdir: %s exists and is not a directory!" path)
+          false)
+        (do
+          ;(log "[DEBUG] mkdir: exists: %s" path)
+          true)))))
 
 (defn drain-line-reader 
   "Drain a buffered reader into a sequence."
