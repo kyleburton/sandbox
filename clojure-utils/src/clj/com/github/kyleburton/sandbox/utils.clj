@@ -1,4 +1,6 @@
 (ns com.github.kyleburton.sandbox.utils
+  (:import [java.io PrintWriter BufferedWriter Writer OutputStream OutputStreamWriter File FileOutputStream]
+           [java.net URL URI MalformedURLException])
   (:require [clojure.contrib.duck-streams :as ds]))
 
 (defn raise 
@@ -9,7 +11,7 @@
 (defn perror [& args]
   (.println System/err (apply format args)))
 
-(defn log [& args]
+(defn- log [& args]
   (prn (apply format args)))
 
 (defn #^String get-user-home
@@ -84,6 +86,12 @@
         (do
           ;(log "[DEBUG] mkdir: exists: %s" path)
           true)))))
+
+(defmulti  exists? class)
+(defmethod exists? String   [s] (.exists (File. s)))
+(defmethod exists? File     [f] (.exists f))
+(defmethod exists? :default [x] (throw (Exception. (str "Do not know how to test <" (pr-str x) "> if it `exists?'"))))
+
 
 (defn drain-line-reader 
   "Drain a buffered reader into a sequence."
@@ -397,3 +405,52 @@ sets of optional parameters:
 ;; (parse-paired-arglist '[:foo bar this that :other thing])
 ;; (parse-paired-arglist {:foo 'bar :other 'thing})
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; TODO: offer these back to duck-streams...
+
+(defmulti appender class)
+
+(defmethod appender PrintWriter [x] x)
+
+(defmethod appender BufferedWriter [#^BufferedWriter x]
+  (PrintWriter. x))
+
+(defmethod appender Writer [x]
+  ;; Writer includes sub-classes such as FileWriter
+  (PrintWriter. (BufferedWriter. x)))   
+
+(defmethod appender OutputStream [x]
+  (PrintWriter.
+   (BufferedWriter.
+    (OutputStreamWriter. x "UTF-8"))))
+
+(defmethod appender File [#^File x]
+  (appender (FileOutputStream. x true)))
+
+(defmethod appender URL [#^URL x]
+  (if (= "file" (.getProtocol x))
+    (appender (File. (.getPath x)))
+    (throw (Exception. (str "Cannot write to non-file URL <" x ">")))))
+
+(defmethod appender URI [#^URI x]
+  (appender (.toURL x)))
+
+(defmethod appender String [#^String x]
+  (try (let [url (URL. x)]
+         (appender url))
+       (catch MalformedURLException err
+         (appender (ds/file x)))))
+
+(defmethod appender :default [x]
+  (throw (Exception. (str "Cannot open <" (pr-str x) "> as an appender."))))
+
+(defmacro with-out-appender
+  "Opens an appender on f, binds it to *out*, and evalutes body."
+  [f & body]
+  `(with-open [stream# (appender ~f)]
+     (binding [*out* stream#]
+       ~@body)))
+
+;; END duck-streams contrib
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
