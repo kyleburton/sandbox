@@ -6,33 +6,50 @@
   (:use [com.github.kyleburton.sandbox.utils :as kutils])
   (:use [clojure.contrib.str-utils :as str]))
 
+
+(def DELIVERY_MODE_NON_PERSISTENT 1)
+(def DELIVERY_MODE_PERSISTENT     2)
+
+(defn getprop [prop & [default]]
+  (if-let [v (System/getProperty prop)]
+    v
+    default))
+
+(defn rprop [prop & [default]]
+  (getprop (str "com.github.kyleburton.sandbox.rabbitmq" prop)
+           default))
+
+(defn rprop->int [prop & [default]]
+  (if-let [v (System/getProperty prop)]
+    (Integer/parseInt v)
+    default))
+
+(def *amqp-port*         (rprop->int "port" com.rabbitmq.client.AMQP$PROTOCOL/PORT))
+(def *amqp-host*         (rprop      "broker-hostname"        "localhost"))
+(def *amqp-exchange*     (rprop      "default.exchange.name"  "com.github.kyleburton.sandbox.rabbitmq.default.exchange.name"))
+(def *amqp-queue*        (rprop      "default.queue.name"     "com.github.kyleburton.sandbox.rabbitmq.default.queue.name"))
+(def *amqp-rpc-exchange* (rprop      "default.rpc.queue.name" "com.github.kyleburton.sandbox.rabbitmq.default.rpc.queue.name"))
+(def *amqp-rpc-queue*    (rprop      "default.rpc.queue.name" "com.github.kyleburton.sandbox.rabbitmq.default.rpc.queue.name"))
+(def *amqp-timeout*      (rprop->int  "timeout" 250))
+
+(def *amqp-message-properties*
+     (let [prop (com.rabbitmq.client.AMQP$BasicProperties.)]
+       (set! (.deliveryMode prop) DELIVERY_MODE_NON_PERSISTENT)
+       prop))
+
 (def *connection-params*
      (doto (ConnectionParameters.)
        (.setUsername "guest")
        (.setPassword "guest")))
 
-(def DELIVERY_MODE_NON_PERSISTENT 1)
-(def DELIVERY_MODE_PERSISTENT 2)
 
-(def *default-port* com.rabbitmq.client.AMQP$PROTOCOL/PORT)
-(def *default-host*         "localhost")
-(def *default-exchange*     "com.github.kyleburton.sandbox.rabbitmq.default.exchange.name")
-(def *default-queue*        "com.github.kyleburton.sandbox.rabbitmq.default.queue.name")
-(def *default-rpc-exchange* "com.github.kyleburton.sandbox.rabbitmq.default.rpc.queue.name")
-(def *default-rpc-queue*    "com.github.kyleburton.sandbox.rabbitmq.default.rpc.queue.name")
-(def *default-timeout*      250)
-(def *default-binding-key*  *default-queue*)
-(def *default-message-properties*
-     (let [prop (com.rabbitmq.client.AMQP$BasicProperties.)]
-       (set! (.deliveryMode prop) DELIVERY_MODE_NON_PERSISTENT)
-       prop))
 
-;; (map #(.get % *default-message-properties*) (kutils/fields-seq *default-message-properties*))
-;; (kutils/fields-and-values-map *default-message-properties*)
+;; (map #(.get % *amqp-message-properties*) (kutils/fields-seq *amqp-message-properties*))
+;; (kutils/fields-and-values-map *amqp-message-properties*)
 
 ;; (def *rabbit-host-name* "localhost")
-;; (def *default-routing-key* "my-routing-key")
-;; (def *default-exchange-name* "my-exchange")
+;; (def *amqp-routing-key* "my-routing-key")
+;; (def *amqp-exchange-name* "my-exchange")
 ;; <field name="delivery mode" type="octet"> Non-persistent (1) or persistent (2) </field>
 
 (def #^{:doc "Var for holding a default factory"}
@@ -52,8 +69,8 @@
 ;; in the *env*
 (def #^{:doc "Var used to hold the current 'environment' for connections."} 
      *env* {:acknowledge true
-            :host *default-host*
-            :port *default-port*
+            :host *amqp-host*
+            :port *amqp-port*
             :user nil
             :pass nil
             })
@@ -79,64 +96,40 @@
 (bean (make-connection-params {:user "guest" :pass "guest"}))
 
 ;; set these if you want to override...
-(def *default-param-map* (atom
+(def *amqp-param-map* (atom
                           {:user "guest"
                            :pass "guest"}))
 
 
-;; TODO: refactor with-connection and do-connection, too much shared
-;; behavior for them to be so cut&paste
-(defmacro with-connection [params & body]
-  (let [[positional named] (kutils/parse-paired-arglist params)]
-    `(binding [*env* ~(merge *env* @*default-param-map* named)]
-       (binding [*factory*  (ConnectionFactory. (make-connection-params *env*))]
-         (with-open [conn# (.newConnection *factory* 
-                                                (:host *env* *default-host*)
-                                                (:port *env* *default-port*))]
-           (binding [*connection* conn#]
-             (with-open [channel# (.createChannel *connection*)]
-               (binding [*channel* channel#]
-                 (prn (format "with-connection: declaring exchange: %s" (:exchange *env* *default-exchange*)))
-                 (.exchangeDeclare *channel*
-                                   (:exchange *env* *default-exchange*)
-                                   (:exchange-type *env* "direct")
-                                   (:exchange-durable *env* false))
-                 (prn (format "with-connection: declaring queue: %s" (:queue *env* *default-queue*)))
-                 (.queueDeclare *channel* 
-                                (:queue *env* *default-queue*)
-                                (:queue-durable *env* false))
-                 (.queueBind *channel*
-                             (:queue *env* *default-queue*)
-                             (:exchange *env* *default-exchange*)
-                             (:binding-key *env* *default-binding-key*))
-                 ~@body))))))))
+(defmacro with-amqp [params & body]
+  `(do-amqp ~params (fn [] ~@body)))
 
 ;; params must be a hash...
-(defn do-connection
-  "Functional equivalent of with-connection macro"
+(defn do-amqp
+  "Functional equivalent of with-amqp macro"
   [params fn]
-  (binding [*env* (merge *env* @*default-param-map* params)]
+  (binding [*env* (merge *env* @*amqp-param-map* params)]
      (binding [*factory*  (ConnectionFactory. (make-connection-params *env*))]
        (with-open [connection (.newConnection *factory* 
-                                              (:host *env* *default-host*)
-                                              (:port *env* *default-port*))]
+                                              (:host *env* *amqp-host*)
+                                              (:port *env* *amqp-port*))]
          (binding [*connection* connection]
            (with-open [channel (.createChannel *connection*)]
              (binding [*channel* channel]
-               (prn (format "do-connection: declaring exchange: %s" (:exchange *env* *default-exchange*)))
+               ;;(prn (format "do-amqp: declaring exchange: %s" (:exchange *env* *amqp-exchange*)))
                (.exchangeDeclare *channel*
-                                 (:exchange *env* *default-exchange*)
+                                 (:exchange *env* *amqp-exchange*)
                                  (:exchange-type *env* "direct")
                                  (:exchange-durable *env* false))
-               (prn (format "do-connection: declaring queue: %s" (:queue *env* *default-queue*)))
-               (.queueDeclare *channel* (:queue *env* *default-queue*) (:queue-durable *env* false))
+               ;;(prn (format "do-amqp: declaring queue: %s" (:queue *env* *amqp-queue*)))
+               (.queueDeclare *channel* (:queue *env* *amqp-queue*) (:queue-durable *env* false))
                (.queueBind *channel*
-                           (:queue *env* *default-queue*)
-                           (:exchange *env* *default-exchange*)
-                           (:binding-key *env* *default-binding-key*))
+                           (:queue *env* *amqp-queue*)
+                           (:exchange *env* *amqp-exchange*)
+                           (:binding-key *env* *amqp-queue*))
                (fn))))))))
 
-;; (with-connection
+;; (with-amqp
 ;;     [:exchange "test.exchange.name" 
 ;;      :exchange-durable false
 ;;      :queue "test.queue.name" :queue-durable false]
@@ -144,7 +137,7 @@
 ;;   (prn "connection=" *connection*)
 ;;   (prn "env=" *env*))
 
-;; (do-connection
+;; (do-amqp
 ;;  {:exchange "test.exchange.name" 
 ;;   :exchange-durable false
 ;;   :queue "test.queue.name" :queue-durable false}
@@ -154,17 +147,36 @@
 ;;    (prn "env=" *env*)))
 
 (defn basic-publish [#^java.util.Map params #^String message]
-  (do-connection 
-   params
-   (fn []
-     (.basicPublish 
-      *channel*
-      (:exchange    *env* *default-exchange*)
-      (:routing-key *env* *default-queue*)
-      (:mandatory   *env* false)
-      (:immediate   *env* false)
-      nil   ;; (:message-properties *env* *default-message-properties*)
-      (.getBytes message)))))
+  (with-amqp 
+      params
+    (.basicPublish 
+     *channel*
+     (:exchange    *env* *amqp-exchange*)
+     (:routing-key *env* *amqp-queue*)
+     (:mandatory   *env* false)
+     (:immediate   *env* false)
+     nil ;; (:message-properties *env* *amqp-message-properties*)
+     (.getBytes message))))
+
+(defn object-publish
+  "Publish an object, serializing it before publishing."
+  [#^String message]
+  (.basicPublish 
+   *channel*
+   (:exchange    *env* *amqp-exchange*)
+   (:routing-key *env* *amqp-queue*)
+   (:mandatory   *env* false)
+   (:immediate   *env* false)
+   nil
+   (kutils/freeze message)))
+
+(defn basic-object-publish
+  "Publish an object, serializing it before publishing."
+  [#^java.util.Map params #^String message]
+  (with-amqp 
+      params
+    (object-publish (kutils/freeze message))))
+
 
 ;; (basic-publish {} (format "[%s] this is my message..." (java.util.Date.)))
 ;; (String. (.getBody (basic-get)))
@@ -173,31 +185,55 @@
 (defn basic-get
   "Immediate pull, even if there are no messages waiting."
   [& [#^java.util.Map params]]
-  (do-connection
-   params
-   (fn []
-     (prn (format "calling .basicGet on *channel*=%s" *channel*))
-     (.basicGet *channel* 
-                (:queue *env* *default-queue*) 
-                (:acknowledge *env* true)))))
+  (with-amqp
+      params
+    ;;(prn (format "calling .basicGet on *channel*=%s" *channel*))
+    (.basicGet *channel* 
+               (:queue *env* *amqp-queue*) 
+               (:acknowledge *env* true))))
 
-(defn do-consume [params f]
-  (do-connection 
+(defn basic-object-get
+  "Immediate pull, even if there are no messages waiting, assume the
+  message body was serialized and deserialize it."  [&
+  [#^java.util.Map params]]
+  (let [msg (basic-get params)]
+    (if (not (nil? msg))
+      (kutils/thaw (.getBody msg))
+      msg)))
+
+(defn object-get
+  "Immediate pull, even if there are no messages waiting, assume the
+  message body was serialized and deserialize it."  
+  []
+  (let [msg (.basicGet *channel* 
+                       (:queue *env* *amqp-queue*) 
+                       (:acknowledge *env* true))]
+    (if (not (nil? msg))
+      (kutils/thaw (.getBody msg))
+      msg)))
+
+;; (object-publish {} (java.util.Date.))
+;; (object-get)
+
+(defn do-consume
+  "Create a consumer and pass it to the given function."
+  [params f]
+  (do-amqp 
    params
    (fn []
      (let [consumer (let [consumer (QueueingConsumer. *channel*)]
-                      (.basicConsume *channel* (:routing-key *env* *default-queue*) consumer)
+                      (.basicConsume *channel* (:routing-key *env* *amqp-queue*) consumer)
                       consumer)]
        (f consumer)))))
 
-(defn ack-delivery [consumer delivery]
+(defn ack-delivery
+  "Manually acknowledge a delivery (message)."
+  [consumer delivery]
   (.basicAck (.getChannel consumer)
              (.getDeliveryTag (.getEnvelope delivery))
              true))
 
-
 ;; (basic-publish {} (format "[%s] this is my message..." (java.util.Date.)))
-
 
 
 (defn try-get
@@ -206,7 +242,7 @@
   (do-consume
    params
    (fn [consumer]
-     (if-let [delivery (.nextDelivery consumer (:timeout *env* *default-timeout*))]
+     (if-let [delivery (.nextDelivery consumer (:timeout *env* *amqp-timeout*))]
        (do
          (if (:acknowledge *env* true)
            (ack-delivery consumer delivery))
@@ -218,12 +254,12 @@
 
 
 
-;; (with-connection [] (.queueDelete *channel* "SimpleQueue"))
-;; (with-connection [] (.queueDelete *channel* "test.queue.name"))
-;; (with-connection [] (.exchangeDelete *channel* "test.exchange.name"))
+;; (with-amqp [] (.queueDelete *channel* "SimpleQueue"))
+;; (with-amqp [] (.queueDelete *channel* "test.queue.name"))
+;; (with-amqp [] (.exchangeDelete *channel* "test.exchange.name"))
 
-;; (with-connection [] (.queueDelete *channel* *default-queue*))
-;; (with-connection [] (.exchangeDelete *channel* *default-exchange*))
+;; (with-amqp [] (.queueDelete *channel* *amqp-queue*))
+;; (with-amqp [] (.exchangeDelete *channel* *amqp-exchange*))
 
 ;; (def x (make-rpc-state))
 ;; (:factory x)
@@ -232,18 +268,18 @@
 ;; (shutdown-rpc-state x)
 
 (defn make-rpc-server [params callbacks]
-  (binding [*env* (merge {:queue *default-rpc-queue*} *env* params)]
+  (binding [*env* (merge {:queue *amqp-rpc-queue*} *env* params)]
     (let [factory    (ConnectionFactory. (make-connection-params *env*))
           connection (.newConnection factory
-                                     (:host *env* *default-host*) 
-                                     (:port *env* *default-port*))
+                                     (:host *env* *amqp-host*) 
+                                     (:port *env* *amqp-port*))
           channel    (.createChannel connection)
           rpc-state {:factory factory
                      :connection connection
                      :channel channel
                      :env *env* }
           queue    (:queue (:env rpc-state))
-          exchange (:exchange *env* *default-rpc-exchange*)
+          exchange (:exchange *env* *amqp-rpc-exchange*)
           map-call (:map-call callbacks)
           map-cast (:map-cast callbacks)]
       (.exchangeDeclare channel exchange "direct" true)
@@ -251,7 +287,7 @@
       (.queueBind channel
                   queue
                   exchange
-                  queue ;(:binding-key *env* *default-binding-key*)
+                  queue
                   )
       (prn (format "make-rpc-server: channel:%s queue:%s map-call:%s map-cast:%s"
                    channel
@@ -314,9 +350,9 @@
                    (prn (format "in the map-cast handler! rpc-state:%s this:%s request:%s" 
                                 rpc-state this request)))}))
 
-(:exchange (:env rpc-server) *default-rpc-exchange*)
+(:exchange (:env rpc-server) *amqp-rpc-exchange*)
 
-(with-connection [] (.queueDelete *channel* "com.github.kyleburton.sandbox.rabbitmq.default.rpc.queue.name"))
+'(with-amqp [] (.queueDelete *channel* "com.github.kyleburton.sandbox.rabbitmq.default.rpc.queue.name"))
 
 (do (.mainloop (:server rpc-server)) 
     (prn "mainloop returned")
@@ -335,9 +371,9 @@
      (RpcClient. 
       (.createChannel 
        (.newConnection (:factory rpc-server)
-                       (:host *env* *default-host*) 
-                       (:port *env* *default-port*)))
-      (:exchange (:env rpc-server) *default-rpc-exchange*)
+                       (:host *env* *amqp-host*) 
+                       (:port *env* *amqp-port*)))
+      (:exchange (:env rpc-server) *amqp-rpc-exchange*)
       (:queue (:env rpc-server))))
 
 (.getExchange rpc-client)
@@ -354,7 +390,7 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; (def *rpc-server-channel-key* "rpc.channel.key")
-;; (def *rpc-server-connection* (.newConnection *amqp-factory* *default-host* *default-port*))
+;; (def *rpc-server-connection* (.newConnection *amqp-factory* *amqp-host* *amqp-port*))
 ;; (def *rpc-server-channel*
 ;;      (let [channel (.createChannel *rpc-server-connection*)]
 ;;        (.exchangeDeclare channel "rpc.exchange" "direct" true)
@@ -386,7 +422,7 @@
 
 (def *rpc-server-channel-key* "rpc-test")
 (def *rpc-server-connection* (.newConnection *factory* *rabbit-host-name* *rabbit-port*))
-(def *rpc-server-channel*    (open-channel *rpc-server-connection* *default-exchange-name* *rpc-server-channel-key*))
+(def *rpc-server-channel*    (open-channel *rpc-server-connection* *amqp-exchange-name* *rpc-server-channel-key*))
 (def *rpc-server*
      (let [server (proxy [com.rabbitmq.client.MapRpcServer]
                       [*rpc-server-channel* *rpc-server-channel-key*]
@@ -404,7 +440,7 @@
 
 (def *rpc-client-connection* (.newConnection *factory* *rabbit-host-name* *rabbit-port*))
 
-(def *rpc-client-channel*    (open-channel *rpc-client-connection* *default-exchange-name* *rpc-server-channel-key*))
+(def *rpc-client-channel*    (open-channel *rpc-client-connection* *amqp-exchange-name* *rpc-server-channel-key*))
 
 (def *rpc-client*
      (RpcClient. *rpc-client-channel* "" *rpc-server-channel-key*))
