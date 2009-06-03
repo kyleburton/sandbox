@@ -189,7 +189,7 @@ exceptions when things happen so quickly that elapsed is 0"
 (defn producer [producer-num cnt]
   (rabbit/with-amqp
    {}
-   (let [start-time now]
+   (let [start-time (now -1)]
      (dotimes [ii cnt]
        (object-publish [ii (Date.)]))
      (log-producer-stat producer-num cnt start-time (now)))))
