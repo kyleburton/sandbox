@@ -440,7 +440,7 @@ sets of optional parameters:
   (try (let [url (URL. x)]
          (appender url))
        (catch MalformedURLException err
-         (appender (ds/file x)))))
+         (appender (java.io.File. x)))))
 
 (defmethod appender :default [x]
   (throw (Exception. (str "Cannot open <" (pr-str x) "> as an appender."))))
