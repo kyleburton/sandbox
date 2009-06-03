@@ -160,7 +160,7 @@
 
 (defn object-publish
   "Publish an object, serializing it before publishing."
-  [#^String message]
+  [#^Object message]
   (.basicPublish 
    *channel*
    (:exchange    *env* *amqp-exchange*)
@@ -172,10 +172,10 @@
 
 (defn basic-object-publish
   "Publish an object, serializing it before publishing."
-  [#^java.util.Map params #^String message]
+  [#^java.util.Map params #^Object message]
   (with-amqp 
       params
-    (object-publish (kutils/freeze message))))
+    (object-publish message)))
 
 
 ;; (basic-publish {} (format "[%s] this is my message..." (java.util.Date.)))
