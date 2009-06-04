@@ -221,9 +221,9 @@ exceptions when things happen so quickly that elapsed is 0"
                     elapsed
                     rate))))))
 
-;; (com.github.kyleburton.sandbox.rabbitmq.perf-test/producer "test" 5000)
-;; (com.github.kyleburton.sandbox.rabbitmq.perf-test/consumer "test-consumer")
-
+;; (producer "test" 50)
+;; (consumer "test-consumer")
+;; (producer "test" 100)
 
 (defn clear-stats []
   (.delete (java.io.File. *consumer-stats-file*))

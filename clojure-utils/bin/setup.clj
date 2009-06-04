@@ -6,7 +6,7 @@
 ;; they are included here explicitly so that setup.clj can remain
 ;; standalone - many of the clj utilities
 
-(defn raise [args]
+(defn raise-exception [args]
   (throw (RuntimeException. (apply format args))))
 
 (defn log [& args]
@@ -47,7 +47,7 @@
   (let [src (->file src)
         dst (->file dst)]
     (if (not (.exists src))
-      (raise "symlink: src does not exist: %s" src))
+      (raise-exception "symlink: src does not exist: %s" src))
     (if (.exists dst)
       (log "[INFO] symlink: dst exists %s => %s" src dst)
       (let [cmd (format "ln -s %s %s" src dst)
@@ -166,7 +166,12 @@ log4j.appender.A1.layout.ConversionPattern=%-4r [%t] %-5p %c %x - %m%n
     (chmod 755 target)))
 
 
+(defn basedir [file]
+  (.getParentFile (->file file)))
+
 (defn main []
+;;   (prn (format "here: %s" *file*))
+;;   (prn (format "    : %s" (basedir (basedir *file*))))
   (mkdir ($HOME "/.clojure"))
   (symlink  ($HOME "/personal/projects/sandbox/clojure-utils/src/clj/") ($HOME "/.clojure/krb-clj-utils"))
   (get-deps)
@@ -176,4 +181,5 @@ log4j.appender.A1.layout.ConversionPattern=%-4r [%t] %-5p %c %x - %m%n
   (make-log4j-props))
 
 
-;; (main)
+
+(main)
