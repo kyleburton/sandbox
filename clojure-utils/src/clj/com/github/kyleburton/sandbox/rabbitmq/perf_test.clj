@@ -192,10 +192,15 @@ exceptions when things happen so quickly that elapsed is 0"
 (defn producer [producer-num cnt]
   (rabbit/with-amqp
    {}
-   (let [start-time now]
+   (let [start-time (now -1)]
      (dotimes [ii cnt]
        (object-publish [ii (Date.)]))
-     (log-producer-stat producer-num cnt start-time (now)))))
+     (log-producer-stat producer-num cnt start-time (now))
+     (prn (format "producer-%s: %s published in %s @ %s/s"
+                  producer-num
+                  cnt
+                  (/ (- (now) start-time) 1000.0)
+                  (/ cnt (/ (- (now) start-time) 1000.0)))))))
 
 (defn consumer [consumer-num]
   (rabbit/with-amqp
@@ -213,11 +218,11 @@ exceptions when things happen so quickly that elapsed is 0"
      (log-consumer-stat consumer-num @num-msgs start-time (now) @msg-age)
      (let [elapsed (/ (- (now) start-time) 1000.0)
            rate    (/ @num-msgs elapsed)]
-       (prn (format "%s messages in %s elapsed seconds @ %s/second"
+       (prn (format "consumer-%s: %s messages in %s elapsed seconds @ %s/second"
+                    consumer-num
                     @num-msgs
                     elapsed
                     rate))))))
-
 
 (defn process-mem-usage [name]
   (Double/parseDouble
@@ -230,8 +235,8 @@ exceptions when things happen so quickly that elapsed is 0"
   (process-mem-usage "beam"))
 
 (defn clear-stats []
-  (.delete (ds/file *consumer-stats-file*))
-  (.delete (ds/file *producer-stats-file*))
+  (.delete (java.io.File. *consumer-stats-file*))
+  (.delete (java.io.File. *producer-stats-file*))
   (ensure-consumer-stats-file)
   (ensure-producer-stats-file))
 
@@ -296,10 +301,10 @@ exceptions when things happen so quickly that elapsed is 0"
                :x-label xname
                :y-label yname)))
 
-(view (simple-xy-plot "RabbitMQ"    "TOTAL-MESSAGES" "M/S"))
-(view (simple-xy-plot "Apache-Qpid" "TOTAL-MESSAGES" "M/S"))
+'(view (simple-xy-plot "RabbitMQ"    "TOTAL-MESSAGES" "M/S"))
+'(view (simple-xy-plot "Apache-Qpid" "TOTAL-MESSAGES" "M/S"))
 
-(let [plot        (simple-xy-plot "RabbitMQ"    "TOTAL-MESSAGES" "M/S")
+'(let [plot        (simple-xy-plot "RabbitMQ"    "TOTAL-MESSAGES" "M/S")
       qpid-data   (get-xy-data    "Apache-Qpid" "TOTAL-MESSAGES" "M/S")]
   (add-lines plot (qpid-data 0) (qpid-data 1))
   (save plot (str *working-directory* "/rabbit-vs-qpid-mps.png") :width 1000 :height 800)
