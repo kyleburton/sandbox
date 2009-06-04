@@ -1,7 +1,8 @@
 (ns com.github.kyleburton.sandbox.utils
   (:import [java.io PrintWriter BufferedWriter Writer OutputStream OutputStreamWriter File FileOutputStream]
            [java.net URL URI MalformedURLException])
-  (:require [clojure.contrib.duck-streams :as ds]))
+  (:use [clojure.contrib.duck-streams        :as ds]
+        [clojure.contrib.shell-out           :as sh]))
 
 (defn raise 
   "Simple wrapper around throw."
@@ -404,6 +405,19 @@ sets of optional parameters:
 
 ;; (parse-paired-arglist '[:foo bar this that :other thing])
 ;; (parse-paired-arglist {:foo 'bar :other 'thing})
+
+(defn ensure-directory 
+  "Create the directory if it does not already exist."
+  [dir]
+  (let [f (java.io.File. dir)]
+    (if (not (.exists f))
+      (.mkdirs f))))
+
+;; TODO: port to pure java, rm is unix specific...
+(defn deltree
+  "Remove the given directory tree, all files and subdirectories."
+  [dir]
+  (sh/sh "rm" "-rf" dir))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
