@@ -15,6 +15,9 @@
 (defn- log [& args]
   (prn (apply format args)))
 
+(defn uc [#^String s] (.toUpperCase s))
+(defn lc [#^String s] (.toLowerCase s))
+
 (defn #^String get-user-home
   "Get the user's home dir as a string."
   []
@@ -419,6 +422,13 @@ sets of optional parameters:
   [dir]
   (sh/sh "rm" "-rf" dir))
 
+(defn enumeration->seq [#^java.util.Enumeration enum]
+  (loop [has-more (.hasMoreElements enum)
+         res []]
+    (if has-more
+      (let [elt (.nextElement enum)]
+        (recur (.hasMoreElements enum) (conj res elt)))
+      res)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; TODO: offer these back to duck-streams...

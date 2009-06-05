@@ -1,5 +1,6 @@
 (ns com.github.kyleburton.sandbox.jar-utils
-  (:import [java.io File])
+  (:import [java.io File]
+           [java.util.jar JarFile])
   (:use    [com.github.kyleburton.sandbox.utils :as kutils]
            [clojure.contrib.shell-out           :as sh]
            [clojure.contrib.str-utils           :as str-utils]
@@ -8,7 +9,7 @@
 (defn jar-files
   "Returns a sequence of the jar files from the given directory.  This is not recrusive."
   [#^String path]
-  (doall (filter #(.endsWith (.toLowerCase (.getName %)) ".jar")
+  (doall (filter #(.endsWith (kutils/lc (.getName %)) ".jar")
                  (filter #(.isFile %) (seq (.listFiles (File. path)))))))
 
 (defn get-jar-certs [#^File jar-file]
@@ -63,7 +64,6 @@
         (println (sh/sh "jar" "cmf" manifest-file (.toString file) "-C" unzip-dir "./"))
         (prn (format "re-created: %s" file))))))
 
-
 (defn unsign-jars
   "Unsing each jar file found in the given source directory, NB: this does not recurse into sub directories."
   [jars-src-dir jars-target-dir working-dir]
@@ -74,3 +74,28 @@
       (sh/sh "cp" "-r" jars-src-dir working-dir)))
   (doseq [file (take 2 (jar-files working-dir))]
     (unsign-jar file working-dir jars-target-dir)))
+
+(defmulti jar-entries class)
+
+(defmethod jar-entries String [s]
+  (enumeration->seq (.entries (java.util.jar.JarFile. s))))
+
+(defmethod jar-entries File [file]
+  (enumeration->seq (.entries (java.util.jar.JarFile. file))))
+
+(defmethod jar-entries JarFile [j]
+  (enumeration->seq (.entries j)))
+
+(defmulti jar-manifest class)
+
+(defmethod jar-manifest String [s]
+  (.getManifest (java.util.jar.JarFile. s)))
+
+(defmethod jar-manifest File [file]
+  (.getManifest (java.util.jar.JarFile. file)))
+
+(defmethod jar-manifest JarFile [j]
+  (.getManifest j))
+
+
+
