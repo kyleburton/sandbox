@@ -1,7 +1,8 @@
 (ns com.github.kyleburton.sandbox.utils
   (:import [java.io PrintWriter BufferedWriter Writer OutputStream OutputStreamWriter File FileOutputStream]
            [java.net URL URI MalformedURLException])
-  (:require [clojure.contrib.duck-streams :as ds]))
+  (:use [clojure.contrib.duck-streams        :as ds]
+        [clojure.contrib.shell-out           :as sh]))
 
 (defn raise 
   "Simple wrapper around throw."
@@ -13,6 +14,9 @@
 
 (defn- log [& args]
   (prn (apply format args)))
+
+(defn uc [#^String s] (.toUpperCase s))
+(defn lc [#^String s] (.toLowerCase s))
 
 (defn #^String get-user-home
   "Get the user's home dir as a string."
@@ -405,6 +409,26 @@ sets of optional parameters:
 ;; (parse-paired-arglist '[:foo bar this that :other thing])
 ;; (parse-paired-arglist {:foo 'bar :other 'thing})
 
+(defn ensure-directory 
+  "Create the directory if it does not already exist."
+  [dir]
+  (let [f (java.io.File. dir)]
+    (if (not (.exists f))
+      (.mkdirs f))))
+
+;; TODO: port to pure java, rm is unix specific...
+(defn deltree
+  "Remove the given directory tree, all files and subdirectories."
+  [dir]
+  (sh/sh "rm" "-rf" dir))
+
+(defn enumeration->seq [#^java.util.Enumeration enum]
+  (loop [has-more (.hasMoreElements enum)
+         res []]
+    (if has-more
+      (let [elt (.nextElement enum)]
+        (recur (.hasMoreElements enum) (conj res elt)))
+      res)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; TODO: offer these back to duck-streams...

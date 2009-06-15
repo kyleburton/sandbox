@@ -5,6 +5,7 @@
         [com.github.kyleburton.sandbox.utils    :as kutils]
         [clojure.contrib.duck-streams           :as ds]
         [clojure.contrib.str-utils              :as str-utils]
+        [clojure.contrib.shell-out              :as sh]
         [incanter.core]
         [incanter.stats]
         [incanter.charts]))
@@ -106,6 +107,9 @@
                      :total-messages 1
                      :message-size   (count (kutils/freeze [11 (Date.)]))})
 
+;; (* 100000 (:message-size *testing-info*))
+;; 37,000,000 vs on the order of ~220Mb for the VSS
+
 (def *producer-stats-file* (format "%s/producer-stats.tab" *working-directory*))
 
 (defn ensure-producer-stats-file []
@@ -178,7 +182,6 @@
                        elapsed
                        msg-age)))))
 
-
 (defn now
   "Fudge is a bit of a hack, 1ms shouldn't have any impact on the
 benchmarks, when we use -1 in start-time's, it avoids divide by zero
@@ -221,9 +224,15 @@ exceptions when things happen so quickly that elapsed is 0"
                     elapsed
                     rate))))))
 
-;; (producer "test" 50)
-;; (consumer "test-consumer")
-;; (producer "test" 100)
+(defn process-mem-usage [name]
+  (Double/parseDouble
+   (nth
+    (first (map #(seq (.split % "\\s+"))
+                (filter #(.contains % name) (seq (.split (sh/sh "ps" "u") "\n")))))
+    4)))
+
+(defn rabbit-mem-usage []
+  (process-mem-usage "beam"))
 
 (defn clear-stats []
   (.delete (java.io.File. *consumer-stats-file*))
@@ -251,12 +260,13 @@ exceptions when things happen so quickly that elapsed is 0"
 ;; (run-single-benchmark "Series1" "RabbitMQ" 3 100 1)
 
 (defn run-benchmark [broker num-prods num-cons]
-  (doseq [msg-count [1 5 10 50 100 500 1000 5000 10000 50000 100000]]
+  (doseq [msg-count [1 5 10 50 100 500 1000 5000 10000 50000 100000 500000]]
     (run-single-benchmark (format "Series-%sm-%sp-%sc" msg-count num-prods num-cons)
                           broker
                           3 
                           msg-count
-                          num-prods)))
+                          num-prods))
+  (prn (format "run-benchmark: %s completed" broker)))
 
 ;; (clear-stats)
 ;; (run-benchmark "RabbitMQ"    1 1)
@@ -297,4 +307,39 @@ exceptions when things happen so quickly that elapsed is 0"
 '(let [plot        (simple-xy-plot "RabbitMQ"    "TOTAL-MESSAGES" "M/S")
       qpid-data   (get-xy-data    "Apache-Qpid" "TOTAL-MESSAGES" "M/S")]
   (add-lines plot (qpid-data 0) (qpid-data 1))
+  (save plot (str *working-directory* "/rabbit-vs-qpid-mps.png") :width 1000 :height 800)
   (view plot))
+
+(let [mem-sizes (map #(Double/parseDouble (nth % 4))
+                     (map #(seq (.split % "\\s+")) 
+                          (take 500 (seq (.split (slurp (str *working-directory* "/rabbit-mem.txt")) "\n")))))
+      counts (range (count mem-sizes))
+      plot (line-plot counts mem-sizes )]
+  (save plot (str *working-directory* "/rabbit-mem-vss.png") :width 1000 :height 800)
+  (view plot))
+
+(let [mem-sizes (map #(Double/parseDouble (nth % 5))
+                     (map #(seq (.split % "\\s+")) 
+                          (take 500 (seq (.split (slurp (str *working-directory* "/rabbit-mem.txt")) "\n")))))
+      counts (range (count mem-sizes))
+      plot (line-plot counts mem-sizes )]
+  (save plot (str *working-directory* "/rabbit-mem-rss.png") :width 1000 :height 800)
+  (view plot))
+
+(let [mem-sizes (map #(Double/parseDouble (nth % 4))
+                     (map #(seq (.split % "\\s+")) 
+                          (seq (.split (slurp (str *working-directory* "/qpid-mem.txt")) "\n"))))
+      counts (range (count mem-sizes))
+      plot (line-plot counts mem-sizes )]
+  (save plot (str *working-directory* "/qpid-mem-vss.png") :width 1000 :height 800)
+  (view plot))
+
+(let [mem-sizes (map #(Double/parseDouble (nth % 5))
+                     (map #(seq (.split % "\\s+")) 
+                          (seq (.split (slurp (str *working-directory* "/qpid-mem.txt")) "\n"))))
+      counts (range (count mem-sizes))
+      plot (line-plot counts mem-sizes )]
+  (save plot (str *working-directory* "/qpid-mem-rss.png") :width 1000 :height 800)
+  (view plot))
+
+
