@@ -1,7 +1,7 @@
 ;; TODO: support authorization
 (ns com.github.kyleburton.sandbox.web
   (:import (org.apache.commons.httpclient          HttpClient NameValuePair)
-           (org.apache.commons.httpclient.methods  GetMethod)
+           (org.apache.commons.httpclient.methods  GetMethod PostMethod)
            (org.apache.commons.httpclient.auth     AuthScope)
            (org.apache.commons.httpclient          UsernamePasswordCredentials))
   (:require [com.github.kyleburton.sandbox.landmark-parser :as lparse]
@@ -14,7 +14,7 @@
 
 (defn map->nvpairs [m]
   (if-let [names (keys m)]
-    (into-array (vec (map #(NameValuePair. (.getName %) (m %)) (keys m))))
+    (into-array (vec (map #(NameValuePair. % (m %)) (keys m))))
     nil))
 
 (defn ua-get [ua url & [params]]
@@ -36,6 +36,20 @@
 ;; (get->string "http://google.com/")
 ;; (get->string "http://intranet.hmsonline.com/confluence/display/SWDEV/Home")
 
+(defn ua-post [ua url params]
+  (let [req (PostMethod. url)
+        pairs (map->nvpairs params)]
+    (println (format "ua-post: pairs=%s" (seq pairs)))
+    (if pairs
+      (.setRequestBody req pairs))
+    (.executeMethod ua req)
+    req))
+
+(defn ua-post->string [ua url params]
+  (.getResponseBodyAsString (ua-post ua url params)))
+
+(defn post->string [url params]
+  (ua-post->string *ua* url params))
 
 (def memoized-get->string
      (fn [& params]
