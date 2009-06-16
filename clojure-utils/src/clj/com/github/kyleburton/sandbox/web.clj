@@ -24,7 +24,6 @@
       (.setQueryString req pairs))
     (.setFollowRedirects req true)
     (.executeMethod ua req)
-    (prn (format "ua-get->string: req.uri=%s" (.getURI req)))
     req))
 
 (defn ua-get->string [ua url & [params]]
@@ -39,7 +38,6 @@
 (defn ua-post [ua url params]
   (let [req (PostMethod. url)
         pairs (map->nvpairs params)]
-    (println (format "ua-post: pairs=%s" (seq pairs)))
     (if pairs
       (.setRequestBody req pairs))
     (.executeMethod ua req)
@@ -68,7 +66,6 @@
   (.replaceAll 
    (loop [html html
           [lg & lgs] (keys *ligature->chr*)]
-     (prn (format "html-decode: html=%s lg=%s lgs=%s" html lg lgs))
      (if lg
        (recur (.replceAll html lg (*ligature->chr* lg))
               lgs)
@@ -76,16 +73,10 @@
    "&amp;" "&"))
 
 (defmacro with-http-client [[client & params] & body]
-  (prn (format "with-http-client: generating, client=%s params=%s body=%s" client params body))
   `(let [params#   (second (kutils/parse-paired-arglist [~@params]))
          client#   (org.apache.commons.httpclient.HttpClient.)
          ~client   client#]
-     (prn (format "with-http-client: params=%s" params#))
      (when (:user params#)
-       (prn (format "with-http-client: setting credentials, :user=%s host=%s port=%s" 
-                    (:user params#)
-                    (:host params#)
-                    (:port params#)))
        (.setAuthenticationPreemptive (.getParams client#) true)
        (.setCredentials (.getState client#)
                         (AuthScope. (:host params#)
