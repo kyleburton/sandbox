@@ -10,6 +10,9 @@
   (:use [clojure.contrib.str-utils :as str]
         [clojure.contrib.fcase :only (case)]))
 
+(defn new-ua []
+  (org.apache.commons.httpclient.HttpClient.))
+
 (def *ua* (org.apache.commons.httpclient.HttpClient.))
 
 (defn map->nvpairs [m]
