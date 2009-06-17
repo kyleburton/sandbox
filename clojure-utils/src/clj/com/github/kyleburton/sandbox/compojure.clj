@@ -3,6 +3,7 @@
 
 (defn resource-link [lnk]
   (format "%s?%s" lnk (.getTime (java.util.Date.))))
+
 (defn template-page [request title & body]
   (let [title (str "Compojure App - " title)]
     (html [:head [:title title]
@@ -44,12 +45,7 @@
 
 (defn about-page [request]
   (template-page request "About"
-    [:div "Thisi is a " [:a {:href "http://github.com/weavejester/compojure/tree/master"} "Compojure"] " application."]))
-
-;; (defn page-not-found [request]
-;;   (template-page request "Error: invalid route."
-;;       [:div "Error, page not found."]
-;;       [:pre (str request)]))
+    [:div "This is a " [:a {:href "http://github.com/weavejester/compojure/tree/master"} "Compojure"] " application."]))
 
 (defn stylesheet-page [request]
   {:status 200
@@ -89,8 +85,6 @@ body {
 
 "})
 
-;(stylesheet-page 0)
-
 (defroutes my-app
   (GET  "/"                      index-page)
   (GET  "/items"                 items-page)
@@ -103,11 +97,15 @@ body {
 
 (comment
 
-  (run-server {:port 8080}
-              "/*" 
-              (servlet my-app))
+  ;; execute the next form to run the server
+  (defserver *jetty* {:port 8080}
+    "/*" 
+    (servlet my-app))
 
-  (stop)
+  (start *jetty*)
+
+  ;; execute to stop the server
+  (stop *jetty*)
 
 )
 
