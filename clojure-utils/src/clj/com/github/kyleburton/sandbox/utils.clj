@@ -12,7 +12,7 @@
 (defn perror [& args]
   (.println System/err (apply format args)))
 
-(defn- log [& args]
+(defn log [& args]
   (prn (apply format args)))
 
 (defn uc [#^String s] (.toUpperCase s))
