@@ -13,7 +13,7 @@
   (.println System/err (apply format args)))
 
 (defn log [& args]
-  (prn (apply format args)))
+  (.println System/err (apply format args)))
 
 (defn uc [#^String s] (.toUpperCase s))
 (defn lc [#^String s] (.toLowerCase s))
