@@ -3,7 +3,6 @@
 <project name="krb-clojure-utils" default="jar" basedir=".">
 
   <property file="build.properties" />
-  <property name="clojure.jar.repo" value="${user.home}/.clojure"/>
   <property name="source.dir" value="${basedir}/src"/>
   <property name="test.source.dir" value="${basedir}/test/src"/>
   <property name="target.dir" value="${basedir}/target"/>
@@ -47,11 +46,7 @@
       <src>
         <pathelement location="${basedir}/src/java"/>
       </src>
-      <classpath>
-        <fileset dir="${clojure.jar.repo}">
-          <include name="*" />
-        </fileset>
-      </classpath>
+      <classpath refid="classpath" />
     </javac>
     <java classname="clojure.lang.Compile" fork="true">
       <sysproperty key="clojure.compile.path" value="${classes.dir}" />

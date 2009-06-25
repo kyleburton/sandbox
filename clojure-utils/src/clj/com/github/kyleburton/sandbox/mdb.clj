@@ -13,7 +13,7 @@
    (.toColumn cb)))
 
 (defmacro with-database [[var location] & body]
-  `(let [location# (ds/file (str ~location))
+  `(let [location# (java.io.File. (str ~location))
          exists# (.exists location#)]
      (with-open [~var (if exists#
                         (Database/open location#)
@@ -122,7 +122,7 @@
 
 (defn tab-file->table [mdb table file]
   (with-database [db mdb]
-    (.importFile db table (ds/file file) "\t")))
+    (.importFile db table (java.io.File. file) "\t")))
 
 ;; (tab-file->table (kutils/$HOME "test.mdb")
 ;;                  "TABLE_B"
