@@ -4,10 +4,13 @@
 (defn resource-link [lnk]
   (format "%s?%s" lnk (.getTime (java.util.Date.))))
 
+(defmacro mresource-link [lnk]
+  (format "%s?%s" lnk (.getTime (java.util.Date.))))
+
 (defn template-page [request title & body]
   (let [title (str "Compojure App - " title)]
     (html [:head [:title title]
-           [:link {:href "/stylesheet/app.css?3"
+           [:link {:href (mresource-link "/stylesheet/app.css")
                    :rel "stylesheet"
                    :type "text/css"}]] 
           [:div {:id "header"}
@@ -40,7 +43,13 @@
 (defn item-page [request]
   (let [item-id (-> request :route-params :id)]
     (template-page request (str "Item: " item-id)
-      [:div "Item: " item-id])))
+      [:div "Item: " item-id]
+      [:div "Request: " 
+       [:table {:id "session-dump"} [:tr [:th "Key"]
+                [:th "Value"]
+                (map (fn [key] 
+                       [:tr [:td key] [:td (request key)]])
+                     (keys request))]]])))
 
 
 (defn about-page [request]
@@ -56,8 +65,8 @@ body {
 }
 
 #main-body {
-  margin-left: 30%;
-  margin-right: 30%;
+  margin-left: 20%;
+  margin-right: 20%;
   margin-top: 1em;
   margin-bottom: 1em;
   border-style: solid;
@@ -70,8 +79,8 @@ body {
   text-align: left;
   background: #CCC;
   padding: 1em;
-  margin-left: 30%;
-  margin-right: 30%;
+  margin-left: 20%;
+  margin-right: 20%;
 }
 
 #footer {
@@ -79,9 +88,22 @@ body {
   background: #CCC;
   margin-top: 1em;
   padding: 0.5em;
-  margin-left: 30%;
-  margin-right: 30%;
+  margin-left: 20%;
+  margin-right: 20%;
 }
+
+/*
+#session-dump {
+  border-width: 1px;
+  border-style: outset;
+  border-spacing: 2px;
+  border-collapse: collapse; // separate
+}
+
+#session-dump td {
+  border-width: 1px;
+}
+*/
 
 "})
 
