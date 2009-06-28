@@ -1,3 +1,9 @@
+(ns com.github.kyleburton.sandbox.quartz
+  (:import (org.quartz SchedulerFactory Scheduler TriggerUtils JobDetail)
+           (org.quartz.impl StdSchedulerFactory)
+           (com.github.kyleburton.sandbox.quartz ClojureJob)))
+
+
 ;; goals with my evaluation of Quartz are:
 ;;
 ;; * create a simple example of creating and scheduling 
@@ -21,14 +27,10 @@
 ;; * how do you do HA clustering for quartz?
 ;;
 
-(ns com.github.kyleburton.sandbox.quartz
-  (:import (org.quartz SchedulerFactory Scheduler TriggerUtils JobDetail)
-           (org.quartz.impl StdSchedulerFactory)
-           (com.github.kyleburton.sandbox.quartz ClojureJob)))
 
-(def *schedule-factory* (StdSchedulerFactory.))
+(defonce *schedule-factory* (StdSchedulerFactory.))
 
-(def *scheduler* (atom nil))
+(defonce *scheduler* (atom nil))
 
 (defn ensure-scheduler-started []
   (if (or (not @*scheduler*)
@@ -81,6 +83,79 @@
     (.put (.getJobDataMap job-detail) ClojureJob/NAMESPACE_PARAMETER "com.github.kyleburton.sandbox.quartz")
     (.put (.getJobDataMap job-detail) ClojureJob/FUNCTION_PARAMETER fn)
     (schedule-job job-detail trigger)))
+
+(defmulti trigger-in (fn [tag val] tag))
+
+(defmethod trigger-in :seconds [tag val]
+  (doto (TriggerUtils/makeSecondlyTrigger val)
+    (.setStartTime (TriggerUtils/getEvenSecondDate (java.util.Date.)))
+    (.setName (format "Trigger in %s seconds." val))))
+
+(defmethod trigger-in :minutes [tag val]
+  (doto (TriggerUtils/makeMinutelyTrigger val)
+    (.setStartTime (TriggerUtils/getEvenMinuteDate (java.util.Date.)))
+    (.setName (format "Trigger in %s minutes." val))))
+
+(defmethod trigger-in :hours [tag val]
+  (doto (TriggerUtils/makeHourlyTrigger val)
+    (.setStartTime (TriggerUtils/getEvenHourDate (java.util.Date.)))
+    (.setName (format "Trigger in %s hours." val))))
+
+(defmethod trigger-in :hours [tag val]
+  (doto (TriggerUtils/makeHourlyTrigger val)
+    (.setStartTime (TriggerUtils/getEvenHourDate (java.util.Date.)))
+    (.setName (format "Trigger in %s hours." val))))
+
+(comment
+
+  (trigger-in :seconds 10)
+
+  (trigger-in :minutes 10)
+
+  (trigger-in :hours 10)
+
+)
+
+(defmulti  now+ (fn [tag val] tag))
+(defmethod now+ :seconds  [tag val] (java.util.Date. (+ (*       1000 val) (.getTime (java.util.Date.)))))
+(defmethod now+ :minutes  [tag val] (java.util.Date. (+ (*    60 1000 val) (.getTime (java.util.Date.)))))
+(defmethod now+ :hours    [tag val] (java.util.Date. (+ (*  3600 1000 val) (.getTime (java.util.Date.)))))
+(defmethod now+ :days     [tag val] (java.util.Date. (+ (* 86400 1000 val) (.getTime (java.util.Date.)))))
+
+(defmulti trigger-every (fn [tag start] tag))
+
+(defmethod trigger-every :minute [tag start]
+  (doto (TriggerUtils/makeMinutelyTrigger)
+    (.setStartTime (TriggerUtils/getEvenMinuteDate start))
+    (.setName (format "Trigger every %s minutes." val))))
+
+(defmethod trigger-every :hour [tag start]
+  (doto (TriggerUtils/makeHourlyTrigger)
+    (.setStartTime (TriggerUtils/getEvenHourDate start))
+    (.setName (format "Trigger every %s hours." val))))
+
+(comment
+
+  (trigger-every :minute (now+ :minutes 3))
+
+  (trigger-every :hour (now+ :seconds 0))
+
+)
+
+;; TODO: there is no TriggerUtils/getEvenDayDate, implement a `trigger every day'
+;; (defmethod trigger-every :day [tag val]
+;;   (doto (TriggerUtils/makeDailyTrigger)
+;;     (.setStartTime (TriggerUtils/getEvenMinuteDate start))
+;;     (.setName (format "Trigger in %s minutes." val))))
+
+
+;; TODO: TriggerUtils supports various `getDateOf' functions to get a
+;; specific date, create a `trigger-at' which is a 1time trigger for
+;; the given date/time
+
+
+
+
 
 ;; (quartz-test)
 

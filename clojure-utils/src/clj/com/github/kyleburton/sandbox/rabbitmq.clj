@@ -93,7 +93,7 @@
     (if (:heart-beat props)   (.setRequestedHeartbeat   params (:heart-beat  props)))
     params))
 
-(bean (make-connection-params {:user "guest" :pass "guest"}))
+;; (bean (make-connection-params {:user "guest" :pass "guest"}))
 
 ;; set these if you want to override...
 (def *amqp-param-map* (atom
@@ -105,6 +105,7 @@
   `(do-amqp ~params (fn [] ~@body)))
 
 ;; params must be a hash...
+;; TODO: support `:noclose' to prevent the channel from being automatically closed...
 (defn do-amqp
   "Functional equivalent of with-amqp macro"
   [params fn]
@@ -116,17 +117,23 @@
          (binding [*connection* connection]
            (with-open [channel (.createChannel *connection*)]
              (binding [*channel* channel]
-               ;;(prn (format "do-amqp: declaring exchange: %s" (:exchange *env* *amqp-exchange*)))
+               ;(println (format "do-amqp: declaring exchange: %s" (:exchange *env* *amqp-exchange*)))
                (.exchangeDeclare *channel*
                                  (:exchange *env* *amqp-exchange*)
                                  (:exchange-type *env* "direct")
                                  (:exchange-durable *env* false))
-               ;;(prn (format "do-amqp: declaring queue: %s" (:queue *env* *amqp-queue*)))
+               ;(println (format "do-amqp: declaring queue: %s" (:queue *env* *amqp-queue*)))
                (.queueDeclare *channel* (:queue *env* *amqp-queue*) (:queue-durable *env* false))
-               (.queueBind *channel*
-                           (:queue *env* *amqp-queue*)
-                           (:exchange *env* *amqp-exchange*)
-                           (:binding-key *env* *amqp-queue*))
+               (when (:binding-key *env* *amqp-queue*)
+;;                  (println (format "do-amqp: binding queue:%s exchange:%s binding-key:%s" 
+;;                                 (:queue *env* *amqp-queue*)
+;;                                 (:exchange *env* *amqp-exchange*)
+;;                                 (:binding-key *env* *amqp-queue*)))
+                 (.queueBind *channel*
+                             (:queue *env* *amqp-queue*)
+                             (:exchange *env* *amqp-exchange*)
+                             (:binding-key *env* *amqp-queue*)))
+               ;(println (format "do-amqp: about to invoke fn/0"))
                (fn))))))))
 
 ;; (with-amqp
@@ -149,6 +156,7 @@
 (defn basic-publish [#^java.util.Map params #^String message]
   (with-amqp 
       params
+    (println (format "basic-publish: routing-key: %s" (:routing-key *env* *amqp-queue*)))
     (.basicPublish 
      *channel*
      (:exchange    *env* *amqp-exchange*)
@@ -221,9 +229,11 @@
   (do-amqp 
    params
    (fn []
+     ;(println (format "do-consume: creating consumer..."))
      (let [consumer (let [consumer (QueueingConsumer. *channel*)]
                       (.basicConsume *channel* (:routing-key *env* *amqp-queue*) consumer)
                       consumer)]
+       ;(println (format "do-consume: consumer=%s, about to invoke fn/1" consumer))
        (f consumer)))))
 
 (defn ack-delivery
@@ -352,7 +362,7 @@
 
 (:exchange (:env rpc-server) *amqp-rpc-exchange*)
 
-'(with-amqp [] (.queueDelete *channel* "com.github.kyleburton.sandbox.rabbitmq.default.rpc.queue.name"))
+;'(with-amqp [] (.queueDelete *channel* "com.github.kyleburton.sandbox.rabbitmq.default.rpc.queue.name"))
 
 (do (.mainloop (:server rpc-server)) 
     (prn "mainloop returned")

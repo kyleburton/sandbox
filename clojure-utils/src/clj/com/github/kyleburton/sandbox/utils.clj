@@ -358,7 +358,11 @@ methods."
 ;; (md5->string (.getBytes "foo bar\n"))
 ;; (sha1->string (.getBytes "foo bar\n"))
 
+(defn string->sha1 [s]
+  (sha1->string (.getBytes s)))
 
+(defn string->md5 [s]
+  (md5->string (.getBytes s)))
 
 
 
@@ -429,6 +433,17 @@ sets of optional parameters:
       (let [elt (.nextElement enum)]
         (recur (.hasMoreElements enum) (conj res elt)))
       res)))
+
+(defn now-milliseconds [] 
+  (.getTime (java.util.Date.)))
+
+(defn string-gzip [#^String s]
+  (with-open [bout (java.io.ByteArrayOutputStream.)
+              gzout (java.util.zip.GZIPOutputStream. bout)]
+    (.write gzout (.getBytes s))
+    (.finish gzout)
+    (.toByteArray bout)))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; TODO: offer these back to duck-streams...
