@@ -14,11 +14,12 @@
         (println "\n")))))
 
 (defn show-help []
-  "app term [term2 [term3 ...]]
+  (pritnln
+   "app term [term2 [term3 ...]]
 
 Performs a Google Search for the given terms
 
-")
+"))
 
 (defn -main [& terms]
   (cond (empty? terms)
