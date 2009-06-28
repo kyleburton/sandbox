@@ -226,6 +226,9 @@
 (defn anchor->href [html]
   (first (kutils/re-find-first #"href=\"([^\"]+)\"" html)))
 
+(defn anchor->body [html]
+  (first (kutils/re-find-first #">(.+?)</a>" html)))
+
 (defn html-find-link-with-body [html text]
   (first
    (kutils/re-find-first 

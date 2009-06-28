@@ -25,10 +25,11 @@
     <path location="${krb-utils.src.dir}" />
     <path location="${source.dir}/main/clj" />
     <path location="${krb-utils.jar.repo}/commons-httpclient-3.1.jar" />
-    <path location="${krb-utils.jar.repo}//commons-logging-1.1.1.jar" />
-    <path location="${krb-utils.jar.repo}//commons-logging-1.1.1-sources.jar" />
-    <path location="${krb-utils.jar.repo}//commons-logging-adapters-1.1.1.jar" />
-    <path location="${krb-utils.jar.repo}//commons-logging-api-1.1.1.jar" />
+    <path location="${krb-utils.jar.repo}/commons-logging-1.1.1.jar" />
+    <path location="${krb-utils.jar.repo}/commons-codec-1.3.jar" />
+    <path location="${krb-utils.jar.repo}/commons-logging-1.1.1-sources.jar" />
+    <path location="${krb-utils.jar.repo}/commons-logging-adapters-1.1.1.jar" />
+    <path location="${krb-utils.jar.repo}/commons-logging-api-1.1.1.jar" />
     <path location="${classes.dir}" />
   </path>
 
@@ -56,6 +57,14 @@
     </manifest>
     <jar jarfile="${target.dir}/${jar.file.name}" manifest="${target.dir}/MANIFEST.MF">
       <fileset dir="${classes.dir}" includes="**/*.class"/>
+      <zipfileset src="${clojure.jar}" />
+      <zipfileset src="${clojure-contrib.jar}" />
+      <zipfileset src="${krb-utils.jar.repo}/commons-httpclient-3.1.jar" />
+      <zipfileset src="${krb-utils.jar.repo}/commons-codec-1.3.jar" />
+      <zipfileset src="${krb-utils.jar.repo}//commons-logging-1.1.1.jar" />
+      <zipfileset src="${krb-utils.jar.repo}//commons-logging-1.1.1-sources.jar" />
+      <zipfileset src="${krb-utils.jar.repo}//commons-logging-adapters-1.1.1.jar" />
+      <zipfileset src="${krb-utils.jar.repo}//commons-logging-api-1.1.1.jar" />
     </jar>
   </target>
 
