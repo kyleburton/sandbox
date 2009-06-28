@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="exec-jar" default="jar" basedir=".">
+
+  <property file="build.properties" />
+
+  <property name="module.name" value="exec-jar"/>
+  <property name="module.version" value="0.1"/>
+
+  <property name="clojure.jar" value="${user.home}/.clojure/clojure.jar"/>
+  <property name="clojure-contrib.jar" value="${user.home}/.clojure/clojure-contrib.jar"/>
+  <property name="krb-utils.src.dir" value="${basedir}/../../clojure-utils/src/clj"/>
+  <property name="krb-utils.jar.repo" value="${basedir}/../../clojure-utils/lib"/>
+
+  <property name="source.dir" value="${basedir}/src"/>
+<!--   <property name="clojure.src.dir" value="${basedir}/src/clj"/> -->
+  <property name="target.dir" value="${basedir}/target"/>
+  <property name="classes.dir" value="${target.dir}/classes"/>
+
+  <property name="jar.file.name" value="${module.name}-${module.version}.jar"/>
+
+  <path id="classpath">
+    <path location="${clojure.jar}" />
+    <path location="${clojure-contrib.jar}" />
+    <path location="${krb-utils.src.dir}" />
+    <path location="${source.dir}/main/clj" />
+    <path location="${krb-utils.jar.repo}/commons-httpclient-3.1.jar" />
+    <path location="${krb-utils.jar.repo}//commons-logging-1.1.1.jar" />
+    <path location="${krb-utils.jar.repo}//commons-logging-1.1.1-sources.jar" />
+    <path location="${krb-utils.jar.repo}//commons-logging-adapters-1.1.1.jar" />
+    <path location="${krb-utils.jar.repo}//commons-logging-api-1.1.1.jar" />
+    <path location="${classes.dir}" />
+  </path>
+
+  <target name="compile" description="Run the Clojure Compiler">
+    <property name="cpath" refid="classpath" />
+    <echo message="cpath=${cpath}" />
+    <mkdir dir="${classes.dir}"/>
+    <java classname="clojure.lang.Compile" fork="true">
+      <sysproperty key="clojure.compile.path" value="${classes.dir}" />
+      <classpath refid="classpath" />
+      <arg value="com.github.kyleburton.app" />
+    </java>
+  </target>
+
+  <target name="jar" depends="compile" description="Build the JAR">
+    <jar jarfile="${target.dir}/${jar.file.name}">
+      <fileset dir="${classes.dir}" includes="**/*.class"/>
+    </jar>
+  </target>
+
+  <target name="jar-with-manifest" depends="compile" description="Build the JAR">
+    <manifest file="${target.dir}/MANIFEST.MF">
+      <attribute name="Built-By" value="${user.name}" />
+      <attribute name="Main-Class" value="com.github.kyleburton.app" />
+    </manifest>
+    <jar jarfile="${target.dir}/${jar.file.name}" manifest="${target.dir}/MANIFEST.MF">
+      <fileset dir="${classes.dir}" includes="**/*.class"/>
+    </jar>
+  </target>
+
+  <target name="clean" description="Clean the output directory">
+    <delete dir="${target.dir}"/>
+  </target>
+
+  <target name="run" description="Run the application">
+    <java classname="com.github.kyleburton.app" fork="true">
+      <classpath refid="classpath" />
+      <arg value="http://a url" />
+    </java>
+  </target>
+
+
+</project>
