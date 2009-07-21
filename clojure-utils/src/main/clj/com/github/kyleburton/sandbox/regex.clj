@@ -1,9 +1,9 @@
 (ns com.github.kyleburton.sandbox.regex
-  (:import (java.util.regex Pattern Matcher))
-  (:use [com.github.kyleburton.sandbox.utils :as kutils]
-        [com.github.kyleburton.sandbox.ref-data :as ref-data])
-  (:use [clojure.contrib.str-utils :as str]
-        [clojure.contrib.fcase :only (case)]))
+  (:import  [java.util.regex Pattern Matcher])
+  (:require [com.github.kyleburton.sandbox.utils :as kutils]
+            [com.github.kyleburton.sandbox.ref-data :as ref-data])
+  (:require [clojure.contrib.str-utils :as str]
+            [clojure.contrib.fcase :only (case)]))
 
 
 ;; regexes, initial set pulled from Regex::Common CPAN module

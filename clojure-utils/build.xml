@@ -9,7 +9,7 @@
   <property name="classes.dir" value="${target.dir}/classes"/>
   <property name="module.name" value="krb-clojure-utils"/>
   <property name="clojure.src.dir" value="${basedir}/src/clj"/>
-  <property name="module.version" value="0.1"/>
+  <property name="module.version" value="0.2"/>
   <property name="jar.file.name" value="${module.name}-${module.version}.jar"/>
   <property name="deps.dir" value="${basedir}/deps"/>
   <property name="deps.file" value="kburton-clojure-utils-deps.zip"/>

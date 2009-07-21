@@ -1,5 +1,5 @@
 (ns com.github.kyleburton.sandbox.quartz
-  (:import (org.quartz SchedulerFactory Scheduler TriggerUtils JobDetail)
+  (:import (org.quartz SchedulerFactory Scheduler TriggerUtils JobDetail SimpleTrigger)
            (org.quartz.impl StdSchedulerFactory)
            (com.github.kyleburton.sandbox.quartz ClojureJob)))
 
@@ -51,6 +51,12 @@
   (ensure-scheduler-started)
   (.scheduleJob @*scheduler* job-detail trigger))
 
+(def *defualt-group-name* "DEFAULT")
+
+(defn unschedule-by-name [job-name & [group-name]]
+  (.unscheduleJob @*scheduler* job-name (or group-name *defualt-group-name*))
+  (.deleteJob @*scheduler* job-name (or group-name *defualt-group-name*)))
+
 (defn delete-job [job-detail]
   (.deleteJob @*scheduler*
               (.getName job-detail)
@@ -87,26 +93,49 @@
 (defmulti trigger-in (fn [tag val] tag))
 
 (defmethod trigger-in :seconds [tag val]
-  (doto (TriggerUtils/makeSecondlyTrigger val)
-    (.setStartTime (TriggerUtils/getEvenSecondDate (java.util.Date.)))
-    (.setName (format "Trigger in %s seconds." val))))
+  (SimpleTrigger. (format "Trigger in %s seconds." val) 
+                  *defualt-group-name*
+                  (TriggerUtils/getEvenSecondDate (java.util.Date.))))
 
 (defmethod trigger-in :minutes [tag val]
-  (doto (TriggerUtils/makeMinutelyTrigger val)
-    (.setStartTime (TriggerUtils/getEvenMinuteDate (java.util.Date.)))
-    (.setName (format "Trigger in %s minutes." val))))
+  (SimpleTrigger. (format "Trigger in %s minutes." val) 
+                  *defualt-group-name*
+                  (TriggerUtils/getEvenMinuteDate (java.util.Date.))))
 
 (defmethod trigger-in :hours [tag val]
-  (doto (TriggerUtils/makeHourlyTrigger val)
-    (.setStartTime (TriggerUtils/getEvenHourDate (java.util.Date.)))
-    (.setName (format "Trigger in %s hours." val))))
+  (SimpleTrigger. (format "Trigger in %s hours." val) 
+                  *defualt-group-name*
+                  (TriggerUtils/getEvenHourDate (java.util.Date.))))
 
-(defmethod trigger-in :hours [tag val]
-  (doto (TriggerUtils/makeHourlyTrigger val)
-    (.setStartTime (TriggerUtils/getEvenHourDate (java.util.Date.)))
-    (.setName (format "Trigger in %s hours." val))))
 
 (comment
+
+  (seq (.getTriggerGroupNames @*scheduler*))
+  (seq (.getJobGroupNames @*scheduler*))
+  (seq (.getCurrentlyExecutingJobs @*scheduler*))
+  (seq (.getCalendarNames @*scheduler*))
+
+  (first (seq (.getCurrentlyExecutingJobs @*scheduler*)))
+
+  (seq (.getJobNames @*scheduler* "DEFAULT")) ;; => ("every 10s")
+  (seq (.getTriggersOfJob @*scheduler* "every 10s" "DEFAULT"))
+  (.getFullName (.getJobDetail @*scheduler* "every 10s" "DEFAULT"))
+  (.getName (.getJobDetail @*scheduler* "every 10s" "DEFAULT"))
+  (.getGroup (.getJobDetail @*scheduler* "every 10s" "DEFAULT"))
+  (.getKey (.getJobDetail @*scheduler* "every 10s" "DEFAULT"))
+  (.isDurable (.getJobDetail @*scheduler* "every 10s" "DEFAULT"))
+  (.isStateful (.getJobDetail @*scheduler* "every 10s" "DEFAULT"))
+  (.isVolatile (.getJobDetail @*scheduler* "every 10s" "DEFAULT"))
+  (seq (.getJobListenerNames (.getJobDetail @*scheduler* "every 10s" "DEFAULT")))
+  (.unscheduleJob @*scheduler* 
+                    (.getFullName (.getJobDetail @*scheduler* "every 10s" "DEFAULT"))
+                    (.getGroup (.getJobDetail @*scheduler* "every 10s" "DEFAULT")))
+  (.deleteJob @*scheduler*  "every 10s" "DEFAULT")
+
+  (seq (.getTriggerNames @*scheduler* "DEFAULT"))
+
+  (.unscheduleJob @*scheduler* "Trigger every 10 seconds." "DEFAULT")
+
 
   (trigger-in :seconds 10)
 
@@ -123,6 +152,11 @@
 (defmethod now+ :days     [tag val] (java.util.Date. (+ (* 86400 1000 val) (.getTime (java.util.Date.)))))
 
 (defmulti trigger-every (fn [tag start] tag))
+
+(defmethod trigger-every :seconds [tag interval]
+  (doto (TriggerUtils/makeSecondlyTrigger interval)
+    (.setStartTime (TriggerUtils/getEvenMinuteDate (now+ :seconds interval)))
+    (.setName (format "Trigger every %s seconds." interval))))
 
 (defmethod trigger-every :minute [tag start]
   (doto (TriggerUtils/makeMinutelyTrigger)

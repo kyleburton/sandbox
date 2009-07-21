@@ -1,15 +1,14 @@
-;; TODO: switch to commons-logging
-;; commons-logging.properties
 (ns com.github.kyleburton.sandbox.log4j
   (:import
-   (org.apache.log4j Logger PropertyConfigurator)
-   (org.apache.commons.logging Log LogFactory))
+   [org.apache.log4j Logger PropertyConfigurator]
+   [org.apache.commons.logging Log LogFactory])
   (:require [com.github.kyleburton.sandbox.utils :as kutils])
   (:use [clojure.contrib.str-utils :as str]))
 
 (def *log4j-properties* (str (kutils/$HOME ".clojure/log4j.properties")))
 
 (def *configured* (atom false))
+
 
 (defn reset-configuration! []
   (reset! *configured* false))
@@ -40,4 +39,3 @@
        (defn ~'log-info  [& args#] (.info  ~'*log* (str args#)))
        (defn ~'log-debug [& args#] (.debug ~'*log* (str args#)))
        (defn ~'log-trace [& args#] (.trace ~'*log* (str args#)))))
-

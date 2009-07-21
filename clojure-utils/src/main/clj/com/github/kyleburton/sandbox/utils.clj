@@ -1,8 +1,8 @@
 (ns com.github.kyleburton.sandbox.utils
-  (:import [java.io PrintWriter BufferedWriter Writer OutputStream OutputStreamWriter File FileOutputStream]
-           [java.net URL URI MalformedURLException])
-  (:use [clojure.contrib.duck-streams        :as ds]
-        [clojure.contrib.shell-out           :as sh]))
+  (:import  [java.io PrintWriter BufferedWriter Writer OutputStream OutputStreamWriter File FileOutputStream]
+            [java.net URL URI MalformedURLException])
+  (:require [clojure.contrib.duck-streams        :as ds]
+            [clojure.contrib.shell-out           :as sh]))
 
 (defn raise 
   "Simple wrapper around throw."
