@@ -1,0 +1,6 @@
+h1. Quartz Clojure Adapter
+
+This project provides a QuartzJob wrapper class which is capable of calling "Clojure":http://clojure.org/ functions by name or by reference from the "Quartz":http://www.opensymphony.com/quartz/ scheduling system.
+
+It is a base dependency used by my core clojure-utils.  By itself it only serves as an adapter, in conjunction with the other utilities it provides the scheduling capabilities.
+

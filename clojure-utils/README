@@ -1,8 +1,0 @@
-To play with the currently expiremental clojutura:
-
-  ant fetch-deps
-  ant jar
-  ant test
-
-Then open $HOME/tmp/clojutura/files.html in your browser.
-

@@ -3,7 +3,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.github.kyleburton</groupId>
-  <artifactId>clojure-utils</artifactId>
+  <artifactId>kburton-clojure</artifactId>
   <version>1.0</version>
   <packaging>pom</packaging>
   <name>Kyle Burton's Clojure Utils</name>
@@ -24,6 +24,11 @@
     <url>http://github.com/kyleburton/sandbox/issues</url>
   </issueManagement>
 
+  <modules>
+    <module>quartz-clojure-adapter</module>
+    <module>kburton-clojure-utils</module>
+  </modules>
+
   <build>
     <plugins>
       <plugin>
@@ -38,63 +43,18 @@
           </execution>
         </executions>
       </plugin>
-
-     <plugin>
-       <artifactId>maven-antrun-plugin</artifactId>
-       <executions>
-
-         <execution>
-           <id>compile-clojure-sources</id>
-           <phase>compile</phase>
-           <configuration>
-             <tasks>
-               <mkdir dir="target/classes" />
-               <property name="compile.classpath"
-                         refid="maven.compile.classpath" />
-               <java classname="clojure.lang.Compile"
-                     classpath="${compile.classpath}:src/main/clj" failonerror="true" fork="true">
-                 <sysproperty key="clojure.compile.path"
-                              value="target/classes" />
-                 <arg value="com.github.kyleburton.sandbox.regex" />
-                 <arg value="com.github.kyleburton.sandbox.log4j" />
-                 <arg value="com.github.kyleburton.sandbox.email" />
-                 <arg value="com.github.kyleburton.sandbox.web" />
-                 <arg value="com.github.kyleburton.sandbox.landmark-parser" />
-                 <arg value="com.github.kyleburton.sandbox.ftp" />
-                 <arg value="com.github.kyleburton.sandbox.rabbitmq" />
-                 <arg value="com.github.kyleburton.sandbox.memoize" />
-                 <arg value="com.github.kyleburton.sandbox.quartz" />
-                 <arg value="com.github.kyleburton.sandbox.utils" />
-                 <arg value="com.github.kyleburton.sandbox.sql" />
-                 <arg value="com.github.kyleburton.sandbox.cl-bayes" />
-                 <arg value="com.github.kyleburton.sandbox.ref-data" />
-               </java>
-             </tasks>
-           </configuration>
-           <goals>
-             <goal>run</goal>
-           </goals>
-         </execution>
-
-       </executions>
-     </plugin>
-
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>1.5</source>
+          <target>1.5</target>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
 
   <dependencies>
-<!--
-    <dependency>
-      <groupId>org.clojure</groupId>
-      <artifactId>clojure-contrib</artifactId>
-      <version>1.0-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>org.clojure</groupId>
-      <artifactId>clojure</artifactId>
-      <version>1.0.0</version>
-    </dependency>
--->
     <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>clojure</artifactId>
@@ -122,30 +82,12 @@
       <version>1.1.1</version>
     </dependency>
     <dependency>
-      <groupId>javax.mail</groupId>
-      <artifactId>mail</artifactId>
-      <version>1.4.1</version>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.1</version>
+      <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>commons-httpclient</groupId>
-      <artifactId>commons-httpclient</artifactId>
-      <version>3.1</version>
-    </dependency>
-    <dependency>
-      <groupId>commons-net</groupId>
-      <artifactId>commons-net</artifactId>
-      <version>2.0</version>
-    </dependency>
-    <dependency>
-      <groupId>com.rabbitmq</groupId>
-      <artifactId>amqp-client</artifactId>
-      <version>1.6.1-SNAPSHOT</version>
-    </dependency>
-    <dependency>
-      <groupId>quartz</groupId>
-      <artifactId>quartz</artifactId>
-      <version>1.5.2</version>
-    </dependency>
+
   </dependencies>
 
   <reporting>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>com.github.kyleburton</groupId>
+    <artifactId>kburton-clojure</artifactId>
+    <version>1.0</version>
+  </parent>
+
+  <artifactId>quartz-clojure-adapter</artifactId>
+  <packaging>jar</packaging>
+  <name>Quartz Clojure Adapter</name>
+
+<!--
+  <version>1.0</version>
+  <description>Allows Clojure functions to be registered and called back by Quartz Jobs.</description>
+  <url>http://github.com/kyleburton/sandbox/tree/master</url>
+  <inceptionYear>2009</inceptionYear>
+-->
+
+  <issueManagement>
+    <system>github</system>
+    <url>http://github.com/kyleburton/sandbox/issues</url>
+  </issueManagement>
+
+  <dependencies>
+
+    <dependency>
+      <groupId>quartz</groupId>
+      <artifactId>quartz</artifactId>
+      <version>1.5.2</version>
+    </dependency>
+  </dependencies>
+
+</project>
