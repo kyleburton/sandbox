@@ -52,6 +52,31 @@
            </goals>
          </execution>
 
+         <execution>
+           <id>install-scripts</id>
+           <phase>compile</phase>
+           <configuration>
+             <tasks>
+               <property name="bin.dir" value="${project.build.directory}/../bin" />
+               <property name="maven.runtime.classpath" refid="maven.runtime.classpath"  />
+               <filter token="maven.runtime.classpath"
+                       value="${maven.runtime.classpath}:${project.build.directory}/../src/main/clj" />
+               <mkdir dir="${bin.dir}" />
+               <copy file="${basedir}/src/main/sh/repl"
+                     todir="${bin.dir}"
+                     filtering="on" />
+               <chmod dir="${bin.dir}"
+                      type="file"
+                      perm="0755"
+                      includes="repl"
+                      verbose="true" />
+             </tasks>
+           </configuration>
+           <goals>
+             <goal>run</goal>
+           </goals>
+         </execution>
+
        </executions>
      </plugin>
 
