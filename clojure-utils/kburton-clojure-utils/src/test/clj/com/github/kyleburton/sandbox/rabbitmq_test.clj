@@ -1,6 +1,6 @@
 (ns com.github.kyleburton.sandbox.rabbitmq-test
   (:use [com.github.kyleburton.sandbox.rabbitmq :as rabbitmq]
-        [clojure.contrib.test-is :as test-is]))
+        [clojure.test :as test]))
 
 
 (deftest test-make-connection-params

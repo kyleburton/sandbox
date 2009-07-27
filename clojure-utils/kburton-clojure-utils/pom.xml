@@ -24,6 +24,7 @@
            <phase>compile</phase>
            <configuration>
              <tasks>
+               <echo message="COMPILE" />
                <mkdir dir="target/classes" />
                <property name="compile.classpath"
                          refid="maven.compile.classpath" />
@@ -53,12 +54,37 @@
          </execution>
 
          <execution>
+           <id>compile-clojure-tests</id>
+           <phase>compile</phase>
+           <configuration>
+             <tasks>
+               <mkdir dir="target/test-classes" />
+               <property name="compile.classpath"
+                         refid="maven.compile.classpath" />
+               <!-- <echo message="COMPILE_CLOJURE_TESTS, cp=${compile.classpath} ::${project.build.directory}/../src/test/clj" /> -->
+               <java classname="clojure.lang.Compile"
+                     classpath="${compile.classpath}:src/test/clj:target/test-classes:target/classes" failonerror="true" fork="true">
+                 <sysproperty key="clojure.compile.path"
+                              value="target/test-classes" />
+                 <arg value="com.github.kyleburton.sandbox.utils-test" />
+                 <arg value="com.github.kyleburton.sandbox.rabbitmq-test" />
+                 <arg value="com.github.kyleburton.sandbox.suite" />
+               </java>
+             </tasks>
+           </configuration>
+           <goals>
+             <goal>run</goal>
+           </goals>
+         </execution>
+
+         <execution>
            <id>install-scripts</id>
            <phase>compile</phase>
            <configuration>
              <tasks>
                <property name="bin.dir" value="${project.build.directory}/../bin" />
                <property name="maven.runtime.classpath" refid="maven.runtime.classpath"  />
+               <echo message="INSTALL-SCRIPTS" />
                <filter token="maven.runtime.classpath"
                        value="${maven.runtime.classpath}:${project.build.directory}/../src/main/clj" />
                <filter token="bin.dir"
@@ -75,6 +101,29 @@
                       perm="0755"
                       includes="repl"
                       verbose="true" />
+             </tasks>
+           </configuration>
+           <goals>
+             <goal>run</goal>
+           </goals>
+         </execution>
+
+         <execution>
+           <id>clojure-tests</id>
+           <phase>test</phase>
+           <configuration>
+             <tasks>
+               <echo message="TEST" />
+               <property name="maven.test.classpath" refid="maven.test.classpath"  />
+               <property name="maven.test.classpath" 
+                         value="${maven.test.classpath}:${project.build.directory}/src/test/clj"  />
+               <!-- <echo message="TEST_CLASSPATH=${maven.test.classpath}" /> -->
+               <!-- need to get the test code onto the classpath... -->
+               <java classname="clojure.main" 
+                     classpathref="maven.test.classpath">
+                 <arg value="-e" />
+                 <arg value="(use 'clojure.test) (use 'com.github.kyleburton.sandbox.suite) (clojure.test/run-all-tests)" />
+               </java>
              </tasks>
            </configuration>
            <goals>

@@ -1,6 +1,6 @@
 (ns com.github.kyleburton.sandbox.utils-test
   (:use [com.github.kyleburton.sandbox.utils :as kutils]
-        [clojure.contrib.test-is]))
+        [clojure.test]))
 
 (defmacro throws? [& body]
   `(let [did-throw# (atom false)]
@@ -53,11 +53,11 @@
    (is (not (kutils/mkdir tmp)))))
 
 
-(deftest test-doc-class
-  (with-open [out (java.io.StringWriter.)]
-    (binding [*out* out]
-      (is (not (doc-class "")))
-      (is (not (doc-class String))))))
+;; (deftest test-doc-class
+;;   (with-open [out (java.io.StringWriter.)]
+;;     (binding [*out* out]
+;;       (is (not (doc-class "")))
+;;       (is (not (doc-class String))))))
 
 (deftest test-exec
   (is "foo" (exec "echo foo")))
