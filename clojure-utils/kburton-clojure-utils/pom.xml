@@ -61,8 +61,13 @@
                <property name="maven.runtime.classpath" refid="maven.runtime.classpath"  />
                <filter token="maven.runtime.classpath"
                        value="${maven.runtime.classpath}:${project.build.directory}/../src/main/clj" />
+               <filter token="bin.dir"
+                       value="${bin.dir}" />
                <mkdir dir="${bin.dir}" />
                <copy file="${basedir}/src/main/sh/repl"
+                     todir="${bin.dir}"
+                     filtering="on" />
+               <copy file="${basedir}/src/main/emacs/slime-incl.el"
                      todir="${bin.dir}"
                      filtering="on" />
                <chmod dir="${bin.dir}"

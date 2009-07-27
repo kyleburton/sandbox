@@ -1,0 +1,14 @@
+Run bootstrap-maven.sh to install clojure, clojure-contrib and the
+rabbit-mq-java-client into your maven repository.  boostrap will also
+install the quartz clojure adapter into your local maven repository.
+
+After this, executing mvn compile in the kyleburton-clojure-utils
+should build the jar, and a bin/repl and bin/slime-incl.el which you
+can add to your .emacs file as 
+
+  (load "<<path-to-project>>/bin/slime-incl.el")
+
+There is still 1 thing you must do, which is add the location of
+swank-clojure to the bin/repl's classpath.  I'm not sure of the best
+way to get around this as of yet.  A more permanent solution should be
+built into the build when one is found.

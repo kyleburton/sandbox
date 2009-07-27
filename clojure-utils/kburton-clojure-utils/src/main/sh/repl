@@ -1,4 +1,4 @@
-CLASSPATH="${maven.runtime.classpath}"
+CLASSPATH="@maven.runtime.classpath@"
 
 java -server \
   -Xdebug \
