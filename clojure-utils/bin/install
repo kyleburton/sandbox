@@ -21,13 +21,15 @@ function ensure_exists() {
 function download_repo() {
   test -d ~/.clojure || mkdir ~/.clojure
 
-  for file in $(wget -q -O - "$REPO" | grep href | cut -f2 -d= | cut -f2 -d'"' | grep -v '/$'); do
+  #for file in $(wget -q -O - "$REPO" | grep href | cut -f2 -d= | cut -f2 -d'"' | grep -v '/$'); do
+  for file in $(curl "$REPO" | grep href | cut -f2 -d= | cut -f2 -d'"' | grep -v '/$'); do
     TGT="$HOME/.clojure/$file"
-    test -e "$TGT" || wget -O "$TGT" "$REPO$file" 
+    #test -e "$TGT" || wget -O "$TGT" "$REPO$file" 
+    test -e "$TGT" || curl -o "$TGT" "$REPO$file" 
   done
 }
 
-ensure_exists wget
+#ensure_exists wget
 ensure_exists java
 
 download_repo
