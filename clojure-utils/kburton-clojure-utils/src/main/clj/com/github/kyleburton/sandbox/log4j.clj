@@ -9,7 +9,6 @@
 
 (def *configured* (atom false))
 
-
 (defn reset-configuration! []
   (reset! *configured* false))
 
@@ -26,7 +25,7 @@
   ;; TODO: move the ensure out of here, initialization should be a
   ;; concern handled outside this moudle...
   (ensure-configured)
-  (Logger/getLogger category))
+  (Logger/getLogger (str category)))
 
 ;; TODO: wrap the expansions with if(Log.isDebug){...} to avoid
 ;; argument evaluation when logging is otherwise disabled, keep that
