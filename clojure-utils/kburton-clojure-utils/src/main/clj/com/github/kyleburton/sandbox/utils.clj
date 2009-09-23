@@ -4,7 +4,7 @@
   (:require [clojure.contrib.duck-streams        :as ds]
             [clojure.contrib.shell-out           :as sh]))
 
-(defn raise 
+(defn raise
   "Simple wrapper around throw."
   [& args]
   (throw (RuntimeException. (apply format args))))
@@ -46,7 +46,7 @@
        ;; TODO: this will fail if dir is not empty!, should this recrusively remove all the files?
        (.delete ~var)))))
 
-(defn basename 
+(defn basename
   "Strip off the last part of the file name."
   [fname]
   (if (instance? java.io.File fname)
@@ -56,8 +56,8 @@
 (defn #^java.io.File $HOME
   "Construct a path relative to the user's home directory."
   [& paths]
-  (->file (apply str 
-                 (cons (str (System/getProperty "user.home") "/") 
+  (->file (apply str
+                 (cons (str (System/getProperty "user.home") "/")
                        (apply str (interpose "/" paths))))))
 
 (defmulti expand-file-name
@@ -84,7 +84,7 @@
         (.mkdirs f)
         true)
       (if (not (.isDirectory f))
-        (do 
+        (do
           ;(log "[WARN] mkdir: %s exists and is not a directory!" path)
           false)
         (do
@@ -97,7 +97,7 @@
 (defmethod exists? :default [x] (throw (Exception. (str "Do not know how to test <" (pr-str x) "> if it `exists?'"))))
 
 
-(defn drain-line-reader 
+(defn drain-line-reader
   "Drain a buffered reader into a sequence."
   [#^java.io.BufferedReader rdr]
   (loop [res []
@@ -138,7 +138,7 @@
     (if (.exists path)
       (.delete path))))
 
-(defn url-get 
+(defn url-get
   "Very simplistic retreival of a url target."
   [url]
   (with-open [is (.openStream (java.net.URL. url))]
@@ -161,7 +161,7 @@
       (log "[ERROR] %s" (:error res)))))
 
 
-(defn all-groups 
+(defn all-groups
   "Extracts all the groups from a java.util.regex.Matcher into a seq."
   [#^java.util.regex.Matcher m]
   (for [grp (range 1 (+ 1 (.groupCount m)))]
@@ -227,7 +227,7 @@
 ;; grabs only fields...
 (defn fields-and-values-map
   ([thing]
-     (reduce 
+     (reduce
       (fn [m [k v]]
         (assoc m (keyword k) v))
       {}
@@ -300,7 +300,7 @@ methods."
   (with-open [inp (java.io.ObjectInputStream. (java.io.FileInputStream. file))]
     (.readObject inp)))
 
-(defn freeze 
+(defn freeze
   ([obj]
      (with-open [baos (java.io.ByteArrayOutputStream. 1024)
                  oos  (java.io.ObjectOutputStream. baos)]
@@ -397,7 +397,7 @@ sets of optional parameters:
   [args]
   (if (map? args)
     [[] args]
-    (loop [res {} 
+    (loop [res {}
            unnamed []
            [arg & args] args]
       (if (not arg)
@@ -413,7 +413,7 @@ sets of optional parameters:
 ;; (parse-paired-arglist '[:foo bar this that :other thing])
 ;; (parse-paired-arglist {:foo 'bar :other 'thing})
 
-(defn ensure-directory 
+(defn ensure-directory
   "Create the directory if it does not already exist."
   [dir]
   (let [f (java.io.File. dir)]
@@ -434,7 +434,14 @@ sets of optional parameters:
         (recur (.hasMoreElements enum) (conj res elt)))
       res)))
 
-(defn now-milliseconds [] 
+(defn properties->map [& [#^java.util.Properties props]]
+  (reduce (fn [m ent] (assoc m
+                        (.getKey ent)
+                        (.getValue ent)))
+          {}
+          (iterator-seq (.iterator (.entrySet (or props (System/getProperties)))))))
+
+(defn now-milliseconds []
   (.getTime (java.util.Date.)))
 
 (defn string-gzip [#^String s]
@@ -457,7 +464,7 @@ sets of optional parameters:
 
 (defmethod appender Writer [x]
   ;; Writer includes sub-classes such as FileWriter
-  (PrintWriter. (BufferedWriter. x)))   
+  (PrintWriter. (BufferedWriter. x)))
 
 (defmethod appender OutputStream [x]
   (PrintWriter.
