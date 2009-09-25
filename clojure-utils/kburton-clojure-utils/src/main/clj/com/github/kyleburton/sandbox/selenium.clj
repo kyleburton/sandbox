@@ -1,6 +1,7 @@
 (ns com.github.kyleburton.sandbox.selenium
   (:import  [com.thoughtworks.selenium DefaultSelenium])
-  (:require [com.github.kyleburton.sandbox.log4j :as log]))
+  (:require [com.github.kyleburton.sandbox.log4j :as log]
+            [com.github.kyleburton.sandbox.swing :as gui]))
 
 ;; Plans
 ;;
@@ -79,13 +80,24 @@
          ~'visible? (fn [loc#]  (.isVisible ~name loc#))]
      ~@body))
 
+(def *password* (atom nil))
+(defn get-password []
+  (if @*password*
+    @*password*
+    (reset! *password* (String. (gui/get-password-dialog)))))
+
+
 (comment
 
   (def *sel* (new-selenium))
+  (def *sel* (new-selenium "phibuster"))
   (.start *sel*)
+  (.stop *sel*)
+
   (.open *sel* "http://localhost/")
   (sel-input *sel* "login" "admin")
-  (sel-input *sel* "password" "monkey")
+
+  (sel-input *sel* "password" (get-password))
   (sel-submit *sel* "//form")
   (sel-click *sel* "//area")
   (sel-jquery *sel* "$('#margin_demands_unsent_table').html()")
