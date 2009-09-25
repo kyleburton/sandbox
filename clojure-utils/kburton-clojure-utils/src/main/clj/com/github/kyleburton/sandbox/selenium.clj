@@ -60,15 +60,13 @@
   (not (= "null" (.getEval sel "dom=selenium.browserbot.getCurrentWindow().jQuery"))))
 
 (defn prototype? [sel]
-  (not (= "null" (.getEval sel "dom=selenium.browserbot.getCurrentWindow().Amax"))))
+  (not (= "null" (.getEval sel "dom=selenium.browserbot.getCurrentWindow().Ajax"))))
 
 (defn javascript! [sel & js]
   (.getEval sel (apply str js)))
 
 (defn jquery! [sel & js]
   (.getEval sel (format "selenium.browserbot.getCurrentWindow().jQuery(%s)" (apply str js))))
-
-
 
 (defmacro with-selenium [[name sel] & body]
   `(let [~name ~sel
@@ -86,6 +84,26 @@
     @*password*
     (reset! *password* (String. (gui/get-password-dialog)))))
 
+(defn selenium-js-setup [sel]
+  (.getEval sel "selenium.browserbot.getUserWindow().document.doEval = function(script) {
+    try {
+        return eval(
+           \"var document = selenium.browserbot.getUserWindow().document;\\n\" +
+           \"var window = selenium.browserbot.getUserWindow();\\n\" +
+           script);
+    } catch (e) {
+        throw new SeleniumError(\"Threw an exception: \" + e.message);
+    }
+};"))
+
+
+(defn eval-js [sel js]
+  (selenium-js-setup sel)
+  (.getEval sel
+            (format "selenium.browserbot.getUserWindow().document.doEval('%s')"
+                    (.replaceAll
+                     (.replaceAll js "'" "\\\\'")
+                     "\n" "\\\\n"))))
 
 (comment
 
@@ -94,7 +112,32 @@
   (.start *sel*)
   (.stop *sel*)
 
+  (selenium-setup *sel*)
+  (eval-js *sel* "document.location='http://google.com/';")
+  (eval-js *sel* "document.location='http://yahoo.com/';")
+  (eval-js *sel* "window.document")
+
+  (eval-js *sel* "document.evaluate('//a',document,null, XPathResult.ANY_TYPE, null).iterateNext()")
+  (eval-js *sel* "doXpath = function(xpath) {
+    var results = [], xpathResult = document.evaluate(xpath,document,null, XPathResult.ANY_TYPE, null);
+    for ( var itr = xpathResult.iterateNext(); itr; itr = xpathResult.iterateNext() ) {
+      results.push(itr);
+    }
+    return results;
+  };")
+  (eval-js *sel* "doXpath('//a')[0].nodeName")
+  (eval-js *sel* "doXpath('//a')[0].nodeValue")
+  (eval-js *sel* "doXpath('//a')[1]")
+  (eval-js *sel* "doXpath('//a')")
+  (eval-js *sel* "$(doXpath('//a')[0]).innerHTML")
+  (eval-js *sel* "$(doXpath('//a')[0]).innerHTML = '123'")
+
+
+
   (.open *sel* "http://localhost/")
+  ;; neither 'this.browserbot.getCurrentWindow()', nor 'selenium.browserbot.getCurrentWindow()' seems
+  ;; to get us to the application's window...
+  ;;(eval-js *sel* "document.write('foof')")
   (sel-input *sel* "login" "admin")
 
   (sel-input *sel* "password" (get-password))
@@ -102,6 +145,10 @@
   (sel-click *sel* "//area")
   (sel-jquery *sel* "$('#margin_demands_unsent_table').html()")
   (sel-click *sel* "//a[contains(text(),'Logout')]")
+
+  ;;   /html/body/div/div[3]/div/map/area
+
+  ;; clickable things are: a'nchor tags, map/area's and anything with an onClick handler...
 
   ;(.start *sel*)
   ;; selenium.waitForCondition("selenium.browserbot.getCurrentWindow().Ajax.activeRequestCount == 0;", DEFAULT_WAIT_PERIOD);
