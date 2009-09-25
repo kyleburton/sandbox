@@ -441,6 +441,14 @@ sets of optional parameters:
           {}
           (iterator-seq (.iterator (.entrySet (or props (System/getProperties)))))))
 
+(comment
+
+  (doseq [[p v] (properties->map)]
+    (println (format "%s: %s" p v)))
+
+)
+
+
 (defn now-milliseconds []
   (.getTime (java.util.Date.)))
 
