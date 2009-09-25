@@ -108,7 +108,6 @@
 (comment
 
   (def *sel* (new-selenium))
-  (def *sel* (new-selenium "phibuster"))
   (.start *sel*)
   (.stop *sel*)
 
@@ -118,6 +117,7 @@
   (eval-js *sel* "window.document")
 
   (eval-js *sel* "document.evaluate('//a',document,null, XPathResult.ANY_TYPE, null).iterateNext()")
+  ;; TODO: move this into the selenium-setup so it's always available...
   (eval-js *sel* "doXpath = function(xpath) {
     var results = [], xpathResult = document.evaluate(xpath,document,null, XPathResult.ANY_TYPE, null);
     for ( var itr = xpathResult.iterateNext(); itr; itr = xpathResult.iterateNext() ) {
@@ -133,7 +133,6 @@
   (eval-js *sel* "$(doXpath('//a')[0]).innerHTML = '123'")
 
 
-
   (.open *sel* "http://localhost/")
   ;; neither 'this.browserbot.getCurrentWindow()', nor 'selenium.browserbot.getCurrentWindow()' seems
   ;; to get us to the application's window...
@@ -143,11 +142,9 @@
   (sel-input *sel* "password" (get-password))
   (sel-submit *sel* "//form")
   (sel-click *sel* "//area")
-  (sel-jquery *sel* "$('#margin_demands_unsent_table').html()")
   (sel-click *sel* "//a[contains(text(),'Logout')]")
 
   ;;   /html/body/div/div[3]/div/map/area
-
   ;; clickable things are: a'nchor tags, map/area's and anything with an onClick handler...
 
   ;(.start *sel*)
@@ -155,15 +152,8 @@
 
   ;; jQuery:    jQuery.active
   ;; Prototype: Ajax.activeRequestCount
-
   (.getEval *sel* "this.browserbot.getCurrentWindow().jQuery.active")
-
   (.open *sel* "http://localhost/")
-
-  ;; this is wait-for-ajax if we're using jQuery
-  (.waitForCondition *sel* "this.browserbot.getCurrentWindow().jQuery.active == 0;")
-  ;; this is what you use for prototype:
-  ;; (.waitForCondition *sel* "this.browserbot.getCurrentWindow().Ajax.activeRequestCount == 0;")
 
   (with-selenium
       [sel *sel*]
@@ -176,7 +166,7 @@
     ;(click! "//a[contains(text(),'Logout')]")
     (.waitForPageToLoad *sel* "500")
     (type! "login"    "admin")
-    (type! "password" "monkey")
+    (type! "password" (get-password))
     (submit! "//form")
     (.waitForPageToLoad *sel* "500")
     (click! "//area")
@@ -184,14 +174,6 @@
 
   (jquery? *sel*)
   (prototype? *sel*)
-
-;;   (.getEval *sel* "selenium.browserbot.getCurrentWindow().$")
-;;   (.getEval *sel* "this.browserbot.getCurrentWindow().$")
-;;   (.getEval *sel* "alert(this)")
-;;   (.getEval *sel* "this.browserbot.getCurrentWindow().__clj = function () {
-;;     selenium.browserbot.getCurrentWindow().document.alert(this);
-;;   };
-;;   this.browserbot.getCurrentWindow().__clj();")
 
   (.isTextPresent *sel* "//a[contains(text(),'Logout')]")
   (.isElementPresent *sel* "//a[contains(text(),'Logout')]")
@@ -202,9 +184,6 @@
   (.getEval *sel* "dom=selenium.browserbot.getCurrentWindow().document.$x")
   (.stop *sel*)
 
-  ;; java -jar /opt/algorithmics.com/algo-connect/selenium-server-1.0.1/selenium-server.jar  -firefoxProfileTemplate /Users/kburton/Library/Application\ Support/Firefox/Profiles/3o74fgym.Selenium1/
-
-  (def *selenium* (new-selenium "phicarrot"))
   (.start *selenium*)
   ;; TODO: how to wait for the browser to start?
   (.open *selenium* "http://localhost/")
@@ -212,33 +191,13 @@
   (.isVisible *selenium* "xpath=//*[contains(text(),\"User\")]")
   (.isVisible *selenium* "xpath=//*[@value=\"Submit\"]")
   (.type *selenium* "xpath=//input[@id='login']" "admin")
-  (.type *selenium* "xpath=//input[@id='password']" "monkey")
+  (.type *selenium* "xpath=//input[@id='password']" (get-password))
   (.submit *selenium* "xpath=//form")
   (.click *selenium* "xpath=//area")
 
   (.stop *selenium*)
 
   (sel-jquery *selenium* "$('div#nav').html()")
-
-  (.getEval *selenium* "alert('foo')")
-  (.getEval *selenium* "this.browserbot.getCurrentWindow().$")
-  (.getEval *selenium* "this.browserbot.getCurrentWindow().jQuery('div#nav').html()")
-
-  (.getEval *selenium* "this.browserbot.getCurrentWindow().jQuery('#margin_demands_unsent_table').html()")
-
-
-  ;; how to write BDD / gherkin / Cucumber in clojure?
-  (defcuke #"Then I click (\"[^\"]+\")" [tag-text]
-    (click (format "xpath=//a[contains(text(),'%s')]" tag-text)))
-
-  (cuke "Then I click \"Antic Demands\"")
-  (cuke "Then I click \"Awaiting Demand Response\"")
-
-
-
-;; .getValue <<locator>>
-;; .type <<locator>> text
-;; .submit <<form-locator>>
 
 
 )
