@@ -5,24 +5,32 @@
 
 ;; Plans
 ;;
-;; * abstractions between jQuery, Prototype, and the other front-end
-;;   javascript frameworks
-;;
 ;; * dsl-ish helpers, make them as smart (meaning as easy to use) as possible:
 ;;
 ;;   ** click! anything that can receive a click
 ;;
 ;; * ide-ish features:
 ;;
-;;   ** ask to see all the links, - don't return the list of HTML DOM
-;;      nodes, rather return it as a sequence of '(click!
+;;   ** ask to see all the clickable elements (eg: links, but really
+;;      anything that can be likely clicked), - don't return the list
+;;      of HTML DOM nodes, rather return it as a sequence of '(click!
 ;;      <<locator>>)' forms so the user can select the one they want
-;;      (cut & paste, maybe even click in a more advanced GUI).
+;;      (cut & paste, eventually just by clicking in a more advanced
+;;      GUI).
 ;;
 ;;   ** make use of some simple SWING or SWT GUI widgets to perform
 ;;      some of the interaction -- if the library does this, it should
 ;;      try to detect if a GUI is present (eg, test for DISPLAY or
 ;;      being on Windows or a Mac)
+
+;;
+;; Implement `start-selenium-server' to start the server.  Allow it to
+;; be stopped, include an `ensure-selenium-started' mode for the app
+;; to make it easier to interact with.
+;;
+;;   ** find the selenium-server maven dependency and add it to the
+;;      pom file...
+;;
 
 (def *log* (log/logger *ns*))
 
@@ -79,6 +87,7 @@
      ~@body))
 
 (def *password* (atom nil))
+
 (defn get-password []
   (if @*password*
     @*password*
@@ -88,6 +97,13 @@
   (.getEval sel "selenium.browserbot.getUserWindow().document.doEval = function(script) {
     try {
         return eval(
+           \"var $xp = function(xpath) {\\n\" +
+           \"    var results = [], xpathResult = document.evaluate(xpath,document,null, XPathResult.ANY_TYPE, null);\\n\" +
+           \"   for ( var itr = xpathResult.iterateNext(); itr; itr = xpathResult.iterateNext() ) {\\n\" +
+           \"     results.push(itr);\\n\" +
+           \"   }\\n\" +
+           \"    return results;\\n\" +
+           \" };\\n\" +
            \"var document = selenium.browserbot.getUserWindow().document;\\n\" +
            \"var window = selenium.browserbot.getUserWindow();\\n\" +
            script);
@@ -95,7 +111,6 @@
         throw new SeleniumError(\"Threw an exception: \" + e.message);
     }
 };"))
-
 
 (defn eval-js [sel js]
   (selenium-js-setup sel)
@@ -105,44 +120,48 @@
                      (.replaceAll js "'" "\\\\'")
                      "\n" "\\\\n"))))
 
+(defn click-link [sel text]
+  (sel-click sel (format "//a[contains(.,\"%s\")]" text)))
+
 (comment
 
   (def *sel* (new-selenium))
   (.start *sel*)
+  ;; TODO: figure out how to wait for the browser to start / launch
   (.stop *sel*)
 
-  (selenium-setup *sel*)
   (eval-js *sel* "document.location='http://google.com/';")
   (eval-js *sel* "document.location='http://yahoo.com/';")
   (eval-js *sel* "window.document")
 
   (eval-js *sel* "document.evaluate('//a',document,null, XPathResult.ANY_TYPE, null).iterateNext()")
   ;; TODO: move this into the selenium-setup so it's always available...
-  (eval-js *sel* "doXpath = function(xpath) {
-    var results = [], xpathResult = document.evaluate(xpath,document,null, XPathResult.ANY_TYPE, null);
-    for ( var itr = xpathResult.iterateNext(); itr; itr = xpathResult.iterateNext() ) {
-      results.push(itr);
-    }
-    return results;
-  };")
-  (eval-js *sel* "doXpath('//a')[0].nodeName")
-  (eval-js *sel* "doXpath('//a')[0].nodeValue")
-  (eval-js *sel* "doXpath('//a')[1]")
-  (eval-js *sel* "doXpath('//a')")
-  (eval-js *sel* "$(doXpath('//a')[0]).innerHTML")
-  (eval-js *sel* "$(doXpath('//a')[0]).innerHTML = '123'")
 
+  (eval-js *sel* "$xp('//a')[0].nodeName")
+  (eval-js *sel* "$xp('//a')[0].nodeValue")
+  (eval-js *sel* "$xp('//a')[1]")
+  (eval-js *sel* "$xp('//a')")
+  (eval-js *sel* "$($xp('//a')[0]).innerHTML")
+  (eval-js *sel* "$($xp('//a')[0]).innerHTML = '123'")
 
   (.open *sel* "http://localhost/")
-  ;; neither 'this.browserbot.getCurrentWindow()', nor 'selenium.browserbot.getCurrentWindow()' seems
-  ;; to get us to the application's window...
-  ;;(eval-js *sel* "document.write('foof')")
-  (sel-input *sel* "login" "admin")
+  ;; or
+  (eval-js *sel* "document.location='http://localhost/';")
 
+  (sel-input *sel* "login" "admin")
   (sel-input *sel* "password" (get-password))
   (sel-submit *sel* "//form")
   (sel-click *sel* "//area")
   (sel-click *sel* "//a[contains(text(),'Logout')]")
+
+  (click-link *sel* "Demands")
+  (click-link *sel* "Unsent")
+  (click-link *sel* "Awaiting Demand Response")
+  (click-link *sel* "Awaiting Collateral Details")
+  (click-link *sel* "Evaluate Demand Proposals")
+
+  (click-link *sel* "Antic Demands")
+
 
   ;;   /html/body/div/div[3]/div/map/area
   ;; clickable things are: a'nchor tags, map/area's and anything with an onClick handler...
