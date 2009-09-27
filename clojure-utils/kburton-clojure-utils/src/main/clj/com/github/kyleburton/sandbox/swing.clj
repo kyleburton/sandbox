@@ -40,13 +40,13 @@
         ok-txt        "Ok"
         cancel-txt    "Cancel"
         panel         (proxy
-                          [JPanel ActionListener] 
+                          [JPanel ActionListener]
                           []
                         (actionPerformed
                          [#^ActionEvent e]
                          (let [command (.getActionCommand e)
                                done (atom false)]
-                           (prn (format "WindowAdapter.windowActivated, done=%s event=%s cmd=%s this=%s" 
+                           (prn (format "WindowAdapter.windowActivated, done=%s event=%s cmd=%s this=%s"
                                         @done
                                         e
                                         command
@@ -81,18 +81,18 @@
             (.setActionCommand  pass-field ok-txt)
             (.addActionListener pass-field panel)
             (.setLabelFor       pass-label pass-field)
-            
+
             (.add text-pane pass-label)
             (.add text-pane pass-field)
             (.add panel text-pane)
             (.add panel button-panel)
-            
+
             (.setOpaque panel true)
             (.setContentPane frame panel)
             (.addWindowListener
              frame
              (proxy [WindowAdapter] []
-               (windowActivated 
+               (windowActivated
                 [e]
                 (prn (format "WindowAdapter.windowActivated, this=%s event=%s" this e)))))
             (.pack frame)
@@ -143,7 +143,7 @@
    (map (fn [x] (map x [:name :schema :type :catalog])) (ksql/schema-tables db schema-name))))
 
 (defn sql-browse-table [db table-name]
-  (display-table-data 
+  (display-table-data
    table-name
    (map :name (ksql/describe-table db table-name))
    (ksql/sql->records db (ksql/select-all table-name))))
@@ -153,6 +153,6 @@
     (display-table-data
      table-name
      columns
-     (map 
+     (map
       (fn [x] (map x columns))
       (ksql/describe-table db table-name)))))
