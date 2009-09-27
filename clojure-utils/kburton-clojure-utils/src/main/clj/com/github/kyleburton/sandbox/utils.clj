@@ -300,6 +300,7 @@ methods."
   (with-open [inp (java.io.ObjectInputStream. (java.io.FileInputStream. file))]
     (.readObject inp)))
 
+;; clojure.lang.PersistentVector$Node ins't serializable any longer...is this an oversight? ignore for now...
 (defn freeze
   ([obj]
      (with-open [baos (java.io.ByteArrayOutputStream. 1024)
@@ -307,7 +308,7 @@ methods."
        (.writeObject oos obj)
        (.toByteArray baos)))
   ([obj & objs]
-     (freeze (vec (cons obj objs)))))
+     (freeze (.toArray (vec (cons obj objs))))))
 
 ;; (freeze "foo")
 ;; (freeze "foo" "bar" "qux")

@@ -4,7 +4,7 @@
 
 (defmacro throws? [& body]
   `(let [did-throw# (atom false)]
-     (try 
+     (try
       ~body
       (catch Exception ~'_ (reset! did-throw# true)))
      @did-throw#))
@@ -68,14 +68,18 @@
       (object->file dat tmp)
       (is (= dat (file->object tmp))))))
 
+
 (deftest test-freeze-thaw
-  (let [dat ["foo" "bar"]
+  (let [dat {:a 1 :b 2}
         ser (apply freeze dat)
         ret (thaw ser)]
-    (is (= (first dat)
-           (first ret)))
-    (is (= (second dat)
-           (second ret)))))
+    (is (= (:a dat)
+           (:a ret)))
+    (is (= (:b dat)
+           (:b ret)))))
+
+;; (test-freeze-thaw)
+;; (thaw (freeze {:a 1 :b 2}))
 
 (deftest test-make-subst-fn
   (let [f (make-subst-fn " " "&nbsp;")]
