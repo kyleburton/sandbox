@@ -12,8 +12,6 @@
 (defn reset-configuration! []
   (reset! *configured* false))
 
-;; (reset-configuration!)
-
 (defn ensure-configured []
   (if @*configured*
     true
@@ -21,20 +19,24 @@
       (PropertyConfigurator/configureAndWatch *log4j-properties* 1000)
       (reset! *configured* true))))
 
-(defn logger [category]
-  ;; TODO: move the ensure out of here, initialization should be a
-  ;; concern handled outside this moudle...
-  (ensure-configured)
-  (Logger/getLogger (str category)))
+(defn get-loger [category]
+  (LogFactory/getLog (str category)))
 
-;; TODO: wrap the expansions with if(Log.isDebug){...} to avoid
-;; argument evaluation when logging is otherwise disabled, keep that
-;; hidden in behind the macros...
-(defmacro LOG []
-  `(do (def ~'*log* (logger (.toString ~'*ns*)))
-       (defn ~'log-fatal [& args#] (.fatal ~'*log* (str args#)))
-       (defn ~'log-error [& args#] (.error ~'*log* (str args#)))
-       (defn ~'log-warn  [& args#] (.warn  ~'*log* (str args#)))
-       (defn ~'log-info  [& args#] (.info  ~'*log* (str args#)))
-       (defn ~'log-debug [& args#] (.debug ~'*log* (str args#)))
-       (defn ~'log-trace [& args#] (.trace ~'*log* (str args#)))))
+
+(defmacro trace [& body] `(if (.isTraceEnabled ~'*log*) (.trace ~'*log* (str ~@body))))
+(defmacro debug [& body] `(if (.isDebugEnabled ~'*log*) (.debug ~'*log* (str ~@body))))
+(defmacro info  [& body] `(if (.isInfoEnabled  ~'*log*) (.info  ~'*log* (str ~@body))))
+(defmacro warn  [& body] `(if (.isWarnEnabled  ~'*log*) (.warn  ~'*log* (str ~@body))))
+(defmacro error [& body] `(if (.isErrorEnabled ~'*log*) (.error ~'*log* (str ~@body))))
+(defmacro fatal [& body] `(if (.isFatalEnabled ~'*log*) (.fatal ~'*log* (str ~@body))))
+
+(defmacro tracef [fmt & args] `(if (.isTraceEnabled ~'*log*) (trace (format ~fmt ~@args))))
+(defmacro debugf [fmt & args] `(if (.isDebugEnabled ~'*log*) (debug (format ~fmt ~@args))))
+(defmacro infof  [fmt & args] `(if (.isInfoEnabled  ~'*log*) (info  (format  ~fmt ~@args))))
+(defmacro warnf  [fmt & args] `(if (.isWarnEnabled  ~'*log*) (warn  (format  ~fmt ~@args))))
+(defmacro errorf [fmt & args] `(if (.isErrorEnabled ~'*log*) (error (format ~fmt ~@args))))
+(defmacro fatalf [fmt & args] `(if (.isFatalEnabled ~'*log*) (fatal (format ~fmt ~@args))))
+
+
+
+
