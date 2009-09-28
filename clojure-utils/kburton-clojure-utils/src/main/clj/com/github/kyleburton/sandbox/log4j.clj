@@ -19,7 +19,7 @@
       (PropertyConfigurator/configureAndWatch *log4j-properties* 1000)
       (reset! *configured* true))))
 
-(defn get-loger [category]
+(defn get-logger [category]
   (LogFactory/getLog (str category)))
 
 
