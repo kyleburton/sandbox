@@ -301,14 +301,11 @@ methods."
     (.readObject inp)))
 
 ;; clojure.lang.PersistentVector$Node ins't serializable any longer...is this an oversight? ignore for now...
-(defn freeze
-  ([obj]
-     (with-open [baos (java.io.ByteArrayOutputStream. 1024)
-                 oos  (java.io.ObjectOutputStream. baos)]
-       (.writeObject oos obj)
-       (.toByteArray baos)))
-  ([obj & objs]
-     (freeze (.toArray (vec (cons obj objs))))))
+(defn freeze [obj]
+  (with-open [baos (java.io.ByteArrayOutputStream. 1024)
+              oos  (java.io.ObjectOutputStream. baos)]
+    (.writeObject oos obj)
+    (.toByteArray baos)))
 
 ;; (freeze "foo")
 ;; (freeze "foo" "bar" "qux")

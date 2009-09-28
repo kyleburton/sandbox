@@ -71,7 +71,7 @@
 
 (deftest test-freeze-thaw
   (let [dat {:a 1 :b 2}
-        ser (apply freeze dat)
+        ser (freeze dat)
         ret (thaw ser)]
     (is (= (:a dat)
            (:a ret)))
