@@ -11,6 +11,8 @@
    [javax.xml.parsers           DocumentBuilderFactory]
    [javax.xml.xpath             XPathFactory XPathConstants]))
 
+(def *namespace-aware* (atom false))
+
 (defn throwf [& args]
   (throw (RuntimeException. (apply format args))))
 
@@ -26,7 +28,7 @@
 
 (defn xml-bytes->dom [bytes]
   (let [dom-factory (doto (DocumentBuilderFactory/newInstance)
-                      (.setNamespaceAware true))
+                      (.setNamespaceAware @*namespace-aware*))
         builder     (.newDocumentBuilder dom-factory)
         rdr         (ByteArrayInputStream. bytes)]
     (.parse builder rdr)))
@@ -56,6 +58,9 @@
 (defn text [#^Node node]
   (.getTextContent node))
 
+(defn node-name [#^Node node]
+  (keyword (.getNodeName node)))
+
 (defn summarize [s len]
   (if (>= len (.length s))
     s
@@ -68,7 +73,7 @@
 (defn $x->tag [xp xml]
   (let [res ($x->tags xp xml)]
     (if (not (= 1 (count res)))
-      (throwf "Error, more than 1 result (%d) from xml(%s) for xpath(%s)"
+      (throwf "Error, more (or less) than 1 result (%d) from xml(%s) for xpath(%s)"
                     (count res)
                     (summarize xml 10)
                     xp))
@@ -80,7 +85,7 @@
 (defn $x->text [xp xml]
   (let [res ($x->texts xp xml)]
     (if (not (= 1 (count res)))
-      (throwf "Error, more than 1 result (%d) from xml(%s) for xpath(%s)"
+      (throwf "Error, more (or less) than 1 result (%d) from xml(%s) for xpath(%s)"
                     (count res)
                     (summarize xml 10)
                     xp))
@@ -93,7 +98,7 @@
 (defn $x->attrs [xp xml]
   (let [res (map attrs ($x xp xml))]
     (if (not (= 1 (count res)))
-      (throwf "Error, more than 1 result (%d) from xml(%s) for xpath(%s)"
+      (throwf "Error, more (or less) than 1 result (%d) from xml(%s) for xpath(%s)"
               (count res)
               (summarize xml 10)
               xp))
@@ -134,7 +139,27 @@
   (tag [:foo :name "bobby tables"] "select me from where I come from")
 
   ($x "/*" (tag [:foo :name "bobby tables"] "select me from where I come from"))
+  ($x->tag "/*" (tag [:foo :name "bobby tables"] "select me from where I come from"))
+  ($x->attrs "/*" (tag [:foo :name "bobby tables"] "select me from where I come from"))
+  ($x->text "/*" (tag [:foo :name "bobby tables"] "select me from where I come from"))
 
-  ($x->tag "/" (slurp "/Users/kburton/personal/projects/sandbox/clj-xpath/pom.xml"))
+  ($x "//project" (slurp "/Users/kburton/personal/projects/sandbox/clj-xpath/pom.xml"))
+
+  ($x->tag "/*" (slurp "/Users/kburton/personal/projects/sandbox/clj-xpath/pom.xml"))
+
+  (binding [*namespace-aware* (atom false)]
+    ($x "//project" (slurp "/Users/kburton/personal/projects/sandbox/clj-xpath/pom.xml")))
+
+  (binding [*namespace-aware* (atom true)]
+    ($x "//project" (slurp "/Users/kburton/personal/projects/sandbox/clj-xpath/pom.xml")))
+
+  (.getNodeName (first ($x "/*" (slurp "/Users/kburton/personal/projects/sandbox/clj-xpath/pom.xml"))))
+
+  (.getLocalName (first ($x "/*" (slurp "/Users/kburton/personal/projects/sandbox/clj-xpath/pom.xml"))))
+  (.getPrefix (first ($x "/*" (slurp "/Users/kburton/personal/projects/sandbox/clj-xpath/pom.xml"))))
+
+  (map node-name ($x "//*" (slurp "/Users/kburton/personal/projects/sandbox/clj-xpath/pom.xml")))
+
+  ($x "//goal" (slurp "/Users/kburton/personal/projects/sandbox/clj-xpath/pom.xml"))
 
 )
