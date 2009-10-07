@@ -45,7 +45,7 @@ function letsJQuery() {
 
     $.hotkeys.cache = {};
 
-    // krb: outlook web access can have anchors with a hotkey...pull those into the mapping too?
+    // krb: outlook web access can have anchors with a hotkey...pull those into the mapping too...
     $('a[hotkey]').each(function() {
                             $.hotkey($(this).attr('hotkey'), $(this).attr('href'));
                         });
@@ -70,14 +70,20 @@ function letsJQuery() {
         return OWA.mainBodyDocument().find('[name="MainForm"]').length > 0;
     };
 
+    OWA.isViewingFolders = function () {
+        return OWA.mainBodyDocument().find('table:contains("Move"):contains("Folder"):contains("Picker")').length > 0;
+    };
+
     OWA.getEmailListTable = function () {
         if ( ! OWA.isOnEmailListView() ) return false;
         return OWA.mainBodyDocument().find('table:not(.tblView):has(td:has(input[type="checkbox"]))');
     };
 
+    OWA.theRows = [];
     OWA.getEmailRows = function () {
         if ( ! OWA.isOnEmailListView() ) return false;
-        return OWA.getEmailListTable().find('tr:not(:first)');
+        OWA.theRows = OWA.getEmailListTable().find('tr:not(:first)');
+        return OWA.theRows;
     };
 
 
@@ -107,6 +113,10 @@ function letsJQuery() {
         return true;
     };
 
+//     jQuery.bind('owa.onPageChange',function () {
+//         OWA.theRows = [];
+//     });
+
     $(document).keypress(OWA.keyboardHandler);
 
     $.nav = {};
@@ -134,14 +144,16 @@ function letsJQuery() {
             console.log('OWA.setCurrentRowHighlight: ' + OWA.currentRow);
             var records = OWA.getEmailRows();
             var current = OWA.mainBodyDocument().find('tr[current="current"]')[0];
-            if (current) $(current).removeAttr('current').find('td').css('background-color', 'transparent');
+            if (current)        $(current).removeAttr('current').find('td').css('background-color','transparent');
             $(records[OWA.currentRow]).attr('current','current').find('td').css('background-color','#fc3');
         }
     };
 
-
     // TODO: if on the email list view, highlight the next/prev email
     // if viewingin an email, go to the next email (click the up or down button)
+    // if on the folder view, select the next folder radio button
+    // if at the last email on the page, and doing 'next' go to the next page
+    // if at the first email on the page, and doing 'prev' go to the prev page (if possible)
     $.nav.go = function(direction) {
         var records = OWA.getEmailRows();
         if (records.length < 1) return false;
@@ -194,6 +206,7 @@ function letsJQuery() {
         OWA.inboxUrl = window.parent.frames[1].src;
         var href = OWA.navDocument().find('a:contains("Inbox")')[0].href;
         window.parent.frames[1].document.location = href;
+        // jQuery.trigger('owa.onPageChange');
         // wait for it to load and then re-highlight the current row if there is one...
         window.setTimeout(OWA.setCurrentRowHighlight,200);
         return true;
@@ -205,15 +218,32 @@ function letsJQuery() {
         console.log('window.frames :' + window.parent.frames);
         console.log('window.frames[1] :' + window.parent.frames[1]);
         window.parent.frames[1].document.location = "javascript:SetCmd(document.msgViewer.CmdDelete.value);";
+        // jQuery.trigger('owa.onPageChange');
         return true;
+    };
+
+    OWA.clickOutlookLink = function(selector) {
+        var elt = OWA.mainBodyDocument().find(selector)[0];
+        console.log('OWA.clickOutlookLink: selector="' + selector + '"; href=' + elt.href);
+        window.parent.frames[1].document.location = elt.href;
+        // jQuery.trigger('owa.onPageChange');
+        return true;
+    };
+
+    OWA.linkClicker = function (selector) {
+        return function () {
+            return OWA.clickOutlookLink(selector);
+        };
     };
 
     OWA.newMessage = function() {
         window.parent.frames[1].document.location = OWA.mainBodyDocument().find('a[title="New Message"]')[0].href;
+        // jQuery.trigger('owa.onPageChange');
     };
 
     OWA.moveSelectedToFolder = function() {
         window.parent.frames[1].document.location = OWA.mainBodyDocument().find('a[title="Move"]')[0].href;
+        // jQuery.trigger('owa.onPageChange');
     };
 
     // break the hotkeys out into a multi-map, support unmodified and
@@ -233,18 +263,21 @@ function letsJQuery() {
                   'n':     OWA.newMessage,
                   'y':     OWA.moveSelectedToFolder,
 
+                  'r': OWA.linkClicker('a[title="Reply"]'),        // function() { $.nav.click('Reply'); },
+                  'a': OWA.linkClicker('a[title="Reply to All"]'), // function() { $.nav.click('Reply to All'); },
+                  'w': OWA.linkClicker('a[title="Forward"]'),      // function() { $.nav.click('Forward'); }
+
+/*
                   '1': function() { $('a[title=Mail]').click(); },
                   '2': function() { $('a[title=Calendar]').click(); },
                   '3': function() { $('a[title=Contacts]').click(); },
                   'f': function() { $('#txtSch').focus(); },
                   //'d': function() { $.nav.click('Delete'); },
                   //'u': function() { $.nav.click('Junk'); },
-                  'r': function() { $.nav.click('Reply'); },
-                  'a': function() { $.nav.click('Reply to All'); },
-                  'w': function() { $.nav.click('Forward'); },
                   'l': function() { $.nav.page('Next'); },
                   'h': function() { $.nav.page('Previous'); },
                   'esc': function() { $.nav.esc(); }
+*/
 	      });
 
     console.log('bindings applied');
