@@ -32,7 +32,7 @@
 ;;      pom file...
 ;;
 
-(def *log* (log/logger *ns*))
+(def *log* (log/get-logger *ns*))
 
 
 
