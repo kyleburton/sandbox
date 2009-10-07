@@ -1,0 +1,5 @@
+Create an example for a YUI data-table using a fluent interface to build the
+table's data structure.
+
+Show how it can be used to calculate the column widths strictly and use of a
+splat to take up the remaining space.

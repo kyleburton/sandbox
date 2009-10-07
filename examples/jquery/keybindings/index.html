@@ -1,0 +1,154 @@
+<HTML>
+  <HEAD>
+    <TITLE>jQuery Keybinding Example</TITLE>
+    <SCRIPT src="jquery-1.3.2.min.js" type="text/javascript"></SCRIPT>
+    <SCRIPT type="text/javascript">
+
+krb = {};
+krb.numKeysHit = 0;
+krb.args = function (theArgs,startAt,endAt) {
+  var res = [], start = 0, end = theArgs.length;
+  if ( typeof(startAt) != "undefined" ) { start = startAt; }
+  if ( typeof(endAt) != "undefined" )   { end = endAt; }
+  for( var idx = start; idx < end; idx = idx + 1) {
+    res.push(theArgs[idx]);
+  }
+  return res;
+};
+krb.isChr = function(charCode) {
+  return (charCode >=  65 && charCode <=  90) // A-Z
+      || (charCode >=  97 && charCode <= 122) // a-z
+};
+
+krb.clr = function (selector) { $(selector).html(''); };
+krb.p   = function (selector) { $(selector).append('<p>' + krb.args(arguments,1).join('') + '</p>'); };
+
+krb.keytable = {
+  'ctrl' : {},
+  'meta' : {},
+  'alt'  : {},
+  'key'  : {},
+  'special': {
+    'escape' : null,
+    'enter'  : null,
+  },
+};
+
+krb.keytable.key.h = function () {
+  console.log('typed "h"');
+};
+
+krb.keytable.alt.j = function () {
+  console.log('typed alt-"j"');
+};
+
+krb.keys = function (thing) {
+  var res = [];
+  $.each(thing,function(key,val) {
+    res.push(key);
+  });
+  return res;
+};
+
+krb.specials = {
+  'nameToCode' : {
+    'escape'  :  27,  'esc'       :  27,
+    'backsp'  :   8,  'backspace' :   8,
+    'space'   :  32,
+    'newline' :  10,  'nl'        :  10,    'lf' :  10,
+    'cr'      :  13,
+    'del'     :  127, 'delete'    : 127,
+  },
+  'codeToName' : {
+     27 : 'escape',
+     27 : 'esc',
+      8 : 'backsp',
+      8 : 'backspace',
+     32 : 'space',
+     10 : 'newline',
+     10 : 'nl',
+     10 : 'lf',
+     13 : 'cr',
+    127 : 'del',
+    127 : 'delete',
+  }
+};
+
+krb.getHandler = function(e) {
+  // e.shiftKey, e.altKey, e.metaKey, e.ctrlkey
+  // alt ctrl meta shift
+  var lu = krb.keytable;
+  console.log('lu='+lu);
+  if (e.altKey)  {
+    console.log('krb.getHandler: altKey');
+    lu = lu.alt || {};
+  }
+
+  if (e.ctrlKey) {
+    console.log('krb.getHandler: ctrlKey');
+    lu = lu.ctrl  || {};
+  }
+
+  if (e.metaKey) {
+    console.log('krb.getHandler: metaKey');
+    lu = lu.meta || {};
+  }
+
+  if ( lu === krb.keytable ) {
+    console.log('[key] using std keymap');
+    lu = lu.key
+  }
+  // need to handle the special keys (escape, enter, pgup, pgdown, and so on)
+  var char = String.fromCharCode(e.which);
+  console.log('[key] lu[' + char + ']=' + lu[char] + '(' + krb.keys(lu) + ')');
+  return lu[char];
+};
+
+krb.keyboardHandler = function (e) {
+  krb.numKeysHit = krb.numKeysHit + 1;
+  krb.clr('.target');
+  krb.  p('.target', "Target: " + e.target);
+  krb.clr('.summary');
+  krb.  p('.summary', "Key Event[" + krb.numKeysHit +"]: " + e);
+  krb.  p('.summary', 'e.which=' + e.which);
+  krb.  p('.summary', 'String.fromCharCode(e.which)=' + String.fromCharCode(e.which));
+  //console.dir(e);
+
+
+  // report 'not handled' if we're on an input...
+  if ( $(e.target).is(':input') ) {
+    console.log('keypress: is an input, not handling...');
+    return true;
+  }
+
+  var handler = krb.getHandler(e);
+  if (!handler) {
+    return true;
+  }
+
+  // we're handling it, prevent default browser behavior, return true
+  console.log('keypress: have handler, not typing into an input, preventDefault...');
+  e.preventDefault();
+  handler(e);
+  return false;
+};
+
+$(document).ready(function () {
+  $(document).keypress(krb.keyboardHandler);
+});
+
+    </SCRIPT>
+  </HEAD>
+  <BODY>
+    <H3>jQuery Keybinding Example</H3>
+    <DIV id="event">
+      <DIV class="summary"></DIV>
+      <DIV class="target"></DIV>
+      <DIV id='some-form'>
+        <FORM action='#'>
+          <INPUT id="text-input" type="text" />
+        </FORM>
+      </DIV>
+    </DIV>
+  </BODY>
+</HTML>

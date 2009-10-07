@@ -262,10 +262,9 @@ function letsJQuery() {
                   'd':     OWA.deleteSelectedItems,
                   'n':     OWA.newMessage,
                   'y':     OWA.moveSelectedToFolder,
-
-                  'r': OWA.linkClicker('a[title="Reply"]'),        // function() { $.nav.click('Reply'); },
-                  'a': OWA.linkClicker('a[title="Reply to All"]'), // function() { $.nav.click('Reply to All'); },
-                  'w': OWA.linkClicker('a[title="Forward"]'),      // function() { $.nav.click('Forward'); }
+                  'r':     OWA.linkClicker('a[title="Reply"]'),        // function() { $.nav.click('Reply'); },
+                  'a':     OWA.linkClicker('a[title="Reply to all"]'), // function() { $.nav.click('Reply to All'); },
+                  'w':     OWA.linkClicker('a[title="Forward"]')       // function() { $.nav.click('Forward'); }
 
 /*
                   '1': function() { $('a[title=Mail]').click(); },
