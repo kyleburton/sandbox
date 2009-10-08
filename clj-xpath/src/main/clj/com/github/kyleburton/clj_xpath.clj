@@ -1,6 +1,7 @@
 (ns com.github.kyleburton.clj-xpath
   (:require
-   [clojure.contrib.str-utils :as str-utils])
+   [clojure.contrib.str-utils :as str-utils]
+   [clojure.contrib.duck-streams :as ds])
   (:import
    [java.io                     InputStreamReader StringReader File IOException ByteArrayInputStream]
    [org.xml.sax                 InputSource SAXException]
@@ -11,15 +12,20 @@
    [javax.xml.parsers           DocumentBuilderFactory]
    [javax.xml.xpath             XPathFactory XPathConstants]))
 
+
 (def *namespace-aware* (atom false))
 
 (defn throwf [& args]
   (throw (RuntimeException. (apply format args))))
 
+(defn logf [fmt & args]
+  (.println System/err (apply format fmt args)))
+
 (defn node-list->seq [node-list]
   (loop [length (.getLength node-list)
          idx    0
          res    []]
+    ;(logf "node-list: idx:%s node-list=%s length=%s" idx node-list length)
     (if (>= idx length)
       (reverse res)
       (recur length
@@ -42,17 +48,15 @@
 (defmethod xml->doc :default             [thing]
   (throwf "Error, don't know how to build a doc out of '%s' of class %s" thing (class thing)))
 
-;; (class (xml->doc (tag :foo "bar")))
-
-(defn logf [fmt & args]
-  (.println System/err (apply format fmt args)))
-
 (defn attrs [nodeattrs]
-  (loop [[node & nodes] (node-list->seq (.getAttributes nodeattrs))
-         res {}]
-    (if node
-      (recur nodes (assoc res (keyword (.getNodeName node)) (.getTextContent node)))
-      res)))
+  ;(logf "attrs: nodeattrs=%s attrs=%s" nodeattrs (.getAttributes nodeattrs))
+  (if-let [the-attrs (.getAttributes nodeattrs)]
+    (loop [[node & nodes] (node-list->seq (.getAttributes nodeattrs))
+           res {}]
+      (if node
+        (recur nodes (assoc res (keyword (.getNodeName node)) (.getTextContent node)))
+        res))
+    nil))
 
 (defn text [#^Node node]
   (.getTextContent node))
@@ -170,7 +174,28 @@
   (format "<%s>%s</%s>" (format-tag tag :with-attrs) (apply str body) (format-tag tag)))
 
 
+;; (defn string-reader [s] (InputSource. (StringReader. s)))
+;; ;; turn a Node into the same form the clojure.xml/parse builds
+;; (defmulti  node-parse (fn [thing] (class thing)))
+;; (defmethod node-parse String [thing] (node-parse (.getDocumentElement (xml->doc thing))))
+;; (defmethod node-parse Node   [node]
+;;   (logf "node-parse: node=%s; childNodes=%s" node (.getChildNodes node))
+;;   ;; check if it's a Node/TEXT_NODE
+;;   (if (= Node/TEXT_NODE (.getNodeType node))
+;;     (text node)
+;;     {:tag     (node-name node)
+;;      :attrs   (attrs node)
+;;      ;; Should we flatten the vector if it only has 1 elt?
+;;      :content (apply vector (map node-parse (node-list->seq (.getChildNodes node))))}))
+
+;; ;; TODO: render (from whatever node we're at)
+
 (comment
+  (node-parse (tag :foo "some body content"))
+  (clojure.xml/parse (string-reader (tag :foo "body")))
+  {:tag :foo, :attrs nil, :content ["body"]}
+
+  (.getTagName (.getDocumentElement (xml->doc (tag :foo "body"))))
 
   (tag :foo "body")
   (tag [:foo :name "bobby tables"] "select me from where I come from")

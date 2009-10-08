@@ -6,7 +6,8 @@
             :attrs  (tag [:top-tag :name "bobby tables"]
                       "drop tables")
             :nested (tag :top-tag
-                      (tag :inner-tag "inner tag body"))})
+                      (tag :inner-tag
+                        (tag :more-inner "inner tag body")))})
 
 (deftest test-xml->doc
   (is (isa? (class (xp/xml->doc (:simple *xml*))) org.w3c.dom.Document))
@@ -32,16 +33,23 @@
   (is (= "top-tag"
          (.getNodeName ($x:node "/*" (:simple *xml*))))))
 
-;; pending:
-'(deftest test-$x-on-result
-  (is (= :inner-tag
-         ($x:tag "/*"
+(deftest test-$x-on-result
+  (is (= :more-inner
+         ($x:tag "./*"
                  ($x:node "/top-tag/*" (:nested *xml*))))))
-
 (comment
+
+  (test-$x-on-result)
 
   (test-$x-node)
 
-  ($x "/*" ($x:node "/top-tag/*" (:nested *xml*)))
+  ;; pending:
+
+
+  ($x:node "/top-tag/*" (:nested *xml*))
+  ($x:node "/top-tag"   (:nested *xml*))
+
+  ($x:tag "./*" ($x:node "/top-tag/*" (:nested *xml*)))
+  ($x:tag "./*" ($x:node "/top-tag"   (:nested *xml*)))
 
   )
