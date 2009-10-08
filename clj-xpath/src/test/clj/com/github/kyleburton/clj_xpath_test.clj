@@ -1,18 +1,47 @@
 (ns com.github.kyleburton.clj-xpath-test
-  (:use clojure.contrib.test-is)
-  (:require
-      [com.github.kyleburton.clj-xpath :as xp]))
+  (:use clojure.contrib.test-is
+        [com.github.kyleburton.clj-xpath :as xp :only [$x $x:tag $x:text $x:attrs $x:node tag]]))
 
-(deftest test-xp-top-tag
-  (is (= :foo
-         (xp/$x->tag "/*" (xp/tag :foo "this is a foo")))))
+(def *xml* {:simple (tag :top-tag "this is a foo")
+            :attrs  (tag [:top-tag :name "bobby tables"]
+                      "drop tables")
+            :nested (tag :top-tag
+                      (tag :inner-tag "inner tag body"))})
 
-(deftest test-xp-get-body
+(deftest test-xml->doc
+  (is (isa? (class (xp/xml->doc (:simple *xml*))) org.w3c.dom.Document))
+  (is (isa? (class (xp/xml->doc (.getBytes (:simple *xml*))))
+            org.w3c.dom.Document))
+  (is (isa? (class (xp/xml->doc (xp/xml->doc (:simple *xml*))))
+            org.w3c.dom.Document)))
+
+(deftest test-$x-top-tag
+  (is (= :top-tag
+         ($x:tag "/*" (:simple *xml*)))))
+
+(deftest test-$x-get-body
   (is (= "this is a foo"
-         (xp/$x->text "/*" (xp/tag :foo "this is a foo")))))
+         ($x:text "/*" (:simple *xml*)))))
 
-(deftest test-xp-get-attrs
+(deftest test-$x-get-attrs
   (is (= "bobby tables"
          (:name
-          (xp/$x->attrs "/*" (xp/tag [:foo :name "bobby tables"]
-                                     "drop tables"))))))
+          ($x:attrs "/*" (:attrs *xml*))))))
+
+(deftest test-$x-node
+  (is (= "top-tag"
+         (.getNodeName ($x:node "/*" (:simple *xml*))))))
+
+;; pending:
+'(deftest test-$x-on-result
+  (is (= :inner-tag
+         ($x:tag "/*"
+                 ($x:node "/top-tag/*" (:nested *xml*))))))
+
+(comment
+
+  (test-$x-node)
+
+  ($x "/*" ($x:node "/top-tag/*" (:nested *xml*)))
+
+  )

@@ -26,27 +26,26 @@
              (inc idx)
              (cons (.item node-list idx) res)))))
 
-(defn xml-bytes->dom [bytes]
+(defn- xml-bytes->dom [bytes]
   (let [dom-factory (doto (DocumentBuilderFactory/newInstance)
                       (.setNamespaceAware @*namespace-aware*))
         builder     (.newDocumentBuilder dom-factory)
         rdr         (ByteArrayInputStream. bytes)]
     (.parse builder rdr)))
 
-(defmulti $x (fn [xp xml-thing] (class xml-thing)))
+(defmulti  xml->doc (fn [thing] (class thing)))
+(defmethod xml->doc String               [thing] (xml-bytes->dom (.getBytes thing)))
+(defmethod xml->doc (Class/forName "[B") [thing] (xml-bytes->dom thing))
+;; TODO: implement one for org.w3c.dom.Document which just returns the document...
+;; (defmethod xml->doc )
+(defmethod xml->doc org.w3c.dom.Document [thing] thing)
+(defmethod xml->doc :default             [thing]
+  (throwf "Error, don't know how to build a doc out of '%s' of class %s" thing (class thing)))
 
-(defmethod $x String [xp xml]
-  ($x xp (xml-bytes->dom (.getBytes xml))))
+;; (class (xml->doc (tag :foo "bar")))
 
-(defmethod $x (Class/forName "[B") [xp bytes]
-  ($x xp (xml-bytes->dom bytes)))
-
-;; assume a Document (or api compatible)
-(defmethod $x :default [xpath-string doc]
-  (let [xpath-fact  (XPathFactory/newInstance)
-        xp          (.newXPath xpath-fact)
-        xpexpr      (.compile xp xpath-string)]
-    (node-list->seq (.evaluate xpexpr doc XPathConstants/NODESET))))
+(defn logf [fmt & args]
+  (.println System/err (apply format fmt args)))
 
 (defn attrs [nodeattrs]
   (loop [[node & nodes] (node-list->seq (.getAttributes nodeattrs))
@@ -61,17 +60,44 @@
 (defn node-name [#^Node node]
   (keyword (.getNodeName node)))
 
+(defn- node->map [#^Node node]
+  {:node node
+   :tag   (node-name node)
+   :attrs (attrs node)
+   :text  (text node)})
+
+(defmulti $x (fn [xp xml-thing] (class xml-thing)))
+
+(defmethod $x String [xp xml]
+  ($x xp (xml->doc (.getBytes xml))))
+
+(defmethod $x (Class/forName "[B") [xp bytes]
+  ($x xp (xml->doc bytes)))
+
+;(defmethod $x clojure.lang.PersistentArrayMap [xp xml] ($x xp (:node xml)))
+(defmethod $x java.util.Map                   [xp xml] ($x xp (:node xml)))
+
+;; assume a Document (or api compatible)
+(defmethod $x :default [xpath-string doc]
+  (let [xpath-fact  (XPathFactory/newInstance)
+        xp          (.newXPath xpath-fact)
+        xpexpr      (.compile xp xpath-string)
+        node-list   (.evaluate xpexpr doc XPathConstants/NODESET)]
+    (map node->map (node-list->seq node-list))))
+
+;; ($x "//*" (tag :foo "body"))
+
 (defn summarize [s len]
-  (if (>= len (.length s))
-    s
-    (str (.substring s 0 len) "...")))
+  (let [s (str s)]
+    (if (>= len (.length s))
+      s
+      (str (.substring s 0 len) "..."))))
 
-(defn $x->tags [xp xml]
-  (map #(keyword (.getNodeName %))
-       ($x xp xml)))
+(defn $x:tag* [xp xml]
+  (map :tag ($x xp xml)))
 
-(defn $x->tag [xp xml]
-  (let [res ($x->tags xp xml)]
+(defn $x:tag [xp xml]
+  (let [res ($x:tag* xp xml)]
     (if (not (= 1 (count res)))
       (throwf "Error, more (or less) than 1 result (%d) from xml(%s) for xpath(%s)"
                     (count res)
@@ -79,11 +105,11 @@
                     xp))
     (first res)))
 
-(defn $x->texts [xp xml]
-  (map text ($x xp xml)))
+(defn $x:text* [xp xml]
+  (map :text ($x xp xml)))
 
-(defn $x->text [xp xml]
-  (let [res ($x->texts xp xml)]
+(defn $x:text [xp xml]
+  (let [res ($x:text* xp xml)]
     (if (not (= 1 (count res)))
       (throwf "Error, more (or less) than 1 result (%d) from xml(%s) for xpath(%s)"
                     (count res)
@@ -91,12 +117,23 @@
                     xp))
     (first res)))
 
+(defn $x:attrs* [xp xml attr-name]
+  (map (if (keyword? attr-name) attr-name (keyword attr-name)) (map attrs (map :node ($x xp xml)))))
 
-(defn $x->attr-from-nodes [xp xml attr-name]
-  (map (if (keyword? attr-name) attr-name (keyword attr-name)) (map attrs ($x xp xml))))
+(defn $x:attrs [xp xml]
+  (let [res (map attrs (map :node ($x xp xml)))]
+    (if (not (= 1 (count res)))
+      (throwf "Error, more (or less) than 1 result (%d) from xml(%s) for xpath(%s)"
+              (count res)
+              (summarize xml 10)
+              xp))
+    (first res)))
 
-(defn $x->attrs [xp xml]
-  (let [res (map attrs ($x xp xml))]
+(defn $x:node* [xp xml]
+  (map :node ($x xp xml)))
+
+(defn $x:node [xp xml]
+  (let [res ($x:node* xp xml)]
     (if (not (= 1 (count res)))
       (throwf "Error, more (or less) than 1 result (%d) from xml(%s) for xpath(%s)"
               (count res)
@@ -139,13 +176,13 @@
   (tag [:foo :name "bobby tables"] "select me from where I come from")
 
   ($x "/*" (tag [:foo :name "bobby tables"] "select me from where I come from"))
-  ($x->tag "/*" (tag [:foo :name "bobby tables"] "select me from where I come from"))
-  ($x->attrs "/*" (tag [:foo :name "bobby tables"] "select me from where I come from"))
-  ($x->text "/*" (tag [:foo :name "bobby tables"] "select me from where I come from"))
+  ($x:tag "/*" (tag [:foo :name "bobby tables"] "select me from where I come from"))
+  ($x:attrs "/*" (tag [:foo :name "bobby tables"] "select me from where I come from"))
+  ($x:text "/*" (tag [:foo :name "bobby tables"] "select me from where I come from"))
 
   ($x "//project" (slurp "/Users/kburton/personal/projects/sandbox/clj-xpath/pom.xml"))
 
-  ($x->tag "/*" (slurp "/Users/kburton/personal/projects/sandbox/clj-xpath/pom.xml"))
+  ($x:tag "/*" (slurp "/Users/kburton/personal/projects/sandbox/clj-xpath/pom.xml"))
 
   (binding [*namespace-aware* (atom false)]
     ($x "//project" (slurp "/Users/kburton/personal/projects/sandbox/clj-xpath/pom.xml")))
@@ -153,13 +190,34 @@
   (binding [*namespace-aware* (atom true)]
     ($x "//project" (slurp "/Users/kburton/personal/projects/sandbox/clj-xpath/pom.xml")))
 
-  (.getNodeName (first ($x "/*" (slurp "/Users/kburton/personal/projects/sandbox/clj-xpath/pom.xml"))))
-
-  (.getLocalName (first ($x "/*" (slurp "/Users/kburton/personal/projects/sandbox/clj-xpath/pom.xml"))))
-  (.getPrefix (first ($x "/*" (slurp "/Users/kburton/personal/projects/sandbox/clj-xpath/pom.xml"))))
-
-  (map node-name ($x "//*" (slurp "/Users/kburton/personal/projects/sandbox/clj-xpath/pom.xml")))
+  (map :tag ($x "//*" (slurp "/Users/kburton/personal/projects/sandbox/clj-xpath/pom.xml")))
 
   ($x "//goal" (slurp "/Users/kburton/personal/projects/sandbox/clj-xpath/pom.xml"))
 
+  (with-xpath [$x "my-xml-document-please-do-the-right-thing"]
+    ($x "/*")
+    {:tag (tag)
+     :body (text)})
+
+  ;; Notes:
+  ;;   have $x returns a map (see below) which is 1 level deep the map has: { :tag :text :node }
+  ;;      where the node is an org.w3c.dom.Node
+  ;;      we then extend tbe multimethod $x to support this map and just extract the node
+  ;;   introduce a 'parse' binding which returns the same type of structure
+  ;;      that xml.parse does (the nested map/vector thingy)
+
+  (with-xpath "my-xml-document-please"
+    (let [[{tag :tag body :text} node :node] ($x "/*")]
+      (do-some-stuff)))
+
+  (def *doc* nil)
+
+  (defmacro with-xpath [the-doc & body]
+    `(bindings [*doc* (xml->doc ~the-doc)]
+               (let [$x (fn [xp] ($x xp *doc*))]
+                 ~@body)))
+
+
 )
+
+
