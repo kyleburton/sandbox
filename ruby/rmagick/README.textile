@@ -1,0 +1,7 @@
+Installed imagemagick via homebrew [1], then the rmagic gem for ruby [2]
+
+
+
+[1] http://github.com/mxcl/homebrew
+[2] ruby 1.8.7 (2009-06-08 patchlevel 173) [i686-darwin10.0.0]
+
