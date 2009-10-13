@@ -34,8 +34,6 @@
 
 (def *log* (log/get-logger *ns*))
 
-
-
 (def *selenium-defaults* (atom
                           {:host    "localhost"
                            :port    4444
@@ -105,7 +103,9 @@
            \"    return results;\\n\" +
            \" };\\n\" +
            \"var document = selenium.browserbot.getUserWindow().document;\\n\" +
-           \"var window = selenium.browserbot.getUserWindow();\\n\" +
+           \"var window   = selenium.browserbot.getUserWindow();\\n\" +
+           \"var $        = selenium.browserbot.getUserWindow().jQuery;\\n\" +
+           \"var jQuery   = selenium.browserbot.getUserWindow().jQuery;\\n\" +
            script);
     } catch (e) {
         throw new SeleniumError(\"Threw an exception: \" + e.message);
@@ -113,17 +113,25 @@
 };"))
 
 (defn eval-js [sel js]
+  ;; do this onece and only once? -- maybe every time we hit a new page?  Maybe have it check to see if doEval is there already and not recreate it...
   (selenium-js-setup sel)
-  (.getEval sel
-            (format "selenium.browserbot.getUserWindow().document.doEval('%s')"
-                    (.replaceAll
+  (let [jscode (.replaceAll
                      (.replaceAll js "'" "\\\\'")
-                     "\n" "\\\\n"))))
+                     "\n" "\\\\n")]
+    (log/errorf "eval-js: js=%s jscode=%s" js jscode)
+    (.getEval
+     sel
+     (format "selenium.browserbot.getUserWindow().document.doEval('%s')"
+             jscode))))
 
 (defn click-link [sel text]
   (sel-click sel (format "//a[contains(.,\"%s\")]" text)))
 
 (comment
+
+  ;; TODO: need to either document or auto-create the firefox
+  ;; profile (maybe just check into git?) to have firebug installed
+  ;; and the 'work offline' plugin just be there...
 
   (def *sel* (new-selenium))
   (.start *sel*)
@@ -151,9 +159,19 @@
   (sel-input *sel* "login" "admin")
   (sel-input *sel* "password" (get-password))
   (sel-submit *sel* "//form")
+
+  ;; or
+  ;; login as algo...
+  (.open *sel* "http://localhost:4567")
+  (sel-click *sel* "//*[contains(@value,'Login as guest')]")
+
+  ;; then
   (sel-click *sel* "//area")
+
+  ;; when done:
   (sel-click *sel* "//a[contains(text(),'Logout')]")
 
+  ;; navigate around the YUI tabs in the app
   (click-link *sel* "Demands")
   (click-link *sel* "Unsent")
   (click-link *sel* "Awaiting Demand Response")
@@ -161,6 +179,18 @@
   (click-link *sel* "Evaluate Demand Proposals")
 
   (click-link *sel* "Antic Demands")
+
+  (eval-js *sel* "$xp('//input[@type=\"checkbox\"]')")
+  (eval-js *sel* "$($xp('//input[@type=\"checkbox\"]')).attr('checked',true)")
+  (eval-js *sel* "$($xp('//input[@type=\"checkbox\"]')).attr('checked',false)")
+
+  (eval-js *sel* "document.res = $xp('//input[@type=\"checkbox\"]')")
+  (eval-js *sel* "window.console.dir(document.res)")
+  (eval-js *sel* "$($xp('//input[@type=\"checkbox\"]')).attr('checked',true)")
+  (click-link *sel* "Send Calls")
+
+  (eval-js *sel* "$(':input[type=\"checkbox\"]').attr('checked',true)")
+  (eval-js *sel* "$('.yui-dt-checkbox').attr('checked',true")
 
 
   ;;   /html/body/div/div[3]/div/map/area

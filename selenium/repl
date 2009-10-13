@@ -1,0 +1,13 @@
+CLASSPATH="/Users/kburton/.m2/repository/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1.jar/Users/kburton/.m2/repository/commons-math/commons-math/1.2/commons-math-1.2.jar:/Users/kburton/.m2/repository/log4j/log4j/1.2.14/log4j-1.2.14.jar/Users/kburton/.m2/repository/org/seleniumhq/selenium/client-drivers/selenium-java-client-driver/1.0.1/selenium-java-client-driver-1.0.1.jar"
+
+TODO: include the clojure and clojure-contrib jars
+TODO: path local to this directory
+TODO: ditcht eh runjdwp
+
+java -server \
+  -Xdebug \
+  -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8900 \
+  -cp "$CLASSPATH" \
+  clojure.lang.Repl \
+  "$@"
+
