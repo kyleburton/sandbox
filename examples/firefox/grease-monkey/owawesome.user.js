@@ -246,6 +246,10 @@ function letsJQuery() {
         // jQuery.trigger('owa.onPageChange');
     };
 
+    OWA.selectAllCheckboxes = function () {
+        $(window.parent.frames[1].document).find('table tr :checkbox').attr('checked',true);
+    };
+
     // break the hotkeys out into a multi-map, support unmodified and
     // modified keybindings, eg, so we can use '#' like in gmail...
     // right now, based on how the code is doing the keymappings, it's
@@ -264,8 +268,8 @@ function letsJQuery() {
                   'y':     OWA.moveSelectedToFolder,
                   'r':     OWA.linkClicker('a[title="Reply"]'),        // function() { $.nav.click('Reply'); },
                   'a':     OWA.linkClicker('a[title="Reply to all"]'), // function() { $.nav.click('Reply to All'); },
-                  'w':     OWA.linkClicker('a[title="Forward"]')       // function() { $.nav.click('Forward'); }
-
+                  'w':     OWA.linkClicker('a[title="Forward"]'),       // function() { $.nav.click('Forward'); }
+                  '*':     OWA.selectAllCheckboxes,
 /*
                   '1': function() { $('a[title=Mail]').click(); },
                   '2': function() { $('a[title=Calendar]').click(); },
