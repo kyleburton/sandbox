@@ -38,3 +38,7 @@ cd ..
 cd quartz-clojure-adapter
 mvn install
 cd ..
+
+test -d clj-xpath || git clone git://github.com/kyleburton/clj-xpath.git
+cd clj-xpath
+mvn install
