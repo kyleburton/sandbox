@@ -1,0 +1,15 @@
+h1. Jarvana-cli
+
+"Jarvana":http://jarvana.com/jarvana/ is a wonderful search engine for Java projects that are available in the main "Maven":http://maven.apache.org/ repositories.  Jarvana makes it sigificantly easier to locat and make use of these resources.
+
+Rather than using a browser, I prefer the command line tools and wanted to have a command line UI for finding and making use of the Jarvana search.  This utility is just such a command line UI.
+
+
+h1. Usage
+
+h1. Installation
+
+h1. Author
+
+"Kyle Burton":mailto:kyle.burton@gmail.com
+
