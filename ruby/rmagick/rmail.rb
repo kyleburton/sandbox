@@ -7,16 +7,35 @@ include Magick
 require 'actionmailer'
 
 class Emailer < ActionMailer::Base
-  def image_email(to_addr, image_data)
+  def image_email(to_addr, image_data, fname)
     recipients to_addr
-    subject "Hopefully a Cleaner Whiteboard Photo"
-    from "kyle.burton@gamail.com"
-    body "You should have an image attached.  Thank you for trying Scribble Mail and Please come again."
-    attachment :content_type => "image/jpeg", :body => image_data
+    subject "Hopefully a Cleaner Whiteboard Photo is attached..."
+    from "kyle.burton@gmail.com"
+    body "You should have a cleaned up image attached.  Thank you for trying ScribbleMatic and Please use us again!\n\nAny feedback you have about the service, complaints or ideas will be greatly appreciated.\n\nBest Regards.\n\nKyle Burton <kyle.burton@gmail.com>"
+    attachment :content_type => "image/jpg", :body => image_data, :filename => fname
+  end
+
+  def notify_kyle(params)
+    email = params[:email]
+    num_images = params[:num_images]
+    recipients 'kyle.burton@gmail.com'
+    subject "Someone just used the Whiteboard Photo Service: #{email.from}"
+    from "kyle.burton@gmail.com"
+    body <<EOB
+Who:   #{email.from}
+To:    #{email.to}
+Subj:  #{email.subject}
+Content-Type: #{email.content_type}
+Num Images:   #{num_images}
+Body[#{email.body.size}]:
+#{email.body}
+
+EOB
+
   end
 end
 
-def process_image(send_to, jpeg_data)
+def process_image(send_to, jpeg_data, fname)
   puts "jpeg data.size=#{jpeg_data.size}"
   img = ImageList.new
   img.from_blob(jpeg_data)
@@ -79,8 +98,21 @@ def process_image(send_to, jpeg_data)
   #end
 
   ## try with actionmailer...
-  Emailer.deliver_image_email send_to, dodged.to_blob
+  Emailer.deliver_image_email send_to, dodged.to_blob, fname
   puts "sent!"
+end
+
+def get_file_name_from_part(part)
+  if part.header['content-type'] && part.header['content-type'].body =~ /; name=\"([^\"]+)\"/
+    return $1
+  end
+
+  if part.header['content-disposition'] && part.header['content-disposition'].body =~ /; name=\"([^\"]+)\"/
+    return $1
+  end
+
+  # a fallback
+  'whiteboard.jpg'
 end
 
 #mail = TMail::Mail.load('/dev/stdin')
@@ -101,7 +133,7 @@ mailbox.each_port do |port|
   #mail.each do |thing|
   #  puts "each thing=#{thing}"
   #end
-  
+  transformed_count = 0
   if mail.multipart?
     puts "Is Multipart #{mail.parts.size}"
     mail.parts.each do |part|
@@ -109,13 +141,19 @@ mailbox.each_port do |port|
       puts "  #{part.content_type}"
       puts "  attachment? : #{mail.attachment?(part)}"
       puts "  main_type: #{part.main_type}"
+      fname = get_file_name_from_part part
+      puts "  file-name: #{fname}"
+
       if part.content_type == "image/jpeg"
         puts "going to process: #{part.body.size}"
         #puts part.body
-        process_image mail.from, part.body
+        process_image mail.from, part.body, fname
+        transformed_count = transformed_count + 1
       end
     end
   end
+
+  Emailer.deliver_notify_kyle :email => mail, :num_images => transformed_count
   
   puts ""
 end
