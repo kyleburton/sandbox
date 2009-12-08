@@ -1,0 +1,8 @@
+h1. Tic Tac Toe
+
+See also Statistics Hacks.
+
+h1. Author
+
+"Kyle Burton":mailto:kyle.burton@gmail.com
+
