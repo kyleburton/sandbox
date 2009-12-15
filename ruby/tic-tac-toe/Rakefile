@@ -1,0 +1,10 @@
+TIC_ROOT=File.dirname(__FILE__)
+$:.unshift(File.join(TIC_ROOT, %w[lib]))
+
+require 'rake'
+require 'spec/rake/spectask'
+
+desc "Run all spec tests"
+Spec::Rake::SpecTask.new do |t|
+  t.spec_files = FileList["#{TIC_ROOT}/spec/**/*.rb"]
+end
