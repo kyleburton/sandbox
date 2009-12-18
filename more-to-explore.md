@@ -46,11 +46,6 @@ Web based, allow reminding via IM (aim, gtalk), allow reminding via email, allow
 
 # Ideas for Talks
 
-## jQuery and JavaScript
-
-* Introduction
-* Techniques
-** 'countdown latch' approach for lightboxes / dialogs and for coordinating on multiple ajax requests completing (or erroring)
 
 ## Matching
 
@@ -87,3 +82,91 @@ Create a proxy key.
 
 ### dynamic sliding windows
 ###
+
+
+
+h1. Schedule Service / Timer Service for AMQP
+
+This would be the 'call me back' type service that you've talked about before.
+
+It is an AMQP listener.  AMQP is chosen for the following features:
+
+* open standard, clients for several technologies
+* asynchronous, tolerant of temporary system issues, facilitates retrying
+* buffers both requests and messages
+* best chace for a 'drop in' to existing architectures - I think that an MQ allows for finer grained, incremental adoption and less radical changes in existing applications and designs.
+
+h2. Use Cases
+
+h3. Generalized Retry
+
+The initial use case seen for this service was for delaying activities within a group of services.  An example is for transactions that need to be retried.  Many designs either completely ignore retry semantics, for example by raising an exception in the face of a rolled back database transaction, or re-implement retry semantics within each service or application area.  As the trend of factoring monlithic applications and systems towards service oriented designs continues, this provides the opportunity to implement a service which implements retry semantics across other services.
+
+This will not be an appropriate for all services, eg: for thos which need to return a binary status of either success or failure.  For services which an asynchronous (call back) response is tolerable, this may be an appropriate solution.
+
+For a REST service, this scenario might play out in the following manner:
+
+A service encoutners an error procesing a request.  Perhaps this is due to another service (such as a datbase) being unavailable, or other error for which another attempt is appropraite.  Catching the rollback, or otherwise detecting the retryable condition, the service bundles up a request to be re-invoked again in sixty seconds.  It posts this request to the scheduler service queue, and then returns a pending status back to its caller instead of immediate failure.  Approximately 60s later, the scheduler service performs the RPC (REST) against the service.  If the RPC call succeeds, the scheduler service deletes its copy of the job, completing its obligation for the job.  If the RPC call is detected to fail, the service uses error handling configuration to determine how to proceed.
+
+h3. Deisgn Considerations
+
+h4. Job Failure and Scheduler Retry Semantics
+
+Consideration must be taken into account for the possible retrying of requests or transactions that have already been executed.  If a service processes a retry and it appears to be in error to the scheuler service, the request may be retried by the service (dependent on job configuration).
+
+The job error configuration should support a fixed count of retry attempts, deferring to a failure configuration when the retry attempts have been exhausted.
+
+h4. Adapters
+
+HTTP, AMQP message forwarding, EJB, CORBA, execution of shell commands, other types of calls.
+
+h4. Scheduler Failure
+
+h5. Persistent Storage of Jobs
+
+h3. Periodic Job Execution (CRON)
+
+This type of service should be useable as a replacement for CRON, it will already contain many of the necessary components (quartz scheduler, registry of jobs) for a scheduler.
+
+* use quartz timing specificaiton
+* wrap an AMQP msg body, send it to the service, it'll send back when the timer fires
+* support repeated pinging
+* support REST callback?
+* Failure for REST / RPC style callbacks should be to reschedule
+* Suppot reactive / functional - eg: something like a heartbeat, if something hasn't checked in in a while, ping it?
+
+h1. Visualizations
+
+DD/MM/YYYY vs MM/DD/YYYY in sorting, make a graph?
+
+<pre>
+    x
+    x
+    x
+    x
+    x
+    x
+    x
+    x
+  x x
+  x x
+  x x
+x x x
+</pre>
+
+Vs:
+
+<pre>
+  x
+  x
+  x
+  x
+  x
+  x
+  x
+  x
+  x x
+  x x
+  x x
+x x x
+</pre>

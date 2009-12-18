@@ -3,20 +3,32 @@ module TicTacToe
   class Memory
     def initialize
       @boards = {}
+      b = Board.new "         "
+      add(b)
     end
 
-    def add(board,moves=nil)
-      board = Board.new(board) unless board.is_a? Board
+    def lookup(b)
+      b = Board.new(b) unless b.is_a? Board
       found = nil
-      board.rotations.each do |cand|
+      b.rotations.each do |rotation|
+        cand = rotation[:board]
         if @boards[cand.to_s]
-          found = cand
+          found = { :board => @boards[cand.to_s], :rotation => rotation[:rotation] }
           break
         end
       end
+      found
+    end
+    alias :[] :lookup
+
+    def add(board,moves=nil)
+      board = Board.new(board) unless board.is_a? Board
+      found = lookup(board)
 
       retval = false
-      unless found
+      if found
+        found = found[:board][:board]
+      else
         # puts "Adding new board: #{board.to_s}"
         found = board
         retval = true
@@ -85,11 +97,18 @@ module TicTacToe
       self
     end
 
-    # be random for now...
-    def next_move board
-      moves = board.open_moves_xy
-      idx = rand moves.length
-      moves[idx]
+    def next_move current_board
+       board_info = lookup(current_board)
+       unless board_info
+         # make it lazy?
+         add(current_board)
+         board_info = lookup(current_board)
+         $stderr.puts "next_move: dynamically added #{current_board}"
+       end
+      move = board_info[:board][:board].weighted_move
+      $stderr.puts "next_move: need to unrotate the move: #{move.inspect} #{board_info[:rotation].inspect}"
+
+      current_board.weighted_move
     end
 
   end # class Memory

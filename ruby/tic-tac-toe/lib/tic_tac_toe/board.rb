@@ -118,6 +118,11 @@ module TicTacToe
     end
 
     def mirror_horiz
+      # 0,0 | 1,0 | 2,0
+      # ----+-----+----
+      # 0,1 | 1,1 | 2,1
+      # ----+-----+----
+      # 0,2 | 1,2 | 2,2
       b = Board.new
       b[0,0] = self[2,0]
       b[1,0] = self[1,0]
@@ -222,12 +227,6 @@ module TicTacToe
        [:mirror_horiz,:rotate180],
        [:mirror_horiz,:rotate270],
 
-
-#        [:rotate0],
-#        [:rotate90],
-#        [:rotate180],
-#        [:rotate270],
-#        [:mirror_horiz],
 #        [:mirror_horiz,     :rotate90],
 #        [:mirror_horiz,     :rotate180],
 #        [:mirror_horiz,     :rotate270],
@@ -260,8 +259,8 @@ module TicTacToe
         end
 
         unless seen[cand.to_s]
-          seen[cand.to_s] = cand
-          rots.push cand
+          seen[cand.to_s] = { :board => cand, :rotation => rtype }
+          rots.push seen[cand.to_s]
         end
       end
 
@@ -269,12 +268,58 @@ module TicTacToe
     end
 
     def rotation_of?(other)
-      self.rotations.each do |cand|
+      self.rotations.each do |rotation|
+        cand = rotation[:board]
         if other.to_s == cand.to_s
           return true
         end
       end
       return false
+    end
+
+    def unrotate_move move, rotation
+      # inefficient, but simple to implement, hack: create a board,
+      # place the move, then apply the inverse rotation, pull the x,y
+      # coord of the only move on the board and return that coord
+
+      b = Board.new "         "
+      x,y = *move
+      b[x,y] = 'X'
+
+      # unrotate
+      if    rotation == [:rotate0]
+        # nothing
+      elsif rotation == [:rotate90]
+        b = b.send(:rotate270)
+      elsif rotation == [:rotate180]
+        b = b.send(:rotate180)
+      elsif rotation == [:rotate270]
+        b = b.send(:rotate90)
+      elsif rotation == [:mirror_horiz]
+        b = b.send(:mirror_horiz)
+      elsif rotation == [:mirror_horiz,:rotate90]
+        b = b.send(:rotate270)
+        b = b.send(:mirror_horiz)
+      elsif rotation == [:mirror_horiz,:rotate180]
+        b = b.send(:rotate180)
+        b = b.send(:mirror_horiz)
+      elsif rotation == [:mirror_horiz,:rotate270]
+        b = b.send(:rotate90)
+        b = b.send(:mirror_horiz)
+      else
+        raise "Error: dont' know how to unrotate: #{rotation.inspect}"
+      end
+
+      # find the filled in cell
+      coord = nil
+      [0,1,2].each do |x|
+        [0,1,2].each do |y|
+          if 'X' == b[x,y]
+            coord = [x,y]
+          end
+        end
+      end
+      coord
     end
 
     def num_xs

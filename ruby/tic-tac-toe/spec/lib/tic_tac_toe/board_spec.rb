@@ -127,4 +127,12 @@ describe TicTacToe::Board do
     b.weighted_move.should == b.weights[0][:move]
   end
 
+  it "should unrotate a move" do
+    b = TicTacToe::Board.new "         "
+    b.unrotate_move([0,0], [:rotate90    ]).should == [0,2]
+    b.unrotate_move([0,0], [:rotate180   ]).should == [2,2]
+    b.unrotate_move([0,0], [:rotate270   ]).should == [2,0]
+    b.unrotate_move([0,0], [:mirror_horiz]).should == [0,2]
+  end
+
 end

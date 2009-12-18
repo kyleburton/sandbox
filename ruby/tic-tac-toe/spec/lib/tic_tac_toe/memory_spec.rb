@@ -6,7 +6,10 @@ describe TicTacToe::Memory do
   it "should add a board only once" do
     m = TicTacToe::Memory.new
     b = TicTacToe::Board.new "X        "
+    m.lookup(b).should be_nil
+    m[b].should be_nil
     m.add(b).should be_true
+    m[b].should be_true
     m.add(b).should be_false
 
     m.add(b.rotate90).should be_false
@@ -22,6 +25,8 @@ describe TicTacToe::Memory do
     m = TicTacToe::Memory.new
     m.construct_board_db
     m.boards.keys.should_not be_empty
+
+    m.lookup(TicTacToe::Board.new("         ")).should_not be_nil
   end
 
 end

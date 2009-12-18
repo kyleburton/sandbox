@@ -74,6 +74,7 @@ class CSVStream < RECStream
     rdr.instance_eval do
       @uri = input_uri
       @input_file = @uri.path
+      # TODO: don't read the whole file!
       @headers, *lines = FasterCSV.read(@input_file)
       @lines = lines
       @curr_row = 0
@@ -115,12 +116,12 @@ end
 
 class TABStream < RECStream
   register 'tab', TABStream
-  def self.new_reader(input_file)
+  def self.new_reader(input_uri)
     rdr = TABStream.new
     rdr.instance_eval do
       @uri = input_uri
       @input_file = @uri.path
-      @input_file = input_file
+      # TODO: don't read the whole file!
       @headers, @lines = File.read(@input_file)
       @headers = @header.split /\t/
       @curr_row = 0
@@ -157,6 +158,47 @@ class TABStream < RECStream
 
   def close
     @output.close
+  end
+end
+
+class FixedWidth < RECStream
+  register 'fixed', FixedWidth
+  def self.compute_unpack_pattern(uri)
+    formatter = ""
+    fields = []
+    uri.query.split(/[&;]/).each do |pair|
+      key,spec = pair.split '='
+      field,width = spec.split ':'
+      fields << field
+      formatter += "A#{val}"
+    end
+    fields, formatter
+  end
+
+  def self.new_reader(input_uri)
+    rdr = FixedWidth.new
+    rdr.instance_eval do
+      @uri = input_uri
+      @input_file = @uri.path
+      @fields, @unpack_pattern = compute_unpack_pattern @uri
+      # TODO: don't read the whole file!
+      @header_line, @lines = File.read(@input_file)
+      set_headers parse_line @header_line
+      @curr_row = 0
+    end
+    rdr
+  end
+
+  def self.new_writer(output_uri,headers=nil)
+    wrtr = TABStream.new
+    wrtr.instance_eval do
+      @uri = output_uri
+      @output_file = @uri.path
+here here here -- compute_pack_pattern isnt defined
+      @pack_pattern = compute_pack_pattern @uri
+      set_headers headers if headers
+    end
+    wrtr
   end
 end
 

@@ -30,7 +30,7 @@ module TicTacToe
         $stderr.puts "No more valid moves"
         return nil
       end
-      $stderr.puts "player #{@curr_player}'s next move: #{coord}"
+      $stderr.puts "Game.make_next_move: turn#=#{@board.turn_no} player #{@curr_player}'s next move: #{coord.inspect}"
       @board[coord[0],coord[1]] = @curr_player
       @curr_player = @curr_player == 'X' ? 'O' : 'X'
       player[:moves].push coord

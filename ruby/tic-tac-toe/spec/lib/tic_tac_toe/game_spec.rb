@@ -20,7 +20,7 @@ describe TicTacToe::Game do
   end
 
   it "should play a game until there is a winner" do
-    (1..10).each do |turn|
+    (1..20).each do |turn|
       @game.make_next_move
       $stderr.puts @game.board.print_to_string
       break if @game.board.winner

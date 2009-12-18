@@ -1,6 +1,10 @@
 require 'uri'
 require 'base_app'
 require 'net/http'
+require 'hpricot'
+
+# http://github.com/whymirror/hpricot
+
 class JarvanaCli < BaseApp
   def initialize
     super
@@ -26,6 +30,12 @@ class JarvanaCli < BaseApp
     puts "Searching for #{term.inspect} : #{url}"
     resp = Net::HTTP.get_response URI.parse(url)
     puts "resp: #{resp.body}"
+
+    doc = Hpricot::XML(resp.body)
+    num_results = (doc/:resultSize)
+    if 0 == num_results.to_i
+      puts "No results found for #{term}"
+    end
   end
 
   def search_content(args)
