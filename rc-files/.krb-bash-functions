@@ -1,0 +1,54 @@
+function xg () {
+  xargs grep "$@"
+}
+
+function ff () {
+  DIR="."
+  if [ -d "$1" ]; then
+    DIR="$1"
+    shift
+  fi
+  find "$DIR" -type f "$@"
+
+function fd () {
+  DIR="."
+  if [ -d "$1" ]; then
+    DIR="$1"
+    shift
+  fi
+  find "$DIR" -type d "$@"
+}
+
+function fclj () {
+  DIR="."
+  if [ -d "$1" ]; then
+    DIR="$1"
+    shift
+  fi
+  find "$DIR" -type f -name '*.clj' "$@"
+}
+
+function fj () {
+  DIR="."
+  if [ -d "$1" ]; then
+    DIR="$1"
+    shift
+  fi
+  find "$DIR" -type f -name '*.java' "$@"
+}
+
+function fcljxg () { fclj -print0 | xargs -0 grep "$@" }
+function fjxg   () { fj -print0 | xargs -0 grep "$@" }
+function mvno   () { mvn -o "$@" }
+function mvnoc  () { mvn -o compile "$@" }
+function mvnc   () { mvn compile "$@" }
+function mvnt   () { mvn -Dmaven.test.skip=true -DskipTests "$@" }
+function mvnot  () { mvn -Dmaven.test.skip=true -DskipTests "$@" }
+function mvni   () { mvn install "$@" }
+function mvnoi  () { mvn -o install "$@" }
+
+complete -o default -W "validate compile test package integration-test verify install deploy -DskipTests -Dmaven.test.skip=true" mvn
+
+
+
+
