@@ -1,7 +1,9 @@
+# 'xargs grep'
 function xg () {
   xargs grep "$@"
 }
 
+# 'find file'
 function ff () {
   DIR="."
   if [ -d "$1" ]; then
@@ -9,7 +11,9 @@ function ff () {
     shift
   fi
   find "$DIR" -type f "$@"
+}
 
+# 'find directory'
 function fd () {
   DIR="."
   if [ -d "$1" ]; then
@@ -19,6 +23,7 @@ function fd () {
   find "$DIR" -type d "$@"
 }
 
+# 'find clojure files'
 function fclj () {
   DIR="."
   if [ -d "$1" ]; then
@@ -28,6 +33,7 @@ function fclj () {
   find "$DIR" -type f -name '*.clj' "$@"
 }
 
+# 'find java files'
 function fj () {
   DIR="."
   if [ -d "$1" ]; then
@@ -37,18 +43,82 @@ function fj () {
   find "$DIR" -type f -name '*.java' "$@"
 }
 
-function fcljxg () { fclj -print0 | xargs -0 grep "$@" }
-function fjxg   () { fj -print0 | xargs -0 grep "$@" }
-function mvno   () { mvn -o "$@" }
-function mvnoc  () { mvn -o compile "$@" }
-function mvnc   () { mvn compile "$@" }
-function mvnt   () { mvn -Dmaven.test.skip=true -DskipTests "$@" }
-function mvnot  () { mvn -Dmaven.test.skip=true -DskipTests "$@" }
-function mvni   () { mvn install "$@" }
-function mvnoi  () { mvn -o install "$@" }
+# 'find ruby files'
+function fr () {
+  DIR="."
+  if [ -d "$1" ]; then
+    DIR="$1"
+    shift
+  fi
+  find "$DIR" -type f -name '*.rb' "$@"
+}
+
+# combinations of find + xargs grep
+function fcljxg () {
+  fclj -print0 | xargs -0 grep "$@"
+}
+
+function fjxg () {
+  fj -print0   | xargs -0 grep "$@"
+}
+
+function frxg () {
+  fr -print0   | xargs -0 grep "$@"
+}
+
+# various maven simplifications
+function mvno  () {
+  mvn -o "$@"
+}
+
+function mvnoc  () {
+  mvn -o compile "$@"
+}
+
+function mvnc   () {
+  mvn compile "$@"
+}
+
+function mvnt   () {
+  mvn -Dmaven.test.skip=true -DskipTests "$@"
+}
+
+function mvnot  () {
+  mvn -o -Dmaven.test.skip=true -DskipTests "$@"
+}
+
+function mvni   () {
+  mvn install "$@"
+}
+
+function mvnoi  () {
+  mvn -o install "$@"
+}
+
 
 complete -o default -W "validate compile test package integration-test verify install deploy -DskipTests -Dmaven.test.skip=true" mvn
 
+function hgrep () {
+  FILE="$1"
+  shift
+  (head -n 1 "$FILE"; grep "$@")
+}
 
+function hsort () {
+  FILE="$1"
+  shift
+  (head -n 1 "$FILE"; sort "$@")
+}
 
+function hcut () {
+  FILE="$1"
+  shift
+  (head -n 1 "$FILE"; cut "$@")
+}
+
+function htailf () {
+  FILE="$1"
+  shift
+  (head -n 1 "$FILE"; tail -f "$FILE")
+}
 

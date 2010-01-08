@@ -1,1 +1,1 @@
-ln -s .krb-bash-functions $HOME/
+ln -s $(pwd)/.krb-bash-functions $HOME/
