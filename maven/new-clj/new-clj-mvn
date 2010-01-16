@@ -1,0 +1,409 @@
+#!/usr/bin/env ruby
+# -*- ruby -*-
+require 'rubygems'
+require 'optparse'
+require 'fileutils'
+require 'base_app'
+
+#
+# new-clj-mvn proj-name
+#
+
+module Maven
+  class NewApp < BaseApp
+    def initialize
+      super
+      @properties = {
+        "project.groupId"       => "*no-groupId*",
+        "project.artifactId"    => "*no-artifactId*",
+        "project.version"       => "*no-version*",
+        "project.name"          => "*no-name*",
+        "project.description"   => "*no-description*",
+        "project.url"           => "*no-rul*",
+        "project.year"          => Time.now.year.to_s,
+        "developer.id"          => "*no-developer.id*",
+        "developer.name"        => "*no.developer.name*",
+        "developer.email"       => "*no-developer.email*",
+        "issueManagement.sysem" => "*no-issueManagement.sysem*",
+        "issueManagement.url"   => "*no.issueManagement.url*",
+      }
+
+    end
+
+    def load_properties_from_file file_name
+      properties = {}
+      lines = File.readlines(file_name)
+      lines = lines.reject {|l| l =~ /^\s+#/ }
+      lines.each do |line|
+        line.chomp!
+        line.gsub!(/#.+$/, '')
+        key,val = line.split(/\s*=\s*/, 2)
+        if !key.nil? && !key.empty?
+          properties[key] = val
+        end
+      end
+      properties
+    end
+
+    def load_props
+      [ ENV['HOME'], "." ].each do |dir|
+        file = "#{dir}/.clj.mvn.info"
+        if File.exists? file
+          @properties.merge! load_properties_from_file file
+        end
+      end
+    end
+
+    def command_line_arguments
+      super.concat [[ 'p', 'properties=s',       'Specify a properties file (yaml)'],
+                    [ 'D', 'define-property=s',  'Define a property' ],
+                    [ 'C', 'create-config=s',    'Create a default configuration file' ],
+                   ]
+    end
+
+    def define_property=(prop)
+      key,val = prop.split '=', 2
+      @properties[key] = val
+    end
+
+    def mvn_proj_dir_skeleton
+      [
+       [:process_template, :mvn_pom,'./pom.xml'],
+       './bin',
+       './src/main/clj',
+       './src/main/emacs',
+       './src/main/java/com',
+       './src/main/resources',
+       [:process_template, :repl,         './src/main/sh/repl' ],
+       [:process_template, :runner,       './src/main/sh/runner.sh' ],
+       [:process_template, :log4j,        './src/main/resources/log4j.properties' ],
+       [:process_template, :swank_runner, './src/main/resources/swank-runner.clj' ],
+       './src/main/sh',
+       './src/test/clj',
+      ]
+    end
+
+    def run
+      load_props
+      puts "Using Properties:"
+      @properties.each do |prop,val|
+        printf "  %30s = '%s'\n", prop, val
+      end
+
+      project_name = *ARGV
+
+      unless project_name
+        raise "Error: you must specify a project name"
+      end
+
+      if exists? project_name
+        $stderr.puts "Error: project directory already exists: #{project_name}"
+        exit -1
+      end
+
+      puts "Creating Project: #{project_name}"
+      @properties['project.name'] = project_name
+
+      if create_config
+        File.open("./.clj.mvn.info","w") do |out|
+          out.puts "# Default Configuration Created: #{Time.now.to_s}"
+          @properties.each do |p,v|
+            out.puts "#{p}=#{v}"
+          end
+        end
+        return
+      end
+
+      pom = process_template :mvn_pom
+
+      # TODO: should be command based, it should work _just_ like the
+      # rails project including generation of the basic project
+      # structure!
+      unless exists? project_name
+        mkdir project_name
+      end
+
+      puts pom
+    end
+  end
+end
+
+
+Maven::NewApp.main
+
+__END__
+__MVN_POM__
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>{{project.groupId}}</groupId>
+  <artifactId>{{project.artifactId}}</artifactId>
+  <version>{{project.version}}</version>
+  <packaging>jar</packaging>
+  <name>{{project.name}}</name>
+  <description>{{project.description}}</description>
+  <url>{{project.url}}</url>
+  <inceptionYear>{{project.year}}</inceptionYear>
+
+  <developers>
+    <developer>
+      <id>{{developer.id}}</id>
+      <name>{{developer.name}}</name>
+      <email>{{developer.email}}</email>
+    </developer>
+  </developers>
+
+  <issueManagement>
+    <system>{{issueManagement.sysem}}</system>
+    <url>{{issueManagement.url}}</url>
+  </issueManagement>
+
+  <repositories>
+    <!-- Rejpository for swank-clojure (we still need our own clojure and contrib since they're customized). -->
+    <repository>
+      <id>clojars</id>
+      <url>http://clojars.org/repo/</url>
+    </repository>
+  </repositories>
+
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>cobertura-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>clean</id>
+            <goals>
+              <goal>clean</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>1.5</source>
+          <target>1.5</target>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+          <descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+          </descriptorRefs>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>com.theoryinpractise</groupId>
+        <artifactId>clojure-maven-plugin</artifactId>
+        <version>1.1</version>
+        <configuration>
+          <sourceDirectories>
+            <sourceDirectory>src/main/clj</sourceDirectory>
+          </sourceDirectories>
+          <testSourceDirectories>
+            <testSourceDirectory>src/test/clj</testSourceDirectory>
+          </testSourceDirectories>
+          <testScript>scripts/run_tests.clj</testScript>
+        </configuration>
+        <executions>
+          <execution>
+            <id>clojure-test</id>
+            <phase>test</phase>
+            <goals>
+              <goal>test</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>clojure-compile</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>compile</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>install-scripts</id>
+            <phase>compile</phase>
+            <configuration>
+              <tasks>
+                <property name="bin.dir" value="${project.build.directory}/../bin" />
+                <property name="maven.runtime.classpath" refid="maven.runtime.classpath"  />
+                <property name="maven.test.classpath" refid="maven.test.classpath"  />
+                <property name="test.classpath" refid="maven.test.classpath"  />
+                <property name="project.build.directory" value="${project.build.directory}"  />
+                <property name="group.id" value="${project.groupId}"  />
+                <property name="artifact.id" value="${project.artifactId}"  />
+                <property name="version" value="${project.version}"  />
+                <property name="basedir" value="${basedir}"  />
+                <echo message="INSTALL-SCRIPTS" />
+                <filter token="maven.runtime.classpath"
+                        value="${maven.runtime.classpath}:${project.build.directory}/../src/main/clj" />
+                <filter token="maven.test.classpath"
+                        value="${maven.test.classpath}:${project.build.directory}/../src/main/clj" />
+                <filter token="bin.dir" value="${bin.dir}" />
+                <filter token="target.directory" value="${project.build.directory}" />
+                <filter token="test.classpath" value="${test.classpath}" />
+                <filter token="group.id" value="${group.id}" />
+                <filter token="artifact.id" value="${artifact.id}" />
+                <filter token="version" value="${version}" />
+                <filter token="basedir" value="${basedir}" />
+                <mkdir dir="${bin.dir}" />
+                <copy file="${basedir}/src/main/sh/repl"             todir="${bin.dir}" filtering="on" overwrite="true" />
+                <copy file="${basedir}/src/main/emacs/slime-incl.el" todir="${bin.dir}" filtering="on" overwrite="true" />
+                <chmod dir="${bin.dir}" type="file" perm="0755" includes="repl,*.sh" verbose="true" />
+              </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+    </plugins>
+  </build>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.clojure</groupId>
+      <artifactId>clojure</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.clojure</groupId>
+      <artifactId>clojure-contrib</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>commons-math</groupId>
+      <artifactId>commons-math</artifactId>
+      <version>1.2</version>
+    </dependency>
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <version>1.2.14</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-logging</groupId>
+      <artifactId>commons-logging</artifactId>
+      <version>1.1.1</version>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.rabbitmq</groupId>
+      <artifactId>amqp-client</artifactId>
+      <version>1.7.0</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-httpclient</groupId>
+      <artifactId>commons-httpclient</artifactId>
+      <version>3.1</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>1.4</version>
+    </dependency>
+    <dependency>
+      <groupId>mysql</groupId>
+      <artifactId>mysql-connector-java</artifactId>
+      <version>5.1.6</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.clojure</groupId>
+      <artifactId>swank-clojure</artifactId>
+      <version>1.0</version>
+    </dependency>
+
+    <dependency>
+      <groupId>javax.mail</groupId>
+      <artifactId>mail</artifactId>
+      <version>1.4.1</version>
+    </dependency>
+
+  </dependencies>
+
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>cobertura-maven-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </reporting>
+
+
+</project>
+__MVN_POM__
+__LOG4J__
+log4j.rootLogger=INFO, console, rolling
+
+# Console logger
+log4j.appender.console=org.apache.log4j.ConsoleAppender
+log4j.appender.console.layout=org.apache.log4j.PatternLayout
+log4j.appender.console.layout.ConversionPattern=[%-5p %d] %F:%L - %m%n
+
+# File logger
+log4j.appender.rolling=org.apache.log4j.RollingFileAppender
+log4j.appender.rolling.File={{project.base.dir}}/log/application.log
+log4j.appender.rolling.MaxFileSize=10MB
+log4j.appender.rolling.MaxBackupIndex=100
+log4j.appender.rolling.layout=org.apache.log4j.PatternLayout
+log4j.appender.rolling.layout.ConversionPattern=[%-5p %d] %F:%L - %m%n
+__LOG4J__
+__SWANK_RUNNER_CLJ__
+(require 'swank.swank)
+(swank.swank/ignore-protocol-version "2009-08-19")
+(swank.swank/start-server "/tmp/algoconnect-services.port" :encoding "iso-latin-1-unix" :port 4005)
+__SWANK_RUNNER_CLJ__
+__REPL__
+---
+perms: 755
+---
+CLASSPATH="@maven.test.classpath@:@basedir@/src/test/clj"
+
+if [ -z "$JDWP_PORT" ]; then
+  JDWP_PORT=8888
+fi
+
+java -server \
+  -Xdebug \
+  -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address="$JDWP_PORT" \
+  -cp "$CLASSPATH" \
+  clojure.lang.Repl \
+  "$@"
+__REPL__
+__RUNNER__
+JAR_WITH_DEP=@target.directory@/@artifact.id@-@version@-jar-with-dependencies.jar
+CLASSPATH="$JAR_WITH_DEP"
+
+java -server \
+    -Xdebug \
+    -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8886 \
+    -cp "$CLASSPATH" \
+    {{project.main.class.name}} \
+    "@target.directory@/classes/swank-runner.clj" \
+    "$@"
+__RUNNER__

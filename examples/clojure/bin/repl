@@ -1,0 +1,12 @@
+CLASSPATH="/Users/kburton/personal/projects/sandbox/examples/clojure/target/test-classes:/Users/kburton/personal/projects/sandbox/examples/clojure/target/classes:/Users/kburton/.m2/repository/org/clojure/clojure/1.0.0/clojure-1.0.0.jar:/Users/kburton/.m2/repository/org/clojure/clojure-contrib/1.0.0/clojure-contrib-1.0.0.jar:/Users/kburton/.m2/repository/commons-math/commons-math/1.2/commons-math-1.2.jar:/Users/kburton/.m2/repository/log4j/log4j/1.2.14/log4j-1.2.14.jar:/Users/kburton/.m2/repository/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1.jar:/Users/kburton/.m2/repository/junit/junit/3.8.1/junit-3.8.1.jar:/Users/kburton/.m2/repository/commons-httpclient/commons-httpclient/3.1/commons-httpclient-3.1.jar:/Users/kburton/.m2/repository/commons-codec/commons-codec/1.2/commons-codec-1.2.jar:/Users/kburton/.m2/repository/commons-io/commons-io/1.4/commons-io-1.4.jar:/Users/kburton/.m2/repository/org/clojure/swank-clojure/1.0/swank-clojure-1.0.jar:/Users/kburton/.m2/repository/javax/mail/mail/1.4.1/mail-1.4.1.jar:/Users/kburton/.m2/repository/javax/activation/activation/1.1/activation-1.1.jar:/Users/kburton/personal/projects/sandbox/examples/clojure/target/../src/main/clj:/Users/kburton/personal/projects/sandbox/examples/clojure/src/test/clj"
+
+if [ -z "$JDWP_PORT" ]; then
+  JDWP_PORT=8888
+fi
+
+java -server \
+  -Xdebug \
+  -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address="$JDWP_PORT" \
+  -cp "$CLASSPATH" \
+  clojure.lang.Repl \
+  "$@"

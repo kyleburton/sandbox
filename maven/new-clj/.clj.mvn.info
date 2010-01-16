@@ -1,0 +1,9 @@
+# Default Configuration Created: Thu Jan 07 18:40:44 -0500 2010
+issueManagement.url=http://github.com/kyleburton/*project*/issues
+developer.id=kyleburton
+developer.email=kyle.burton@gmail.com
+issueManagement.sysem=GitHub Issue Tracker
+project.version=1.0
+developer.name=Kyle Burton
+project.url=http://github.com/kyleburton/*project*
+project.groupId=com.github.kyleburton

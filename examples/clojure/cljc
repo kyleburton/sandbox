@@ -1,0 +1,10 @@
+MVN_REPO="$HOME/.m2/repository"
+
+SRC_PATH="./src/main/clj"
+COMPILE_PATH="./target"
+
+test -d "$COMPILE_PATH" || mkdir -p "$COMPILE_PATH"
+
+CLASSPATH="$MVN_REPO/org/clojure/clojure/1.0.0/clojure-1.0.0.jar:$MVN_REPO/org/clojure/clojure-contrib/1.0.0/clojure-contrib-1.0.0.jar:$SRC_PATH:$COMPILE_PATH"
+
+java -Dclojure.compile.path="$COMPILE_PATH" -cp "$CLASSPATH" "$@"
