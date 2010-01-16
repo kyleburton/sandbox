@@ -70,3 +70,33 @@ factorial2(Acc,N) ->
 
 
 
+%
+% Dynamically calling a function with apply:
+%
+% Module = erlp.
+% Function = area.
+% Arguments = [{circle,10}].
+%  => 314.1592653589793
+
+% read a string (gets/fgets):
+%   io:get_line("gissa line>").
+
+% read a limited number of characters:
+%   io:get_chars("tell me> ",2).
+
+% read an erlang term:
+%   io:read("ok, then>>").
+% (try '2+3.' -- it errors as it's not a term)
+
+% io:format
+%
+%   ~c      - character
+%   ~f      - float
+%   ~e      - scientific notation
+%   ~w      - erlang term in standard syntax
+%   ~p      - erlang term / data (like ~w), with 'pretty printing'
+%   ~W, ~P  - similar to ~w and ~p, limits structure to a depth of 3,
+%             these take an extra argument indicating the max depth
+%             for printing terms
+%   ~B      - integer in base 10
+%
