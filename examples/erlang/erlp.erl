@@ -1,6 +1,6 @@
 -module(erlp).
 -export([area/1,returnsTrue/0,returnsFalse/0,returnsIfTrue/1,returnsNotTrue/1,booleanTests/0,
-        factorial/1,bump/1,bump_by/2,merge/2,average/1,md5_hex/1]).
+        factorial/1,bump/1,bump_by/2,merge/2,average/1,md5_hex/1,receivingFunction/0]).
 
 
 %% % 'printf'
@@ -514,3 +514,179 @@ md5_hex(Acc,[H|T]) ->
 %% size([1,2,3]). ==> this errors, only works on a tuple or a binary
 %% size(<<"three">>). => 5
 %% size({three}).  => 1
+
+
+receivingFunction() ->
+    receive
+        foo ->
+            io:format("received foo message~n"),
+            {ok,foo};
+        _ ->
+            io:format("received unknown message~n"),
+            {ok,unknown}
+        after 10000 ->
+                io:format("ok, nothing received, timed out."),
+                {error,timed_out}
+    end.
+
+%% Pid = spawn(fun () -> erlp:receivingFunction() end).
+
+%%
+%% Pid = spawn( erlp, receivingFunction, [] ).
+
+%% Pid = spawn_link( erlp, receivingFunction, [] ).
+
+
+%% check if there is anything awaiting in the repl's mailbox...
+%% receive
+%%     foo -> {ok,foo};
+%%     _ -> {ok,unknown}
+%%     after 10000 -> {error,timed_out}
+%%     end.
+
+
+%% erlang:system_info(c_compiler_used).
+%% => {gnuc,{4,4,1}}
+
+%% erlang:system_info(cpu_topology).
+%% => [{processor,{logical,0}}]
+
+%% erlang:system_info(machine).
+%% => "BEAM"
+
+%% erlang:system_info(otp_release).
+%% => "R13B01"
+
+%% term_to_binary({foo,"bar",3}).
+%% => <<131,104,3,100,0,3,102,111,111,107,0,3,98,97,114,97,3>>
+
+%% binary_to_term(<<131,104,3,100,0,3,102,111,111,107,0,3,98,97,114,97,3>>).
+%% => {foo,"bar",3}
+
+
+%% term_to_binary({foo,"bar",3},[compressed]).
+%% => <<131,104,3,100,0,3,102,111,111,107,0,3,98,97,114,97,3>>
+
+
+%% tl([1,2,3]).
+%% => [2,3].
+
+
+%% integer truncation (not rounding)
+%% trunc(6.7).
+%% => 6
+
+%% tuple_size({a,b,c,{1,2,3,34}}).
+%% => 4
+
+%% tuple_to_list({a,b,c,{1,2,3,34}}).
+%% =>  [a,b,c,{1,2,3,34}]
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% file module
+
+%% NB: this doesn't work on this module (erlp.erl), only on a file of terms
+%% file:consult("terms.txt").
+%% => {ok,[{person,"Kyle"},{person,"Sydney"}]}
+
+%% file:read_file_info("terms.txt").
+%% {ok,{file_info,36,regular,read_write,
+%%                {{2010,1,17},{22,27,36}},
+%%                {{2010,1,17},{22,27,30}},
+%%                {{2010,1,17},{22,27,30}},
+%%                33188,1,2049,0,4473652,1000,1000}}
+
+
+%% file:get_cwd().
+%% => {ok,"/home/mortis/personal/projects/sandbox/examples/erlang"}
+
+%% file:list_dir(".").
+%% => {ok,["terms.txt",".#erlp.erl","terms.txt~","erlp_ch1.erl",
+%%        "boolean.erl","erlp.erl","#erlp.erl#","erlp.beam"]}
+
+%% {ok, FileHandle } = file:open("terms.txt", [read]).
+
+%% file:pid2name(FileHandle).
+%% => {ok,"terms.txt"}
+
+%% file:position(FileHandle,cur).
+%% => {ok,0}
+%% file:position(FileHandle,bof).
+%% => {ok,0}
+%% file:position(FileHandle,eof).
+%% => {ok,36}
+
+%% file:read(FileHandle,1024*1024).
+%% => eof
+
+%% file:read_file("terms.txt").
+%% {ok,<<"{person,\"Kyle\"}.\n{person,\"Sydney\"}.\n">>}
+%% could then do something like binary_to_list to turn it into a string...
+
+%% must be deprecatd :(, wonder where the equivalent is now...
+%% file:read_line(FileHandle).
+
+%% read_line, readline: the second argument to io:get_line here is a 'prompt'
+%% f().
+%% {ok, FileHandle } = file:open("terms.txt", [read]).
+%% io:get_line(FileHandle,"").
+
+%% http://www.erlang.org/doc/man/io.html
+%% the io manpage lists all of the formatting options for io:format, in great detail
+
+%% where are the IoDevices for stdin, stdout and stderr for the erl
+%% process?  can you get to them?
+
+%% yes, you can refer to them with the atom `standard_io', and
+%% `standard_error' -- standard_io must referr to both stdin and
+%% stdout?
+
+%% chdir,cd, change directory
+%% file:set_cwd(directory).
+
+
+%% flush, fflush, flush buffers, synchronizing to disk
+%% file:sync(IoDevice).
+
+%% write data to a file...
+%% file:write(IoDevice,Bytes).
+%% file:write_file(IoDevice,Bytes).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% filename module
+
+%% filename:absname("terms.txt").
+%% => "/home/mortis/personal/projects/sandbox/examples/erlang/terms.txt"
+%% NB: it does translation based on CWD, so the file might not exist!
+
+%% filename:basename("terms.txt").
+%% => "terms.txt"
+
+%% filename:basename(filename:absname("terms.txt")).
+%% => "terms.txt"
+
+
+
+%% filename:basename("terms.txt",".txt").
+%% => "terms"
+
+
+%% filename:dirname(filename:absname("terms.txt")).
+%% => "/home/mortis/personal/projects/sandbox/examples/erlang"
+
+%% filename:extension("terms.txt").
+%% => ".txt"
+
+%% filename:join(["usr","local","share","dict","words.txt"]).
+%% => "usr/local/share/dict/words.txt"
+
+%% filename:join(["/usr","/local","/share","/dict","/words.txt"]).
+%% => "/words.txt"
+
+%% filename:join(["/usr","local","share","dict","words.txt"]).
+%% => "/usr/local/share/dict/words.txt"
+
+
+%% filename:split(filename:join(["/usr","local","share","dict","words.txt"])).
+%% ["/","usr","local","share","dict","words.txt"]
