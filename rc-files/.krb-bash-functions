@@ -1,9 +1,30 @@
-# 'xargs grep'
+# -*- shell-script -*-
+
+#
+# Collected shell (bash) utilities.  This is a collection of shell
+# utilities I've used in building software, maintaining my systems and
+# doing simple data processing at the shell.
+#
+# author: Kyle Burton <kyle.burton@gmail.com>
+#
+#  http://github.com/kyleburton/sandbox/rc-files
+#
+
+#
+# xargs grep:  find . -type f | xargs grep some-token
+#
 function xg () {
   xargs grep "$@"
 }
 
-# 'find file'
+#
+# 'find files': find . -type f
+#
+# NB: in each of these 'find' commands, if the first argument exists a
+# directory, it is taken as the location to search, the next argument
+# is taken as the pattern (when a pattern is used) and any remaining
+# arguments are passed to the last command in the pipeline.
+#
 function ff () {
   DIR="."
   if [ -d "$1" ]; then
@@ -13,7 +34,32 @@ function ff () {
   find "$DIR" -type f "$@"
 }
 
-# 'find directory'
+#
+# Find files named 'X', where 'X' is automatically surrounded by
+# wildcards so it can occurr anywhere within the name of the files.
+#
+#   find . -type f -name '*X*'
+#
+function ffn () {
+  DIR="."
+  if [ -d "$1" ]; then
+    DIR="$1"
+    shift
+  fi
+  find "$DIR" -type f -name "*$1*"
+}
+
+# case insensitive version of ffn
+function ffni () {
+  DIR="."
+  if [ -d "$1" ]; then
+    DIR="$1"
+    shift
+  fi
+  find "$DIR" -type f -iname "*$1*"
+}
+
+# 'find directories'
 function fd () {
   DIR="."
   if [ -d "$1" ]; then
@@ -23,14 +69,54 @@ function fd () {
   find "$DIR" -type d "$@"
 }
 
-# 'find clojure files'
+# find directories named
+function fdn () {
+  DIR="."
+  if [ -d "$1" ]; then
+    DIR="$1"
+    shift
+  fi
+  find "$DIR" -type d -name "*$1*"
+}
+
+# case insensitive version of fdn
+function fdni () {
+  DIR="."
+  if [ -d "$1" ]; then
+    DIR="$1"
+    shift
+  fi
+  find "$DIR" -type d -iname "*$1*"
+}
+
+# 'find clojure files', like ffn, but automatically appends a '.clj' suffix on the pattern.
 function fclj () {
   DIR="."
   if [ -d "$1" ]; then
     DIR="$1"
     shift
   fi
-  find "$DIR" -type f -name '*.clj' "$@"
+  PAT="*.clj"
+  if [ -n "$1" ]; then
+      PAT="*$1*.clj"
+      shift
+  fi
+  find "$DIR" -type f -name "$PAT" "$@"
+}
+
+# case insensitive version of fclj
+function fclji () {
+  DIR="."
+  if [ -d "$1" ]; then
+    DIR="$1"
+    shift
+  fi
+  PAT="*.clj"
+  if [ -n "$1" ]; then
+      PAT="*$1*.clj"
+      shift
+  fi
+  find "$DIR" -type f -iname "$PAT" "$@"
 }
 
 # 'find java files'
@@ -40,7 +126,27 @@ function fj () {
     DIR="$1"
     shift
   fi
-  find "$DIR" -type f -name '*.java' "$@"
+  PAT="*.java"
+  if [ -n "$1" ]; then
+      PAT="*$1*.java"
+      shift
+  fi
+  find "$DIR" -type f -name "$PAT" "$@"
+}
+
+# case insensitive version of fj
+function fji () {
+  DIR="."
+  if [ -d "$1" ]; then
+    DIR="$1"
+    shift
+  fi
+  PAT="*.java"
+  if [ -n "$1" ]; then
+      PAT="*$1*.java"
+      shift
+  fi
+  find "$DIR" -type f -iname "$PAT" "$@"
 }
 
 # 'find ruby files'
@@ -50,23 +156,55 @@ function fr () {
     DIR="$1"
     shift
   fi
-  find "$DIR" -type f -name '*.rb' "$@"
+  PAT="*.rb"
+  if [ -n "$1" ]; then
+      PAT="*$1*.rb"
+      shift
+  fi
+  find "$DIR" -type f -name "$PAT" "$@"
 }
 
-# combinations of find + xargs grep
+# case insensitive version of fr
+function fri () {
+  DIR="."
+  if [ -d "$1" ]; then
+    DIR="$1"
+    shift
+  fi
+  PAT="*.rb"
+  if [ -n "$1" ]; then
+      PAT="*$1*.rb"
+      shift
+  fi
+  find "$DIR" -type f -iname "$PAT" "$@"
+}
+
+# combinations of the various find commands followed by a pipe to xargs grep
 function fcljxg () {
   fclj -print0 | xargs -0 grep "$@"
 }
 
+function fcljixg () {
+  fclji -print0 | xargs -0 grep "$@"
+}
+
 function fjxg () {
-  fj -print0   | xargs -0 grep "$@"
+  fj -print0 | xargs -0 grep "$@"
+}
+
+function fjixg () {
+  fji -print0 | xargs -0 grep "$@"
 }
 
 function frxg () {
   fr -print0   | xargs -0 grep "$@"
 }
 
-# various maven simplifications
+function frixg () {
+  fri -print0 | xargs -0 grep "$@"
+}
+
+# various maven shortcuts
 function mvno  () {
   mvn -o "$@"
 }
@@ -95,30 +233,39 @@ function mvnoi  () {
   mvn -o install "$@"
 }
 
-
+# very simple, hard-coded, completion for common maven commands and options.
 complete -o default -W "validate compile test package integration-test verify install deploy -DskipTests -Dmaven.test.skip=true" mvn
 
+#
+# Shell based data processing utilities, these all use standard unix
+# utilities that nearly all expect tab-delimited input and produce tab
+# delimited output.
+#
+
+# Header preseving grep, very useful for database table dumps as well as delimited and fixed width data files.
 function hgrep () {
   FILE="$1"
   shift
-  (head -n 1 "$FILE"; grep "$@")
+  (head -n 1 "$FILE"; tail -n +2 "$FILE" | grep "$@")
 }
 
+function hgrepi () {
+  FILE="$1"
+  shift
+  (head -n 1 "$FILE"; tail -n +2 "$FILE" | grep -i "$@")
+}
+
+# header preserving sort
 function hsort () {
   FILE="$1"
   shift
-  (head -n 1 "$FILE"; sort "$@")
+  (head -n 1 "$FILE"; tail -n +2 "$FILE" | sort "$@")
 }
 
-function hcut () {
+# header preserving tail
+function htail () {
   FILE="$1"
   shift
-  (head -n 1 "$FILE"; cut "$@")
-}
-
-function htailf () {
-  FILE="$1"
-  shift
-  (head -n 1 "$FILE"; tail -f "$FILE")
+  (head -n 1 "$FILE"; tail -n +2 "$FILE" | tail "$@")
 }
 
