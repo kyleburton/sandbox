@@ -690,3 +690,21 @@ receivingFunction() ->
 
 %% filename:split(filename:join(["/usr","local","share","dict","words.txt"])).
 %% ["/","usr","local","share","dict","words.txt"]
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% regexp module
+
+%% regexp:split("a,b,c,",",").
+%% => {ok,["a","b","c",[]]}
+
+%% this makes me sad :(
+%% regexp:split("a,b,c,","(,)").
+%% => {ok,["a","b","c",[]]}
+
+%% The Erlang recipes in the scheeme cookbook has a solution for
+%% capturing the split pattern, but not yet with a limit:
+%% http://schemecookbook.org/Erlang/RegexSplitInclusive
+
+%% it looks like pcre compatible-ish was introduced in the 're'
+%% module, booyah!
