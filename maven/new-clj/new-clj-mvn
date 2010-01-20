@@ -52,6 +52,9 @@ module Maven
           @properties.merge! load_properties_from_file file
         end
       end
+
+      @properties['project.testRunner.className'] ||= "#{@properties['project.groupId']}.#{@properties['project.artifactId']}.run-test"
+      @properties['project.testRunner.fileName']  ||= "./#{@properties['project.testRunner.className'].split('.').join('/')}.clj"
     end
 
     def command_line_arguments
@@ -68,23 +71,40 @@ module Maven
 
     def mvn_proj_dir_skeleton
       [
-       [:process_template, :mvn_pom,'./pom.xml'],
+       [:gen_file_from_template, :mvn_pom,      './pom.xml'],
+       "./#{@properties['project.groupId'].split('.').join('/')}/#{@properties['project.artifactId']}",
+       [:gen_file_from_template, :main_clj,     "./#{@properties['project.groupId'].split('.').join('/')}/#{@properties['project.artifactId']}.clj"],
        './bin',
        './src/main/clj',
        './src/main/emacs',
        './src/main/java/com',
        './src/main/resources',
-       [:process_template, :repl,         './src/main/sh/repl' ],
-       [:process_template, :runner,       './src/main/sh/runner.sh' ],
-       [:process_template, :log4j,        './src/main/resources/log4j.properties' ],
-       [:process_template, :swank_runner, './src/main/resources/swank-runner.clj' ],
+       [:gen_file_from_template, :repl,               './src/main/sh/repl' ],
+       [:gen_file_from_template, :runner,             './src/main/sh/runner.sh' ],
+       [:gen_file_from_template, :log4j,              './src/main/resources/log4j.properties' ],
+       [:gen_file_from_template, :swank_runner_clj,   './src/main/resources/swank-runner.clj' ],
+       [:gen_file_from_template, :slime_incl_el,      './src/main/emacs/slime-incl.el' ],
+       [:gen_file_from_template, :test_script_runner, './scripts/run_tests.clj'],
+       [:gen_file_from_template, :clj_test_class,     @properties['project.testRunner.fileName']],
        './src/main/sh',
        './src/test/clj',
+       './src/test/resources',
       ]
+    end
+
+    def gen_file_from_template(template_name,target_file)
+      dirname = File.dirname target_file
+      create_directory dirname
+      write_file target_file, process_template(template_name,@properties)
+    end
+
+    def create_directory path
+      FileUtils.mkdir_p path
     end
 
     def run
       load_props
+      @properties['project.artifactId'] ||= project_name
       puts "Using Properties:"
       @properties.each do |prop,val|
         printf "  %30s = '%s'\n", prop, val
@@ -114,16 +134,22 @@ module Maven
         return
       end
 
-      pom = process_template :mvn_pom
-
-      # TODO: should be command based, it should work _just_ like the
-      # rails project including generation of the basic project
-      # structure!
       unless exists? project_name
         mkdir project_name
       end
 
-      puts pom
+      Dir.chdir project_name
+
+      mvn_proj_dir_skeleton.each do |entry|
+        method = :create_directory
+        args = [entry]
+        if entry.is_a? Array
+          method, *args = entry
+        end
+        puts "Calling: #{method}(#{args})"
+        self.send method, *args
+      end
+
     end
   end
 end
@@ -407,3 +433,32 @@ java -server \
     "@target.directory@/classes/swank-runner.clj" \
     "$@"
 __RUNNER__
+__MAIN_CLJ__
+(ns {{project.grouppId}}.main
+  (:gen-class))
+
+(defn main [args]
+  (prn "This project is in need of a main indeed."))
+__MAIN_CLJ__
+__SLIME_INCL_EL__
+(setq slime-lisp-implementations
+      '(({{project.name}} ("@bin.dir@/repl")
+                     :init swank-clojure-init
+                     :init-function krb-swank-clojure-init)))
+__SLIME_INCL_EL__
+__TEST_SCRIPT_RUNNER__
+(require '[{{project.testScript.className}} :as tests])
+(tests/-main [])
+__TEST_SCRIPT_RUNNER__
+__CLJ_TEST_CLASS__
+(ns {{project.testScript.className}}
+  (:use clojure.contrib.test.junit
+        clojure.contrib.test-is)
+  (:gen-class))
+
+(def *all-tests*
+  '())
+
+(defn main [& args]
+  (apply run-test *all-tests*))
+__CLJ_TEST_CLASS__
