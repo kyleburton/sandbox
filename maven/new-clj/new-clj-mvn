@@ -14,18 +14,18 @@ module Maven
     def initialize
       super
       @properties = {
-        "project.groupId"       => "*no-groupId*",
-        "project.artifactId"    => "*no-artifactId*",
-        "project.version"       => "*no-version*",
-        "project.name"          => "*no-name*",
-        "project.description"   => "*no-description*",
-        "project.url"           => "*no-rul*",
-        "project.year"          => Time.now.year.to_s,
-        "developer.id"          => "*no-developer.id*",
-        "developer.name"        => "*no.developer.name*",
-        "developer.email"       => "*no-developer.email*",
-        "issueManagement.sysem" => "*no-issueManagement.sysem*",
-        "issueManagement.url"   => "*no.issueManagement.url*",
+        "project.groupId"              => "*no-groupId*",
+        "project.artifactId"           => "*no-artifactId*",
+        "project.version"              => "*no-version*",
+        "project.name"                 => "*no-name*",
+        "project.description"          => "*no-description*",
+        "project.url"                  => "*no-rul*",
+        "project.year"                 => Time.now.year.to_s,
+        "developer.id"                 => "*no-developer.id*",
+        "developer.name"               => "*no.developer.name*",
+        "developer.email"              => "*no-developer.email*",
+        "issueManagement.sysem"        => "*no-issueManagement.sysem*",
+        "issueManagement.url"          => "*no.issueManagement.url*",
       }
 
     end
@@ -60,7 +60,7 @@ module Maven
     def command_line_arguments
       super.concat [[ 'p', 'properties=s',       'Specify a properties file (yaml)'],
                     [ 'D', 'define-property=s',  'Define a property' ],
-                    [ 'C', 'create-config=s',    'Create a default configuration file' ],
+                    [ 'C', 'create-config',      'Create a default configuration file (.clj.mvn.info)' ],
                    ]
     end
 
@@ -72,8 +72,8 @@ module Maven
     def mvn_proj_dir_skeleton
       [
        [:gen_file_from_template, :mvn_pom,      './pom.xml'],
-       "./#{@properties['project.groupId'].split('.').join('/')}/#{@properties['project.artifactId']}",
-       [:gen_file_from_template, :main_clj,     "./#{@properties['project.groupId'].split('.').join('/')}/#{@properties['project.artifactId']}.clj"],
+       "./src/main/clj/#{@properties['project.groupId'].split('.').join('/')}/#{@properties['project.artifactId']}",
+       [:gen_file_from_template, :main_clj,     "./src/main/clj/#{@properties['project.groupId'].split('.').join('/')}/#{@properties['project.artifactId']}/main.clj"],
        './bin',
        './src/main/clj',
        './src/main/emacs',
@@ -83,9 +83,9 @@ module Maven
        [:gen_file_from_template, :runner,             './src/main/sh/runner.sh' ],
        [:gen_file_from_template, :log4j,              './src/main/resources/log4j.properties' ],
        [:gen_file_from_template, :swank_runner_clj,   './src/main/resources/swank-runner.clj' ],
-       [:gen_file_from_template, :slime_incl_el,      './src/main/emacs/slime-incl.el' ],
+       [:gen_file_from_template, :slime_incl_el,      './src/main/emacs/slime_incl.el' ],
        [:gen_file_from_template, :test_script_runner, './scripts/run_tests.clj'],
-       [:gen_file_from_template, :clj_test_class,     @properties['project.testRunner.fileName']],
+       [:gen_file_from_template, :clj_test_class,     "./src/test/clj/#{@properties['project.testRunner.fileName']}"],
        './src/main/sh',
        './src/test/clj',
        './src/test/resources',
@@ -93,9 +93,9 @@ module Maven
     end
 
     def gen_file_from_template(template_name,target_file)
-      dirname = File.dirname target_file
+      dirname = File.dirname(target_file).gsub('-','_')
       create_directory dirname
-      write_file target_file, process_template(template_name,@properties)
+      write_file target_file.gsub('-','_'), process_template(template_name,@properties)
     end
 
     def create_directory path
@@ -116,14 +116,6 @@ module Maven
         raise "Error: you must specify a project name"
       end
 
-      if exists? project_name
-        $stderr.puts "Error: project directory already exists: #{project_name}"
-        exit -1
-      end
-
-      puts "Creating Project: #{project_name}"
-      @properties['project.name'] = project_name
-
       if create_config
         File.open("./.clj.mvn.info","w") do |out|
           out.puts "# Default Configuration Created: #{Time.now.to_s}"
@@ -133,6 +125,14 @@ module Maven
         end
         return
       end
+
+      if exists? project_name
+        $stderr.puts "Error: project directory already exists: #{project_name}"
+        exit -1
+      end
+
+      puts "Creating Project: #{project_name}"
+      @properties['project.name'] = project_name
 
       unless exists? project_name
         mkdir project_name
@@ -289,7 +289,8 @@ __MVN_POM__
                 <filter token="basedir" value="${basedir}" />
                 <mkdir dir="${bin.dir}" />
                 <copy file="${basedir}/src/main/sh/repl"             todir="${bin.dir}" filtering="on" overwrite="true" />
-                <copy file="${basedir}/src/main/emacs/slime-incl.el" todir="${bin.dir}" filtering="on" overwrite="true" />
+                <copy file="${basedir}/src/main/sh/runner.sh"        todir="${bin.dir}" filtering="on" overwrite="true" />
+                <copy file="${basedir}/src/main/emacs/slime_incl.el" todir="${bin.dir}" filtering="on" overwrite="true" />
                 <chmod dir="${bin.dir}" type="file" perm="0755" includes="repl,*.sh" verbose="true" />
               </tasks>
             </configuration>
@@ -429,15 +430,15 @@ java -server \
     -Xdebug \
     -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8886 \
     -cp "$CLASSPATH" \
-    {{project.main.class.name}} \
-    "@target.directory@/classes/swank-runner.clj" \
+    {{project.groupId}}.{{project.artifactId}}.main \
+    "@target.directory@/classes/swank_runner.clj" \
     "$@"
 __RUNNER__
 __MAIN_CLJ__
-(ns {{project.grouppId}}.main
+(ns {{project.groupId}}.{{project.artifactId}}.main
   (:gen-class))
 
-(defn main [args]
+(defn -main [& args]
   (prn "This project is in need of a main indeed."))
 __MAIN_CLJ__
 __SLIME_INCL_EL__
@@ -447,11 +448,11 @@ __SLIME_INCL_EL__
                      :init-function krb-swank-clojure-init)))
 __SLIME_INCL_EL__
 __TEST_SCRIPT_RUNNER__
-(require '[{{project.testScript.className}} :as tests])
+(require '[{{project.groupId}}.{{project.artifactId}}.run-test :as tests])
 (tests/-main [])
 __TEST_SCRIPT_RUNNER__
 __CLJ_TEST_CLASS__
-(ns {{project.testScript.className}}
+ (ns {{project.groupId}}.{{project.artifactId}}.run-test
   (:use clojure.contrib.test.junit
         clojure.contrib.test-is)
   (:gen-class))
@@ -459,6 +460,6 @@ __CLJ_TEST_CLASS__
 (def *all-tests*
   '())
 
-(defn main [& args]
-  (apply run-test *all-tests*))
+(defn -main [& args]
+  (apply run-tests *all-tests*))
 __CLJ_TEST_CLASS__
