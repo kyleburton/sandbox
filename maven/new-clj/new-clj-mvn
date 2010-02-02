@@ -338,36 +338,15 @@ __MVN_POM__
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.rabbitmq</groupId>
-      <artifactId>amqp-client</artifactId>
-      <version>1.7.0</version>
-    </dependency>
-    <dependency>
-      <groupId>commons-httpclient</groupId>
-      <artifactId>commons-httpclient</artifactId>
-      <version>3.1</version>
-    </dependency>
-    <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
       <version>1.4</version>
-    </dependency>
-    <dependency>
-      <groupId>mysql</groupId>
-      <artifactId>mysql-connector-java</artifactId>
-      <version>5.1.6</version>
     </dependency>
 
     <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>swank-clojure</artifactId>
       <version>1.0</version>
-    </dependency>
-
-    <dependency>
-      <groupId>javax.mail</groupId>
-      <artifactId>mail</artifactId>
-      <version>1.4.1</version>
     </dependency>
 
   </dependencies>
