@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.github.kyleburton</groupId>
+  <artifactId>rspec-example</artifactId>
+  <version>1.0</version>
+  <packaging>jar</packaging>
+  <name>RSpec BDD vs Java Example</name>
+  <description>Accompanyment to "From the Agony of JUnit to the Extacy of RSpec"</description>
+  <url>http://asymmetrical-view.com/2010/02/19/maven-rspec.html</url>
+  <inceptionYear>2010</inceptionYear>
+
+  <developers>
+    <developer>
+      <id>kyle.burton</id>
+      <name>Kyle Burton</name>
+      <email>kyle.burton@gmail.com</email>
+    </developer>
+  </developers>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>1.5</source>
+          <target>1.5</target>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <configuration>
+          <descriptorRefs>
+            <descriptorRef>jar-with-dependencies</descriptorRef>
+          </descriptorRefs>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>rspec-maven-plugin</artifactId>
+        <configuration>
+          <jrubyHome>${env.JRUBY_HOME}</jrubyHome>
+          <sourceDirectory>${basedir}/src/test/specs</sourceDirectory>
+          <outputDirectory>${basedir}/target</outputDirectory>
+          <systemProperties>
+            <property> 
+              <name>testProp</name><value>testValue</value> 
+            </property>
+          </systemProperties> 
+        </configuration>
+        <executions>
+          <execution>
+            <id>test</id>
+            <phase>test</phase>
+            <goals>
+              <goal>spec</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+    </plugins>
+  </build>
+
+  <dependencies>
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <version>1.2.14</version>
+    </dependency>
+    <dependency>
+      <groupId>commons-logging</groupId>
+      <artifactId>commons-logging</artifactId>
+      <version>1.1.1</version>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.1</version>
+      <scope>test</scope>
+    </dependency>
+
+  </dependencies>
+
+</project>
