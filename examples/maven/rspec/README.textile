@@ -1,0 +1,102 @@
+h1. From The Agony of JUnit to the Extacy of RSpec
+
+This is the example code that accompanies the "From The Agony of JUnit to the Extacy of RSpec":http://asymmetrical-view.com/2010/02/19/maven-rspec.html blog post.
+
+h1. Running The Example
+
+To run the example you'll need to have "Maven2":http://maven.apache.org/ and "JRuby":http://jruby.org/ installed.  You will also need to set the environment variable <code>JRUBY_HOME</code> to point to your JRuby installation.  The <code>env.sh</code> shell script attempts to do this for you (by attempting to locate the <code>jruby</code> binary).  You can use it by sourcing the script within bash:
+
+<pre>
+  [user@host rspec]$ . ./env.sh
+  Found JRUBY_HOME=/opt/jruby-1.3.1
+  [user@host rspec]$
+</pre>
+
+The plugin hooks into the normal maven lifecycle phase for test, so all you need to do is run maven test:
+
+<pre>
+  [user@host rspec]$ mvn test
+[Kyle Burton] kburton@indigo64 ~/personal/projects/sandbox/examples/maven/rspec[master*]$ mvn test
+[INFO] Scanning for projects...
+[INFO] ------------------------------------------------------------------------
+[INFO] Building RSpec BDD vs Java Example
+[INFO]    task-segment: [test]
+[INFO] ------------------------------------------------------------------------
+[INFO] [resources:resources {execution: default-resources}]
+[WARNING] Using platform encoding (MacRoman actually) to copy filtered resources, i.e. build is platform dependent!
+[INFO] Copying 0 resource
+[INFO] [compiler:compile {execution: default-compile}]
+[INFO] Nothing to compile - all classes are up to date
+[INFO] [resources:testResources {execution: default-testResources}]
+[WARNING] Using platform encoding (MacRoman actually) to copy filtered resources, i.e. build is platform dependent!
+[INFO] Copying 0 resource
+[INFO] [compiler:testCompile {execution: default-testCompile}]
+[INFO] No sources to compile
+[INFO] [surefire:test {execution: default-test}]
+[INFO] Surefire report directory: /Users/kburton/personal/projects/sandbox/examples/maven/rspec/target/surefire-reports
+
+-------------------------------------------------------
+ T E S T S
+-------------------------------------------------------
+There are no tests to run.
+
+Results :
+
+Tests run: 0, Failures: 0, Errors: 0, Skipped: 0
+
+[INFO] [rspec:spec {execution: test}]
+[INFO] Running RSpec tests from /Users/kburton/personal/projects/sandbox/examples/maven/rspec/src/test/specs
+=========================================
+TOTAL: 1 passing; 0 failing; 0 pending
+exit: 0
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD SUCCESSFUL
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time: 6 seconds
+[INFO] Finished at: Sat Feb 20 14:56:47 EST 2010
+[INFO] Final Memory: 15M/79M
+[INFO] ------------------------------------------------------------------------
+[Kyle Burton] kburton@indigo64 ~/personal/projects/sandbox/examples/maven/rspec[master*]$
+</pre>
+
+On the first build, the plugin will create a spec runner that you can use to execute the specs without having to go through the full maven build.  Be warned, this won't rebuild yoru project if you've changed Java code.  In that case, <code>mvn test</code> is the way to go.
+
+h2. RSpec [Only] Runner
+
+<pre>
+[Kyle Burton] kburton@indigo64 ~/personal/projects/sandbox/examples/maven/rspec[master*]$ target/run-rspecs.sh  && open target/rspec_report.html
+=========================================
+TOTAL: 1 passing; 0 failing; 0 pending
+[Kyle Burton] kburton@indigo64 ~/personal/projects/sandbox/examples/maven/rspec[master*]$
+</pre>
+
+h2. An Important Note About the Output
+
+Also note that the default rspec runner that the plugin creates writes its detailed output to an HTML file, so you'll need to go looking there for the results of the tests (see the <code>&& open...</code> in the example above?).
+
+h1. Troubleshooting
+
+h2. It Doesn't Work, all I get is an NPE
+
+If you get an NPE (null pointer exception) when you first run <code>mvn test</code> it's probably because you didn't follow the instructions about setting <code>JRUBY_HOME</code> :)
+
+h2. It Doens't work, there is no output when a test fails
+
+The plugin writes its output to an HTML report: <code>target/rspec_report.html</code> (didn't I just tell you about that above? :)
+
+h2. It Doesn't Work, You Haven't Anticipated My Problem!
+
+Sorry about that.  I'm sure we can sort it out together.  Drop me an email and I'll try to help.
+
+h1. Other Things to Explore / Explain
+
+Mocking Support in RSpec.
+
+Using a java Mocking framework (like Mockito).
+
+h1. References
+
+* "Maven":http://maven.apache.org/
+* "JRuby":http://jruby.org/
+* "RSpec":http://rspec.info/
+* "Maven, Java and RSpec":http://www.fnokd.com/2008/09/18/maven-java-and-rspec/
