@@ -1,10 +1,10 @@
-h1. From The Agony of JUnit to the Extacy of RSpec
+h1. From The Agony of JUnit to the Ecstasy of RSpec
 
-This is the example code that accompanies the "From The Agony of JUnit to the Extacy of RSpec":http://asymmetrical-view.com/2010/02/19/maven-rspec.html blog post.
+This is the example code that accompanies the "From The Agony of JUnit to the Ecstasy of RSpec":http://asymmetrical-view.com/2010/02/19/maven-rspec.html blog post.
 
 h1. Running The Example
 
-To run the example you'll need to have "Maven2":http://maven.apache.org/ and "JRuby":http://jruby.org/ installed.  You will also need to set the environment variable <code>JRUBY_HOME</code> to point to your JRuby installation.  The <code>env.sh</code> shell script attempts to do this for you (by attempting to locate the <code>jruby</code> binary).  You can use it by sourcing the script within bash:
+To run the example you'll need to have "Maven2":http://maven.apache.org/ and "JRuby":http://jruby.org/ (make sure it's 1.3.1 and not 1.4)installed.  You will also need to set the environment variable <code>JRUBY_HOME</code> to point to your JRuby installation.  The <code>env.sh</code> shell script attempts to do this for you (by attempting to locate the <code>jruby</code> binary).  You can use it by sourcing the script within bash:
 
 <pre>
   [user@host rspec]$ . ./env.sh
@@ -12,7 +12,7 @@ To run the example you'll need to have "Maven2":http://maven.apache.org/ and "JR
   [user@host rspec]$
 </pre>
 
-The plugin hooks into the normal maven lifecycle phase for test, so all you need to do is run maven test:
+The plugin hooks into the normal maven life-cycle phase for test, so all you need to do is run maven test:
 
 <pre>
   [user@host rspec]$ mvn test
@@ -59,7 +59,7 @@ exit: 0
 [Kyle Burton] kburton@indigo64 ~/personal/projects/sandbox/examples/maven/rspec[master*]$
 </pre>
 
-On the first build, the plugin will create a spec runner that you can use to execute the specs without having to go through the full maven build.  Be warned, this won't rebuild yoru project if you've changed Java code.  In that case, <code>mvn test</code> is the way to go.
+On the first build, the plugin will create a spec runner that you can use to execute the specs without having to go through the full maven build.  Be warned, this won't rebuild your project if you've changed Java code.  In that case, <code>mvn test</code> is the way to go.
 
 h2. RSpec [Only] Runner
 
@@ -80,9 +80,13 @@ h2. It Doesn't Work, all I get is an NPE
 
 If you get an NPE (null pointer exception) when you first run <code>mvn test</code> it's probably because you didn't follow the instructions about setting <code>JRUBY_HOME</code> :)
 
-h2. It Doens't work, there is no output when a test fails
+h2. It Doesn't work, there is no output when a test fails
 
 The plugin writes its output to an HTML report: <code>target/rspec_report.html</code> (didn't I just tell you about that above? :)
+
+h2. It Doesn't work, I get <code>`get_proxy_or_package_under_package': cannot load Java class com.github.kyleburton.SomeClass (NameError)</code>
+
+Did you install JRuby 1.4 instead of 1.3.1?  Please make sure you're using 1.3.1, you can download it "here":http://jruby.kenai.com/downloads/1.3.1/jruby-bin-1.3.1.tar.gz
 
 h2. It Doesn't Work, You Haven't Anticipated My Problem!
 
