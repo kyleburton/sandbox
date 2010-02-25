@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema version="0.2"
+  xmlns="http://www.algoconnectone.com/collateralProtocol"
+  targetNamespace="http://www.algoconnectone.com/collateralProtocol"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  elementFormDefault="qualified"
+
+  xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
+  jxb:version="1.0">
+
+  <xs:element name="music-library" type="MusicLibrary" />
+
+  <xs:complexType name="MusicLibrary">
+    <xs:sequence>
+      <xs:element name="album-details"        type="AlbumDetails" />
+    </xs:sequence>
+    <xs:attribute name="schemaVersion" type="xs:string" use="required" />
+  </xs:complexType>
+
+  <xs:complexType name="AlbumDetails">
+    <xs:sequence>
+      <xs:element minOccurs="0" name="artistId"        type="xs:string" />
+      <xs:element minOccurs="0" name="title"           type="xs:string" />
+      <xs:element minOccurs="0" name="productionDate"  type="xs:dateTime" />
+      <xs:element minOccurs="0" name="purchaseDate"    type="xs:dateTime" />
+      <xs:element minOccurs="0" name="mediaType"       type="MediaType" />
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:simpleType name="MediaType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="long-play-record" />
+      <xs:enumeration value="compact-disk" />
+      <xs:enumeration value="eight-track-tape" />
+      <xs:enumeration value="cassette-tape" />
+      <xs:enumeration value="mini-disk" />
+      <xs:enumeration value="digital-mp3" />
+      <xs:enumeration value="digital-aac" />
+      <xs:enumeration value="digital-wav" />
+      <xs:enumeration value="other" />
+    </xs:restriction>
+  </xs:simpleType>
+
+</xs:schema>

@@ -1,0 +1,24 @@
+h1. Maven JAXB Example
+
+This is an example, or template, project that shows how to use JAXB to generate a set of Java classes for an XSD.
+
+h1. Building
+
+<pre class="code">
+user@host jaxb/$ mvn generate-sources
+</pre>
+
+
+<pre class="code">
+$ tree src/main/generated/
+src/main/generated/
+`-- java
+    `-- com
+        `-- algoconnectone
+            `-- collateralprotocol
+                |-- AlbumDetails.java
+                |-- MediaType.java
+                |-- MusicLibrary.java
+                |-- ObjectFactory.java
+                `-- package-info.java
+</pre>
