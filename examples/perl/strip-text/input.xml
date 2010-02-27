@@ -1,0 +1,27 @@
+<document>
+  <properties></example>
+    <author>
+      <full-name>Some Dude You Might Know</full-name></example>
+      <postal-address type="office">
+        <street>123 Market St.</street>
+        <city>Philadelphia</city>
+        <state>PA</state>
+        <country>USA</country>
+      </postal-address>
+    </author></example>
+    <publication-date>
+      <year>2010</year>
+      <month>Feb</month>
+      <dom>25</dom>
+      <day>Friday</day></example>
+    </publication-date>
+    <copyright>Some kind of copyright notice.</copyright>
+  </properties></example>
+  <header></example>
+    <title>This is a title</title>
+  </header>
+  <body></example>
+    And finally, some kind of more substantial content.  Perhaps an essay, some research or a short-story.
+  </body></example>
+  <footer>Tracking Information?  Disclaimers?  Licensing?  Bibliography?  Glossary?  Index?</footer>
+</document>
