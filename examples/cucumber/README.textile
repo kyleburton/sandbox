@@ -16,4 +16,9 @@ Cucumber supports profiles.  It finds profile configurations in config/cucumber.
 
 In this example, there are profiles set up to load different configurations based on a .rb file named after the profile.
 
+<pre>
+  $ cucumber -p dev
+</pre>
+
+
 One thing to keep in mind with using '--require' and cucumber is that it disables all of the default code loading that cucumber does on its own, so you'll need to laod your own step_definitions, support files, as well as any other support code you may need if you use this approach.
