@@ -1,7 +1,5 @@
 module NavigationHelpers
-  def base_url(url)
-    (ENV['BASE_URL'] || 'http://localhost:80') + url
-  end
+  include CukeExample
   def path_to(page_name)
     case page_name
     when /home/

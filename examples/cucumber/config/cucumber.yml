@@ -1,0 +1,5 @@
+<% common = "" %>
+default: -r config/environments/dev.rb <%= common %>
+dev:     -r config/environments/dev.rb <%= common %>
+beta:    -r config/environments/beta.rb  <%= common %>
+alpha:   -r config/environments/alpha.rb <%= common %>

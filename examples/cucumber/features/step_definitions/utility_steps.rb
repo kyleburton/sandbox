@@ -41,6 +41,6 @@ end
 
 When /^I click the Go button$/ do
   locator = %Q|xpath=//input[@src='/images/top_nav/search_go2.gif']|
-  selenium.click locator, :timeout_in_seconds => 5
+  selenium.click locator, :timeout_in_seconds => 10
 end
 
