@@ -4,4 +4,4 @@ module CukeExample
   end
 end
 
-require File.dirname(__FILE__) + "/../cuke_env"
+require File.dirname(__FILE__) + "/../cuke_support"
