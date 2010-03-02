@@ -2,4 +2,11 @@ h1. Cucumber Example
 
 "Cucumber":http://cukes.info/ is a behavior driven development tool which can also be used to perform front-end or integration tetsing on your web applications.  This archive shows a few examples of how it can be used.
 
+h2. Tagging Scenarios
+
+You can tag your scenarios with '@' tags which will allow you to run them as groups using the '--tags' command line parameter for cucubmer:
+
+<pre>
+  $ cucumber --tags @dev
+</pre>
 

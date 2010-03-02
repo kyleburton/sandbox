@@ -26,9 +26,21 @@ When /^I click "([^\"]*)"$/ do |name|
 end
 
 Then /^"([^\"]+)" should be visible?$/ do |text|
-  locator = %Q|//*[(contains(text(), "#{text}") or contains(@value, "#{text}"))]|
+  locator = %Q|xpath=//*[(contains(text(), "#{text}") or contains(@value, "#{text}"))]|
   selenium.wait_for_element(locator, :timeout_in_seconds => 5)
   #require 'ruby-debug'; debugger; 1;
   selenium.is_element_present(locator).should be_true
+end
+
+
+When /^I type "([^\"]*)" into the search box$/ do |text|
+  locator = %Q|xpath=//*[contains(text(),'SEARCH')]/../..//input[@type='text']|
+  selenium.type locator, text
+  #require 'ruby-debug'; debugger; 1;
+end
+
+When /^I click the Go button$/ do
+  locator = %Q|xpath=//input[@src='/images/top_nav/search_go2.gif']|
+  selenium.click locator, :timeout_in_seconds => 5
 end
 

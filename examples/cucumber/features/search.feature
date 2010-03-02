@@ -10,3 +10,9 @@ Feature: Search for Products
     And I click "search"
     Then "Countdown Controller" should be visible
 
+  @dev
+  Scenario: search from the homepage
+    Given I am on the home page
+    When I type "timed pregnant mice" into the search box
+    And I click the Go button
+    Then "Life Science Magazine" should be visible
