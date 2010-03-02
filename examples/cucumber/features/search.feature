@@ -5,6 +5,8 @@ Feature: Search for Products
 
   Scenario: Search using Exact Phrase
     Given I am on the search page
-    And I choose the "exact" "Keywords" search option
+    When I choose the "exact" "Keywords" search option
     And I type "timed pregnant mice" into "Keywords"
+    And I click "search"
+    Then "Countdown Controller" should be visible
 
