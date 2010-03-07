@@ -35,6 +35,8 @@ class CljHelper
 
   def _invoke m, *args
     fun = @mappings[m.to_s] || @mappings[m.to_s.gsub "_", "-"]
+    # TODO: should we try to auto-lookup the function?  Right now you have to
+    # import it first...maybe auto lookup would be faster...
     unless fun
       raise "Error, no current binding for symbol=#{m}"
     end
