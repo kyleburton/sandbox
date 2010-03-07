@@ -1,0 +1,10 @@
+h1. Example of Calling Clojure from JRuby
+
+To run the full example you will need the following dependencies:
+
+* clojure.jar:         http://code.google.com/p/clojure/downloads/list 
+* clojure-contrib.jar: http://code.google.com/p/clojure-contrib/downloads/list
+* clj-xpath-1.0.6.jar
+* xalan-2.7.1.jar
+
+If you don't want to bother with the clj-xpath example, just eliminiate those parts of the test.rb file and the earlier code should execute just fine.   The clj-xpath test code is there to demonstrate how to call clojure functions that have characters which are illegal in Ruby symbol names.

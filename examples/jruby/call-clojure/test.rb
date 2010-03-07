@@ -41,6 +41,10 @@ class CljHelper
     fun.invoke *args
   end
 
+  def _alias new, old
+    @mappings[new] = @mappings[old]
+  end
+
   def method_missing symbol, *args
     _invoke symbol, *args
   end
@@ -60,3 +64,11 @@ puts "Join: #{str_utils.str_join ":", ["a", "b", "c"]}"
 
 m = {:a => 1, :b => 2}
 puts "keys: #{core.keys(m)}"
+
+clj_xpath = CljHelper.new 'com.github.kyleburton.clj-xpath'
+puts "clj-xpath: "
+puts clj_xpath._invoke("$x:text", "//foo", "<foo>bar</foo>")
+clj_xpath._alias "x_txt", "$x:text"
+puts clj_xpath.x_txt "//foo", "<foo>bar</foo>"
+
+
