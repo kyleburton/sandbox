@@ -1,0 +1,13 @@
+CLASSPATH="@maven.test.classpath@:@basedir@/src/test/clj"
+
+if [ -z "$JDWP_PORT" ]; then
+  JDWP_PORT=8888
+fi
+
+java -server \
+  "-Dproject.basedir=@basedir@" \
+  -Xdebug \
+  -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address="$JDWP_PORT" \
+  -cp "$CLASSPATH" \
+  clojure.lang.Repl \
+  "$@"

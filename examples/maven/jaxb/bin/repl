@@ -1,0 +1,13 @@
+CLASSPATH="/Users/kburton/personal/projects/sandbox/examples/maven/jaxb/target/test-classes:/Users/kburton/personal/projects/sandbox/examples/maven/jaxb/target/classes:/Users/kburton/.m2/repository/junit/junit/3.8.1/junit-3.8.1.jar:/Users/kburton/.m2/repository/org/clojure/clojure/1.0.0/clojure-1.0.0.jar:/Users/kburton/.m2/repository/org/clojure/clojure-contrib/1.0.0/clojure-contrib-1.0.0.jar:/Users/kburton/.m2/repository/org/clojure/swank-clojure/1.0/swank-clojure-1.0.jar:/Users/kburton/.m2/repository/commons-io/commons-io/1.4/commons-io-1.4.jar:/Users/kburton/.m2/repository/com/github/kyleburton/clj-xpath/1.0.6/clj-xpath-1.0.6.jar:/Users/kburton/.m2/repository/commons-math/commons-math/1.2/commons-math-1.2.jar:/Users/kburton/.m2/repository/log4j/log4j/1.2.14/log4j-1.2.14.jar:/Users/kburton/.m2/repository/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1.jar:/Users/kburton/.m2/repository/xalan/xalan/2.7.1/xalan-2.7.1.jar:/Users/kburton/.m2/repository/xalan/serializer/2.7.1/serializer-2.7.1.jar:/Users/kburton/.m2/repository/xml-apis/xml-apis/1.3.04/xml-apis-1.3.04.jar:/Users/kburton/personal/projects/sandbox/examples/maven/jaxb/target/../src/main/clj:/Users/kburton/personal/projects/sandbox/examples/maven/jaxb/src/test/clj"
+
+if [ -z "$JDWP_PORT" ]; then
+  JDWP_PORT=8888
+fi
+
+java -server \
+  "-Dproject.basedir=/Users/kburton/personal/projects/sandbox/examples/maven/jaxb" \
+  -Xdebug \
+  -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address="$JDWP_PORT" \
+  -cp "$CLASSPATH" \
+  clojure.lang.Repl \
+  "$@"

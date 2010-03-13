@@ -60,6 +60,56 @@
           </execution>
         </executions>
       </plugin>
+
+      <plugin>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>install-scripts-and-gen-builders</id>
+            <phase>generate-sources</phase>
+            <configuration>
+              <tasks>
+                <property name="bin.dir"                 value="${basedir}/bin" />
+                <property name="project.basedir"         value="${basedir}" />
+                <property name="project.artifactId"         value="${project.artifactId}" />
+                <property name="maven.runtime.classpath" refid="maven.runtime.classpath"  />
+                <property name="maven.test.classpath"    refid="maven.test.classpath"  />
+                <property name="test.classpath"          refid="maven.test.classpath"  />
+                <property name="project.build.directory" value="${project.build.directory}"  />
+                <property name="group.id"                value="${project.groupId}"  />
+                <property name="artifact.id"             value="${project.artifactId}"  />
+                <property name="version"                 value="${project.version}"  />
+                <property name="basedir"                 value="${basedir}"  />
+                <filter token="maven.runtime.classpath"
+                        value="${maven.runtime.classpath}:${project.build.directory}/../src/main/clj" />
+                <filter token="maven.test.classpath"
+                        value="${maven.test.classpath}:${project.build.directory}/../src/main/clj" />
+                <filter token="bin.dir" value="${bin.dir}" />
+                <filter token="target.directory" value="${project.build.directory}" />
+                <filter token="test.classpath" value="${test.classpath}" />
+                <filter token="group.id"    value="${group.id}" />
+                <filter token="project.artifactId" value="${project.artifactId}" />
+                <filter token="version"     value="${version}" />
+                <filter token="basedir"     value="${basedir}" />
+                <copy file="${basedir}/src/main/sh/repl"                     todir="${bin.dir}" filtering="on" overwrite="true" />
+                <copy file="${basedir}/src/main/emacs/slime-incl.el" todir="${bin.dir}" filtering="on" overwrite="true" />
+                <chmod dir="${bin.dir}" type="file" perm="0755" includes="repl,*.sh" verbose="true" />
+                <java classname="clojure.main" fork="true" failonerror="true" maxmemory="128m" classpath="${maven.test.classpath}:src/main/clj">
+                  <sysproperty key="project.basedir" value="${project.basedir}" />
+                  <arg value="-i"/>
+                  <arg value="src/main/clj/com/github/kyleburton/code_gen.clj"/>
+                  <arg value="-e"/>
+                 <arg value="(com.github.kyleburton.code-gen/-main)"/>
+              </java>
+             </tasks>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
     </plugins>
   </build>
 
@@ -70,5 +120,39 @@
       <version>3.8.1</version>
       <scope>test</scope>
     </dependency>
+
+    <dependency>
+      <groupId>org.clojure</groupId>
+      <artifactId>clojure</artifactId>
+      <version>1.0.0</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.clojure</groupId>
+      <artifactId>clojure-contrib</artifactId>
+      <version>1.0.0</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.clojure</groupId>
+      <artifactId>swank-clojure</artifactId>
+      <version>1.0</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>1.4</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.github.kyleburton</groupId>
+      <artifactId>clj-xpath</artifactId>
+      <version>1.0.6</version>
+    </dependency>
+
   </dependencies>
 </project>

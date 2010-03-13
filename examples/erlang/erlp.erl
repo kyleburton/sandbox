@@ -708,3 +708,28 @@ receivingFunction() ->
 
 %% it looks like pcre compatible-ish was introduced in the 're'
 %% module, booyah!
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%% This is part of my learning Erlang process.
+%%
+%% Erlang ships with 2 regular expression modules.  The first, which
+%% is older, is 'regex', the second, which is newer, is 're'.  The
+%% latter is based on an EEP11 [1] which was accepted and is included
+%% in the R13 releases of Erlang.  re is based on PCRE [2], a Perl
+%% compatible regular expression library.  It targets the regular
+%% expression functionality initially implemented in Perl 5.  The Perl
+%% 5 regular expression feature set is the most widely implemented
+%% advanced regular expresison support, having equivalents in many
+%% other languages (Java, Python, Ruby, etc.).
+%%
+%%
+%%
+%% [1] http://www.erlang.org/eeps/eep-0011.html
+%% [2] http://www.pcre.org/
+
+%% re:split("a,b,c",",",[{return,list}]).
+%% re:split("a,b,c","(,)",[{return,list}]).
+%% re:split("a,b,c",",",[{return,list},{parts,2}]).
+%% re:split("a,b,c","(,)",[{return,list},{parts,2}]).

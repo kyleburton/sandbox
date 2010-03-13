@@ -272,7 +272,7 @@
 (defn doc-class [thing]
   "Prints (to *out*) a summary of the class, it's members and its
 methods."
-  (let [tclass (if (instance? Class (class thing))
+  (let [tclass (if (isa? (class thing) Class)
                  (identity thing)
                  (class thing))
         trimmer (make-subst-fn "java.lang." "")]
