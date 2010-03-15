@@ -1,4 +1,0 @@
-MVN_REPO="$HOME/.m2/repository"
-CLASSPATH="$MVN_REPO/org/clojure/clojure/1.0.0/clojure-1.0.0.jar:$MVN_REPO/org/clojure/clojure-contrib/1.0.0/clojure-contrib-1.0.0.jar:."
-
-java -cp "$CLASSPATH" "$@"

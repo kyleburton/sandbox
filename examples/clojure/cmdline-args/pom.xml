@@ -1,36 +1,38 @@
+
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.github.kyleburton</groupId>
-  <artifactId>clojure-examples</artifactId>
+  <artifactId>cmdline-example</artifactId>
   <version>1.0</version>
   <packaging>jar</packaging>
-  <name>Clojure Examples</name>
-  <description>Clojure and Clojure Contrib Examples</description>
+  <name>cmdline-args</name>
+  <description>*no-description*</description>
   <url>http://github.com/kyleburton/sandbox</url>
-  <inceptionYear>2009</inceptionYear>
+  <inceptionYear>2010</inceptionYear>
 
   <developers>
-   <developer>
-      <id>kburton</id>
+    <developer>
+      <id>kyleburton</id>
       <name>Kyle Burton</name>
       <email>kyle.burton@gmail.com</email>
     </developer>
   </developers>
 
   <issueManagement>
-    <system>**none**</system>
-    <url>http://github.com/kyleburton/sandbox/**none**</url>
+    <system>GitHub Issue Tracker</system>
+    <url>http://github.com/kyleburton/*project*/issues</url>
   </issueManagement>
 
   <repositories>
-    <!-- Rejpository for swank-clojure -->
+    <!-- Rejpository for swank-clojure (we still need our own clojure and contrib since they're customized). -->
     <repository>
       <id>clojars</id>
       <url>http://clojars.org/repo/</url>
     </repository>
   </repositories>
+
 
   <build>
     <plugins>
@@ -100,20 +102,21 @@
         <artifactId>maven-antrun-plugin</artifactId>
         <executions>
           <execution>
-            <id>install-scripts</id>
-            <phase>compile</phase>
+            <id>Helper Scripts</id>
+            <phase>generate-sources</phase>
             <configuration>
               <tasks>
-                <property name="bin.dir"                              value="${project.build.directory}/../bin" />
-                <property name="maven.runtime.classpath " refid="maven.runtime.classpath"  />
-                <property name="maven.test.classpath"        refid="maven.test.classpath"  />
-                <property name="test.classpath"                   refid="maven.test.classpath"  />
-                <property name="project.build.directory"     value="${project.build.directory}"  />
-                <property name="group.id"                          value="${project.groupId}"  />
-                <property name="artifact.id"                        value="${project.artifactId}"  />
-                <property name="version"                            value="${project.version}"  />
-                <property name="basedir"                            value="${basedir}"  />
-               <filter token="maven.runtime.classpath"
+                <property name="bin.dir" value="${project.build.directory}/../bin" />
+                <property name="maven.runtime.classpath" refid="maven.runtime.classpath"  />
+                <property name="maven.test.classpath" refid="maven.test.classpath"  />
+                <property name="test.classpath" refid="maven.test.classpath"  />
+                <property name="project.build.directory" value="${project.build.directory}"  />
+                <property name="group.id" value="${project.groupId}"  />
+                <property name="artifact.id" value="${project.artifactId}"  />
+                <property name="version" value="${project.version}"  />
+                <property name="basedir" value="${basedir}"  />
+                <echo message="INSTALL-SCRIPTS" />
+                <filter token="maven.runtime.classpath"
                         value="${maven.runtime.classpath}:${project.build.directory}/../src/main/clj" />
                 <filter token="maven.test.classpath"
                         value="${maven.test.classpath}:${project.build.directory}/../src/main/clj" />
@@ -126,7 +129,8 @@
                 <filter token="basedir" value="${basedir}" />
                 <mkdir dir="${bin.dir}" />
                 <copy file="${basedir}/src/main/sh/repl"             todir="${bin.dir}" filtering="on" overwrite="true" />
-               <copy file="${basedir}/src/main/emacs/slime-incl.el" todir="${bin.dir}" filtering="on" overwrite="true" />
+                <copy file="${basedir}/src/main/sh/runner.sh"        todir="${bin.dir}" filtering="on" overwrite="true" />
+                <copy file="${basedir}/src/main/emacs/slime_incl.el" todir="${bin.dir}" filtering="on" overwrite="true" />
                 <chmod dir="${bin.dir}" type="file" perm="0755" includes="repl,*.sh" verbose="true" />
               </tasks>
             </configuration>
@@ -173,27 +177,16 @@
       <version>3.8.1</version>
       <scope>test</scope>
     </dependency>
-   <dependency>
-      <groupId>commons-httpclient</groupId>
-      <artifactId>commons-httpclient</artifactId>
-      <version>3.1</version>
-    </dependency>
     <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
       <version>1.4</version>
     </dependency>
 
-   <dependency>
+    <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>swank-clojure</artifactId>
       <version>1.0</version>
-    </dependency>
-
-    <dependency>
-      <groupId>javax.mail</groupId>
-      <artifactId>mail</artifactId>
-      <version>1.4.1</version>
     </dependency>
 
   </dependencies>
@@ -206,5 +199,6 @@
       </plugin>
     </plugins>
   </reporting>
+
 
 </project>

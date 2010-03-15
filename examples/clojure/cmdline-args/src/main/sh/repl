@@ -1,3 +1,7 @@
+
+---
+perms: 755
+---
 CLASSPATH="@maven.test.classpath@:@basedir@/src/test/clj"
 
 if [ -z "$JDWP_PORT" ]; then
