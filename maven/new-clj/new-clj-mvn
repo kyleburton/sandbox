@@ -72,7 +72,7 @@ module Maven
     def mvn_proj_dir_skeleton
       [
        [:gen_file_from_template, :mvn_pom,      './pom.xml'],
-       "./src/main/clj/#{@properties['project.groupId'].split('.').join('/')}/#{@properties['project.artifactId']}",
+       "./src/main/clj/#{@properties['project.groupId'].split('.').join('/')}/#{@properties['project.artifactId'].gsub('-','_')}",
        [:gen_file_from_template, :main_clj,     "./src/main/clj/#{@properties['project.groupId'].split('.').join('/')}/#{@properties['project.artifactId']}/main.clj"],
        './bin',
        './src/main/clj',
@@ -105,6 +105,7 @@ module Maven
     def run
       load_props
       @properties['project.artifactId'] ||= project_name
+      @properties['project.artifactId.className'] = @properties['project.artifactId'].gsub '-', '_'
       puts "Using Properties:"
       @properties.each do |prop,val|
         printf "  %30s = '%s'\n", prop, val
@@ -262,8 +263,8 @@ __MVN_POM__
         <artifactId>maven-antrun-plugin</artifactId>
         <executions>
           <execution>
-            <id>install-scripts</id>
-            <phase>compile</phase>
+            <id>Helper Scripts</id>
+            <phase>generate-sources</phase>
             <configuration>
               <tasks>
                 <property name="bin.dir" value="${project.build.directory}/../bin" />
@@ -402,14 +403,14 @@ java -server \
   "$@"
 __REPL__
 __RUNNER__
-JAR_WITH_DEP=@target.directory@/@artifact.id@-@version@-jar-with-dependencies.jar
+JAR_WITH_DEP=@target.directory@/@maven.test.classpath@
 CLASSPATH="$JAR_WITH_DEP"
 
 java -server \
     -Xdebug \
     -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8886 \
     -cp "$CLASSPATH" \
-    {{project.groupId}}.{{project.artifactId}}.main \
+    {{project.groupId}}.{{project.artifactId.className}}.main \
     "@target.directory@/classes/swank_runner.clj" \
     "$@"
 __RUNNER__
