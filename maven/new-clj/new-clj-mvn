@@ -374,7 +374,7 @@ log4j.appender.console.layout.ConversionPattern=[%-5p %d] %F:%L - %m%n
 
 # File logger
 log4j.appender.rolling=org.apache.log4j.RollingFileAppender
-log4j.appender.rolling.File={{project.base.dir}}/log/application.log
+log4j.appender.rolling.File=log/application.log
 log4j.appender.rolling.MaxFileSize=10MB
 log4j.appender.rolling.MaxBackupIndex=100
 log4j.appender.rolling.layout=org.apache.log4j.PatternLayout
@@ -386,9 +386,6 @@ __SWANK_RUNNER_CLJ__
 (swank.swank/start-server "/tmp/algoconnect-services.port" :encoding "iso-latin-1-unix" :port 4005)
 __SWANK_RUNNER_CLJ__
 __REPL__
----
-perms: 755
----
 CLASSPATH="@maven.test.classpath@:@basedir@/src/test/clj"
 
 if [ -z "$JDWP_PORT" ]; then
@@ -403,8 +400,7 @@ java -server \
   "$@"
 __REPL__
 __RUNNER__
-JAR_WITH_DEP=@target.directory@/@maven.test.classpath@
-CLASSPATH="$JAR_WITH_DEP"
+CLASSPATH=@target.directory@/classes:@maven.test.classpath@
 
 java -server \
     -Xdebug \

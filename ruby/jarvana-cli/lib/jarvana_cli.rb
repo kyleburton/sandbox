@@ -1,3 +1,4 @@
+require 'rubygems'
 require 'uri'
 require 'base_app'
 require 'net/http'
@@ -33,6 +34,7 @@ class JarvanaCli < BaseApp
 
     doc = Hpricot::XML(resp.body)
     num_results = (doc/:resultSize)
+    puts "Results for #{term} => '#{num_results}"
     if 0 == num_results.to_i
       puts "No results found for #{term}"
     end
