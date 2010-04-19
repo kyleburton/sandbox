@@ -418,7 +418,7 @@ __MAIN_CLJ__
   (prn "This project is in need of a main indeed."))
 __MAIN_CLJ__
 __SLIME_INCL_EL__
-(setq slime-lisp-implementations
+(add-to-list 'slime-lisp-implementations
       '(({{project.name}} ("@bin.dir@/repl")
                      :init swank-clojure-init
                      :init-function krb-swank-clojure-init)))
