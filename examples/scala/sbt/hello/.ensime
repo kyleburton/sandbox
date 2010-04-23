@@ -1,0 +1,13 @@
+(
+:server-root "/Users/kburton/personal/projects/krbemacs/ensime"
+:server-cmd "bin/server.sh"
+:server-host "localhost"
+:server-env ()
+
+:project-package "com.ensime"
+:source ("src/main/scala")
+:exclude-source ()
+:classpath ("lib/jnotify/jnotify-0.93.jar"
+"lib/scala/scala-library.jar"
+"lib/scala/scala-compiler.jar")
+)

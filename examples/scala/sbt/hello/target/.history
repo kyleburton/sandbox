@@ -1,0 +1,76 @@
+run
+quit
+run
+quit
+pom
+actions
+make-pom
+quit
+console
+current
+help
+get watchPaths
+get
+get *
+sh
+quit
+cc
+run
+cc
+ru
+run 
+val foo = "net.disabler.dispatch" %%
+quit
+console-project 
+actions
+compile 
+project-con
+console-project 
+compile 
+run
+quit
+actions
+help run
+actions run
+actions
+run shapes.TestMe
+quit
+help
+projects
+actions
+console-project 
+compile 
+run
+reload
+run
+quit
+compile 
+run
+compile
+run
+compile; run
+compile
+run
+cc
+run
+console-project 
+c
+cc
+run
+quit
+compile
+run
+console
+clean
+compile
+console
+quit
+clean
+compile
+console
+quit
+compile
+cc
+compile 
+quit
+compile
