@@ -14,6 +14,7 @@ package shapes {
 
   class Circle(val center: Point, val radius: Double) extends Shape {
     def draw = println("Circle:draw: " + this)
+    pri
     override def toString = "Circle(" + center + "," + radius + ")"
   }
 
