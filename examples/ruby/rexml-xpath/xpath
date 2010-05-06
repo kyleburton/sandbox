@@ -1,0 +1,29 @@
+#!/usr/bin/env ruby
+#:set filetype=ruby
+#:syn on
+
+require 'rexml/document'
+include REXML
+
+input = $stdin
+xpaths = ARGV
+
+if $stdin.tty?
+ # input = File.open(xpaths.shift,'r')
+  xmlfile = File.new(xpaths.shift)
+else
+  xmlfile = $stdin
+end
+
+unless xpaths
+  raise "Error: you must supply an xpath expression."
+end
+
+xmldoc = Document.new(xmlfile)
+
+xpaths.each do |xpath|
+  XPath.each(xmldoc, xpath) do |res|
+    puts res
+  end
+end
+
