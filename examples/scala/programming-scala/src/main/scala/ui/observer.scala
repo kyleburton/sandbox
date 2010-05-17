@@ -9,3 +9,6 @@ trait Subject {
   def notifyObservers = observers foreach (_.receiveUpdate(this))
 }
 
+import Subject.Observer
+
+
