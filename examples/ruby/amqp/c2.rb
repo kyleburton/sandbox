@@ -10,6 +10,7 @@ class Thing
       :user => 'mapper',
       :pass => 'testing',
       :host => 'localhost',
+      :vhost => '/test/exchange'
     }
   end
 
@@ -41,7 +42,7 @@ class Thing
       #Signal.trap('TERM') { $stderr.puts "[#{$$}] TERM: AMQP.stop"; AMQP.stop{ EM.stop } }
 
       # test_exchange = MQ.queue '/rn/test-exchange', :durable => true
-      queue = amq.queue '/rn/test-exchange', :durable => true
+      queue = amq.queue 'messages', :durable => true
       $stderr.puts "queue: #{queue.class}"
       queue.subscribe(:ack => true) do |hdr, msg|
         $stderr.puts "[#{$$}] hdr: #{hdr}"
