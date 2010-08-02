@@ -1,0 +1,105 @@
+#!/usr/bin/env ruby -w
+# adapted from: http://snippets.dzone.com/posts/show/820
+begin
+  require 'active_support'
+rescue LoadError => e
+  raise "Error: unable to load active_support: you must run this as: script/runner #{$0} from your RAILS_ROOT directory."
+end
+
+Relation = Struct.new("Relation", :parent, :child, :relation, :options)
+
+def gendot(dir,outp)
+  nodes = []
+  relations = []
+  cur_model = ''
+  
+  base = File.join(dir, 'app', 'models')
+  Dir.new(base).each do |fname|
+    next if fname =~ /^\./
+    File.open(File.join(base,fname)) do |handle|
+      handle.each do |line|
+        if line =~ /class\s+(\S+)\s+<\s+(\S*)/
+          if $2 != "ActiveRecord::Base"
+            cur_model = "#{$1} [shape=box,bottomlabel=\"#{$2}\"]"
+          else
+            cur_model = $1
+          end
+          nodes << cur_model
+        elsif line =~ /^\s*([A-Za-z_0-9]+)\s*(.*)/
+          #$stderr.puts "  Found >>#{$1}<< >>#{$2}<< >>#{line.strip}<<"
+          relation = $1
+          opts = $2.split(/\s*[,:]+\s*/).delete_if {|elem| elem.empty? }
+          
+          #$stderr.puts "  Found #{relation} - #{opts.inspect} -- >>#{$2}<< >>#{line.strip}<<"
+          case relation
+            when 'has_one'	
+              relations << Relation.new(cur_model, opts[0].classify, relation)
+              
+            when 'has_many'	
+              relations << Relation.new(cur_model, opts[0].classify, relation, 'arrowhead' => 'inv')
+              
+            when 'has_and_belongs_to_many'	
+              relations << Relation.new(cur_model, opts[0].classify, 'fix', 'dir' => 'both')
+              
+            when 'belongs_to'
+              relations << Relation.new(cur_model, opts[0].classify, relation, 'label' => "belongs_to", "style" => "dashed")
+              
+            when 'acts_as_tree'
+              relations << Relation.new(cur_model, cur_model, relation)
+              
+            else	
+              #$stderr.puts "  *** NOT FOUND #{$1} ***"
+          end
+        end
+      end
+    end
+  end
+  
+  # look for duplicate has_and_belongs_to_many relations
+  relations.each do |a|
+    if a.relation == "fix"
+      a.relation = "has_and_belongs_to_many" 
+      #$stderr.puts "Checking #{a.inspect}"
+      relations.delete_if { |b| b.relation == "fix" && a.parent == b.child && a.child = b.parent }
+    end
+  end
+  
+  outp.puts "digraph simple {"
+  outp.puts nodes.join("\n")
+  relations.each do |rel|
+    #rel.label = rel.relation unless rel.label
+    outp.print "#{rel.parent}->#{rel.child}"
+    rel.options = {} unless rel.options
+    if rel.options 
+      rel.options['label'] = rel.relation unless rel.options['label']
+      outp.print " ["
+      opts = rel.options.map do |k,v|
+        k + "=" +
+        if k == "label"
+          %Q["#{v}"]
+        else
+          v
+        end
+      end
+      outp.print opts.join(",")
+      outp.print "]"
+    end
+    outp.puts 
+  end
+  outp.puts "}"
+end
+
+# TODO support some command line options: --help,  --project=prj, --image-file=file.png, --dot-output=file.dot
+dir = '.'
+image_file = ARGV.shift || 'active-record-data-model.png'
+dot_file = "./active-record-data-model.dot"
+File.open(dot_file,"w") do |f|
+  $stderr.puts "writing model graph to #{dot_file}"
+  gendot(dir,f)
+  $stderr.puts "...done"
+end
+
+# railmodel myrailapp | dot -Tpng > myrailmodel.png
+$stderr.puts "calling dot..."
+system("dot","-Tpng","-o#{image_file}",dot_file)
+$stderr.puts "...done"
