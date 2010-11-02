@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby -w
 # adapted from: http://snippets.dzone.com/posts/show/820
+
 begin
   require 'active_support'
 rescue LoadError => e

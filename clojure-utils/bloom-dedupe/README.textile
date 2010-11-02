@@ -1,0 +1,8 @@
+h1. Companion Code for blog post 
+
+This is companion code for the blog post: "Finding the Needles in a Haystack; Or: Finding Duplicates With a Bloom Filter in Two Passes":http://asymmetrical-view.com/in_development/2010-10-28-finding-the-needles-in-a-haystack-with-a-bloom-filter-in-two-passes.html
+
+
+h2. gen-phone-file.rb
+
+Generates a data file to use for input.
