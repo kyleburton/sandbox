@@ -8,6 +8,7 @@
     Consumer
     AlreadyClosedException
     ReturnListener
+    ConfirmListener
     MessageProperties
     Envelope
     AMQP$BasicProperties
@@ -33,16 +34,23 @@
   (if (contains? conn :connections)
     (doseq [conn (:connections conn)]
       (ensure-connection! conn))
-    (when-not (:channel @conn)
+    (when (nil? (:channel @conn))
       (let [factory (aprog1
                         (ConnectionFactory.)
-                      (.setUsername it    (:user  @conn "guest"))
-                      (.setPassword it    (:pass  @conn "guest"))
-                      (.setVirtualHost it (:vhost @conn "/"))
-                      (.setHost        it (:host  @conn "localhost"))
-                      (.setPort        it (:port  @conn 5672)))
+                      (.setConnectionTimeout it (:connection-timeout @conn 0))
+                      (.setUsername          it (:user  @conn "guest"))
+                      (.setPassword          it (:pass  @conn "guest"))
+                      (.setVirtualHost       it (:vhost @conn "/"))
+                      (.setHost              it (:host  @conn "localhost"))
+                      (.setPort              it (:port  @conn 5672)))
             connection (.newConnection factory)
             channel    (.createChannel connection)]
+        (log/infof "ensure-connection!: %s" @conn)
+        (when (:use-confirm @conn)
+          (log/infof "using confirmSelect")
+          (.confirmSelect channel))
+        (when (:use-transactions @conn)
+          (.txSelect channel))
         (swap! conn assoc
                :factory factory
                :connection connection
@@ -91,69 +99,15 @@
      (:queue-autodelete @conn (if-not (nil? autodelete) autodelete false))
      (:queue-arguments  @conn (or arguments {})))))
 
-(defn queue-bind [conn & [queue-name exchange-name routing-key]]
+(defn queue-bind! [conn & [queue-name exchange-name routing-key]]
   (if (contains? @conn :connections)
     (doseq [conn (:connections @conn)]
-      (queue-bind conn queue-name exchange-name routing-key))
+      (queue-bind! conn queue-name exchange-name routing-key))
     (.queueBind
      (:channel          @conn)
      (:queue-name       @conn (or queue-name    ""))
      (:exchange-name    @conn (or exchange-name ""))
      (:routing-key      @conn (or routing-key   *default-routing-key*)))))
-
-(defn publish-1 [^Atom conn ^String exchange ^String routing-key ^Boolean mandatory ^Boolean immediate ^AMQP$BasicProperties props ^bytes body]
-  (try
-   (printf "immediate=%s;mandatory=%s publishing to %s\n" immediate mandatory @conn)
-   (.basicPublish
-    (:channel @conn)
-    exchange
-    routing-key
-    mandatory
-    immediate
-    props
-    body)
-   (printf "Publish Succeeded: exchange:%s routing-key:%s\n" exchange routing-key)
-   {:res true :ex nil}
-   (catch AlreadyClosedException ex
-     (printf "Error publishing: %s\n" ex)
-     (.printStackTrace ex)
-     (log/warnf "Error during one of the publishes to: %s : %s\n" conn ex)
-     (close-connection! conn)
-     (printf "closed connection: %s\n" conn)
-     {:res false :ex ex})
-   (catch IOException ex
-     (printf "Error publishing: %s\n" ex)
-     (.printStackTrace ex)
-     (log/warnf "Error during one of the publishes to: %s : %s\n" conn ex)
-     (close-connection! conn)
-     (printf "closed connection: %s\n" conn)
-     {:res false :ex ex})))
-
-(defn publish [^Map conn ^String exchange ^String routing-key ^Boolean mandatory ^Boolean immediate ^AMQP$BasicProperties props ^bytes body retries & [errors]]
-  (when (< retries 1)
-    (log/errorf "Error: exceeded max retries for publish %s" @conn)
-    (doseq [err errors]
-      (log/errorf err))
-    (raise (RuntimeException. "Error: exceeded max retries for publish." (first errors))))
-  (do
-    (ensure-connection! conn)
-    ;; try publishing to all, ensure we publish to at least 1
-    (let [num-published  (atom 0)
-          pub-errs       (atom [])
-          mandatory      (or mandatory true)
-          immediate      (or immediate true)
-          message-props  (or props MessageProperties/PERSISTENT_TEXT_PLAIN)]
-      (doseq [conn (:connections conn)]
-        (let [res (publish-1 conn exchange routing-key mandatory immediate props body)]
-          (if (:res res)
-            (swap! num-published inc)
-            (swap! pub-errs conj (:ex res)))))
-      (if (zero? @num-published)
-        (do
-          (printf "num-published was %s, recursing...\n" @num-published)
-          (publish conn exchange routing-key mandatory immediate props body (dec retries) (concat errors @pub-errs)))
-        (printf "looks like we published to %s brokers." @num-published)))))
-
 
 (defn make-consumer [conn handlers]
   (let [default-handler (fn [& args]
@@ -196,6 +150,154 @@
      :type     :return-listener
      :listener return-listener}))
 
+
+(defn make-confirm-listener [conn handlers]
+  (let [ack-fn  (:handle-ack handlers)
+        nack-fn (:handle-nack handlers)
+        confirm-listener
+        (proxy
+            [ConfirmListener]
+            []
+          (handleAck [delivery-tag multiple]
+                     (ack-fn conn this delivery-tag multiple))
+          (handleNack [delivery-tag multiple]
+                      (nack-fn conn this delivery-tag multiple)))]
+    {:conn     conn
+     :type     :confirm-listener
+     :listener confirm-listener}))
+
+
+(defn attach-listener! [conn listener]
+  (let [listener-type (:type listener)
+        channel       (:channel @conn)
+        listener      (:listener listener)]
+    ;;(log/debugf "attaching listener: %s/%s to %s" listener-type listener @conn)
+    (cond
+      (= :consumer listener-type)
+      (do
+        (.basicConsume channel
+                       (:queue-name   @conn)
+                       (:auto-ack     @conn false)
+                       (:consumer-tag @conn "")
+                       listener))
+      (= :return-listener listener-type)
+      (.setReturnListener channel  listener)
+      (= :confirm-listener listener-type)
+      (.setConfirmListener channel listener)
+      (= :default-consumer listener-type)
+      (.setDefaultConsumer channel listener)
+      (= :flow-listener     listener-type)
+      (.setFlowListener    channel listener)
+      :else
+      (raise "Error: unrecognized listener type: %s (not one of: :consumer or :return-listener)" listener-type)))  )
+
+(defn ensure-publisher [conn]
+  (if (contains? conn :connections)
+    (doseq [conn (:connections conn)]
+      (ensure-publisher conn))
+    (when (nil? (:channel conn))
+      (ensure-connection! conn)
+      (exchange-declare!  conn)
+      (queue-declare!     conn)
+      (queue-bind!        conn)
+      (swap! conn
+             assoc
+             :message-acks
+             (java.util.concurrent.ConcurrentHashMap.))
+      (attach-listener!
+       conn
+       (make-return-listener
+        conn
+        {:handle-return
+         (fn [conn listener reply-code reply-text exchange routing-key props body]
+           (let [msg (format "RETURNED: conn=%s code=%s text=%s exchange=%s routing-key:%s props=%s body=%s"
+                             @conn
+                             reply-code
+                             reply-text
+                             exchange
+                             routing-key
+                             props
+                             (String. body))]
+             (log/errorf msg)))}))
+      (attach-listener!
+       conn
+       (make-confirm-listener
+        conn
+        {:handle-ack
+         (fn [conn listener delivery-tag multiple]
+           (log/warnf "handle-ack: %s %s %s" @conn delivery-tag multiple))
+         :handle-nack
+         (fn [conn listener delivery-tag multiple]
+           (log/warnf "handle-nack: %s %s %s" @conn delivery-tag multiple))}))
+      {:res true :ex nil}))
+  conn)
+
+;; NB: for performance, publish-1's use of ensure-publisher will have
+;; to implement a circuit breaker - the timeout on establishing a
+;; connection takes way too long for this to be a viable approach -
+;; it'll end up creating too much back pressure in the event we've got
+;; 1 or more brokers down.
+
+;; NB: how do we handle when the message goes no where?
+;; it's not a confirmListner, b/c in this event the message is returned
+;; when it's returned it doesn't have a sequenceNo on the message, so
+;; there is no way to coorelate the message we attempted to publish
+;; with the one that was returned
+(defn publish-1 [^Atom conn ^String exchange ^String routing-key ^Boolean mandatory ^Boolean immediate ^AMQP$BasicProperties props ^bytes body]
+  (try
+   (ensure-publisher conn)
+   (let [channel (:channel @conn)]
+     (if channel
+       (do
+         (.basicPublish
+          channel
+          exchange
+          routing-key
+          mandatory
+          immediate
+          props
+          body)
+         (if (:use-transactions conn)
+           (.txCommit channel))
+         {:res true :ex nil})
+       {:res false :ex nil}))
+   (catch AlreadyClosedException ex
+     (log/errorf ex "Error publishing to %s: %s" @conn ex)
+     (close-connection! conn)
+     {:res false :ex ex})
+   (catch IOException ex
+     (log/errorf ex "Error publishing to %s: %s" @conn ex)
+     (close-connection! conn)
+     {:res false :ex ex})))
+
+(defn publish [^Map conn ^String exchange ^String routing-key ^Boolean mandatory ^Boolean immediate ^AMQP$BasicProperties props ^bytes body retries & [errors]]
+  (when (< retries 1)
+    (log/errorf "Error: exceeded max retries for publish %s : %s" conn
+                (vec errors))
+    (doseq [err errors]
+      (if err
+        (log/errorf err "Max retries due to: %s" err)))
+    (raise (RuntimeException. "Error: exceeded max retries for publish." (first errors))))
+  ;; this has changed, we need to do a make-publisher if anything has closed
+  ;; (ensure-connection! conn)
+  ;; try publishing to all, ensure we publish to at least 1
+  (let [num-published  (atom 0)
+        pub-errs       (atom [])
+        mandatory      (if-not (nil? mandatory) mandatory true)
+        immediate      (if-not (nil? immediate) immediate true)
+        message-props  (or props MessageProperties/PERSISTENT_TEXT_PLAIN)]
+    (doseq [conn (:connections conn)]
+      (let [res (publish-1 conn exchange routing-key mandatory immediate props body)]
+        (if (:res res)
+          (swap! num-published inc)
+          (swap! pub-errs conj (:ex res)))))
+    (if (zero? @num-published)
+      (do
+        (log/debugf "num-published was %s, recursing..." @num-published)
+        (publish conn exchange routing-key mandatory immediate props body (dec retries) (concat errors @pub-errs)))
+      (log/debugf "looks like we published to %s brokers.\n" @num-published))))
+
+
 (defn shutdown-consumer! [consumer]
   (doseq [listener (:listeners consumer)]
     (cond
@@ -215,33 +317,6 @@
     (close-connection! (:conn listener)))
   consumer)
 
-(defn attach-listener! [conn listener]
-  (let [listener-type (:type listener)
-        channel       (:channel @conn)
-        listener      (:listener listener)]
-    (cond
-      (= :consumer listener-type)
-      (do
-        (printf "attaching consumer...\n")
-        (.basicConsume channel
-                       (:queue-name   @conn)
-                       (:auto-ack     @conn false)
-                       (:consumer-tag @conn "")
-                       listener))
-      (= :return-listener listener-type)
-      (do
-        (printf "attaching return-listener...\n")
-        (.setReturnListener channel
-                            listener))
-      (= :confirm-listener listener-type)
-      (.setConfirmListener channel listener)
-      (= :default-consumer listener-type)
-      (.setDefaultConsumer channel listener)
-      (= :flow-listener     listener-type)
-      (.setFlowListener    channel listener)
-      :else
-      (raise "Error: unrecognized listener type: %s (not one of: :consumer or :return-listener)" listener-type)))  )
-
 (defn start-consumer! [consumer]
   (shutdown-consumer-quietly! consumer)
   (doseq [listener (:listeners consumer)]
@@ -254,7 +329,7 @@
       (ensure-connection! conn)
       (exchange-declare! conn)
       (queue-declare!    conn)
-      (queue-bind        conn)
+      (queue-bind!       conn)
       (attach-listener!  conn listener)))
   consumer)
 
@@ -263,7 +338,7 @@
    conn
    {:handle-return
     (fn [conn listener reply-code reply-text exchange routing-key props body]
-      (let [msg (format "RETURNED: conn=%s code=%s text=%s exchange=%s routing-key:%s props=%s body=%s\n"
+      (let [msg (format "RETURNED: conn=%s code=%s text=%s exchange=%s routing-key:%s props=%s body=%s"
                         @conn
                         reply-code
                         reply-text
@@ -271,7 +346,6 @@
                         routing-key
                         props
                         (String. body))]
-        (println msg)
         (log/errorf msg)))}))
 
 
@@ -287,12 +361,15 @@
             conn
             {:delivery
              (fn [conn consumer consumer-tag envelope properties body]
-               (.println System/err "CONSUMER: got a delivery")
-               (let [msg (String. body)]
-                 (.println System/err (format "CONSUMER: body='%s'\n" msg)))
-               (.basicAck (:channel @conn)
-                          (.getDeliveryTag envelope) ;; delivery tag
-                          false))})                  ;; multiple
+               (try
+                (log/infof "CONSUMER: got a delivery")
+                (let [msg (String. body)]
+                  (log/infof "CONSUMER: body='%s'" msg))
+                (.basicAck (:channel @conn)
+                           (.getDeliveryTag envelope) ;; delivery tag
+                           false)                      ;; multiple
+                (catch Exception ex
+                  (log/errorf ex "Consumer Error: %s" ex))))})
            (make-default-return-listener conn)]}))
 
 
@@ -301,25 +378,33 @@
   (shutdown-consumer-quietly! *c1*)
 
   (do
-   (def *foo*
-        {:connections [(atom {:port 25671
-                              :vhost "/"
-                              :exchange-name "/foof"})
-                       (atom {:port 25672
-                              :vhost "/"
-                              :exchange-name "/foof"})]})
-   (doseq [conn (:connections *foo*)]
-     (close-connection! conn)
-     (ensure-connection! conn)
-     (exchange-declare! conn)
-     (attach-listener! conn
-                       (make-default-return-listener conn))))
-
+    (def *foo*
+         (ensure-publisher
+          {:connections [(atom {:name "rabbit-1"
+                                :port 25671
+                                :use-confirm true
+                                :connection-timeout 10
+                                :queue-name "foofq"
+                                :routing-key ""
+                                :vhost "/"
+                                :exchange-name "/foof"})
+                         (atom {:name "rabbit-2"
+                                :port 25672
+                                :connecton-timeout 10
+                                :use-confirm true
+                                :queue-name "foofq"
+                                :routing-key "#"
+                                :vhost "/"
+                                :exchange-name "/foof"})]})))
 
   (close-connection! *foo*)
+  (.getConfirmListener (:channel @(first (:connections *foo*))))
 
-  (.getReturnListener (:channel @(first  (:connections *foo*))))
-  (.getReturnListener (:channel @(second (:connections *foo*))))
+
+  (.getSocketFactory (:factory @(first (:connections *foo*))))
+
+  (.getConnectionTimeout (:factory @(first (:connections *foo*))))
+  (.getConnectionTimeout (:factory @(second (:connections *foo*))))
 
   (do
     (publish
@@ -327,14 +412,10 @@
      "/foof"
      ""
      true
-     true
+     false
      MessageProperties/PERSISTENT_TEXT_PLAIN
      (.getBytes "hello there")
      2))
-
-
-
-
 
 
   )
