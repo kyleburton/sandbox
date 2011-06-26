@@ -12,9 +12,11 @@
     MessageProperties
     Envelope
     AMQP$BasicProperties
-    ShutdownSignalException])
+    ShutdownSignalException]
+   [com.github.kyleburton.teporingo BreakerOpenException])
   (:require
    [clj-etl-utils.log :as log]
+   [rabbit-client.breaker :as breaker]
    [rn.clorine.pool :as pool]
    [clojure.contrib.json :as json])
   (:use
@@ -191,6 +193,35 @@
       :else
       (raise "Error: unrecognized listener type: %s (not one of: :consumer or :return-listener)" listener-type)))  )
 
+(defn make-publish-circuit-breaker []
+  (breaker/basic-breaker
+   (fn [conn exchange routing-key mandatory immediate props body]
+     (try
+      (ensure-publisher conn)
+      (let [channel (:channel @conn)]
+        (if channel
+          (do
+            (.basicPublish
+             channel
+             exchange
+             routing-key
+             mandatory
+             immediate
+             props
+             body)
+            (if (:use-transactions conn)
+              (.txCommit channel))
+            {:res true :ex nil})
+          {:res false :ex nil}))
+      (catch AlreadyClosedException ex
+        (log/errorf ex "Error publishing to %s: %s" @conn ex)
+        (close-connection! conn)
+        (throw ex))
+      (catch IOException ex
+        (log/errorf ex "Error publishing to %s: %s" @conn ex)
+        (close-connection! conn)
+        (throw ex))))))
+
 (defn ensure-publisher [conn]
   (if (contains? conn :connections)
     (doseq [conn (:connections conn)]
@@ -245,29 +276,15 @@
 ;; with the one that was returned
 (defn publish-1 [^Atom conn ^String exchange ^String routing-key ^Boolean mandatory ^Boolean immediate ^AMQP$BasicProperties props ^bytes body]
   (try
-   (ensure-publisher conn)
-   (let [channel (:channel @conn)]
-     (if channel
-       (do
-         (.basicPublish
-          channel
-          exchange
-          routing-key
-          mandatory
-          immediate
-          props
-          body)
-         (if (:use-transactions conn)
-           (.txCommit channel))
-         {:res true :ex nil})
-       {:res false :ex nil}))
-   (catch AlreadyClosedException ex
-     (log/errorf ex "Error publishing to %s: %s" @conn ex)
+   ((:publish @conn) conn exchange routing-key mandatory immediate props body)
+   (log/infof "publish-1: call to :publish succeeded")
+   {:res true :ex nil}
+   (catch IOException ex
+     (log/errorf ex "Error: conn[%s] initilizing the publisher: %s" @conn ex)
      (close-connection! conn)
      {:res false :ex ex})
-   (catch IOException ex
-     (log/errorf ex "Error publishing to %s: %s" @conn ex)
-     (close-connection! conn)
+   (catch BreakerOpenException ex
+     (log/errorf ex "Error: conn[%s] circuit breaker is open: %s" @conn ex)
      {:res false :ex ex})))
 
 (defn publish [^Map conn ^String exchange ^String routing-key ^Boolean mandatory ^Boolean immediate ^AMQP$BasicProperties props ^bytes body retries & [errors]]
@@ -379,23 +396,24 @@
 
   (do
     (def *foo*
-         (ensure-publisher
-          {:connections [(atom {:name "rabbit-1"
-                                :port 25671
-                                :use-confirm true
-                                :connection-timeout 10
-                                :queue-name "foofq"
-                                :routing-key ""
-                                :vhost "/"
-                                :exchange-name "/foof"})
-                         (atom {:name "rabbit-2"
-                                :port 25672
-                                :connecton-timeout 10
-                                :use-confirm true
-                                :queue-name "foofq"
-                                :routing-key "#"
-                                :vhost "/"
-                                :exchange-name "/foof"})]})))
+         {:connections [(atom {:name "rabbit-1"
+                               :port 25671
+                               :use-confirm true
+                               :connection-timeout 10
+                               :queue-name "foofq"
+                               :routing-key ""
+                               :vhost "/"
+                               :exchange-name "/foof"
+                               :publish (make-publish-circuit-breaker)})
+                        (atom {:name "rabbit-2"
+                               :port 25672
+                               :connecton-timeout 10
+                               :use-confirm true
+                               :queue-name "foofq"
+                               :routing-key "#"
+                               :vhost "/"
+                               :exchange-name "/foof"
+                               :publish (make-publish-circuit-breaker)})]}))
 
   (close-connection! *foo*)
   (.getConfirmListener (:channel @(first (:connections *foo*))))
