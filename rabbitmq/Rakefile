@@ -15,6 +15,11 @@ def rabbitmqctl node, action, *args
 end
 
 namespace :rabbit do
+  desc "tail log files"
+  task :tail_logs do
+    system "bash", "-c", "tail -f ~/tmp/harabbit/rabbit*/logs/rabbit0*.log"
+  end
+
   RABBIT_NODES.each do |node|
     name = node[:name]
     tname = "start_#{name}"
@@ -57,7 +62,7 @@ namespace :rabbit do
   task :list_queues, :vhost do |t,args|
     vhost = args[:vhost] || "/"
     RABBIT_NODES.each do |node|
-      name = noename node
+      name = nodename node
 
       puts [ "name", "durable", "auto_delete", "arguments", "pid", "owner_pid",
         "exclusive_consumer_pid", "exclusive_consumer_tag", 
@@ -75,4 +80,11 @@ namespace :rabbit do
     end
   end
 
+  desc "run haproxy"
+  task :run_haproxy do
+    cmd = %w|haproxy -V -db -f config/haproxy/haproxy-amqp.conf|
+    system *cmd
+  end
 end
+
+
