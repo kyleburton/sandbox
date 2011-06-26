@@ -6,6 +6,7 @@
     Connection
     Channel
     Consumer
+    AlreadyClosedException
     ReturnListener
     MessageProperties
     Envelope
@@ -26,6 +27,7 @@
 ;; contains the connection information and broker credentails, along
 ;; with the connection information and credentials
 
+(def *default-routing-key* "#")
 
 (defn ensure-connection! [conn]
   (if (contains? conn :connections)
@@ -97,7 +99,7 @@
      (:channel          @conn)
      (:queue-name       @conn (or queue-name    ""))
      (:exchange-name    @conn (or exchange-name ""))
-     (:routing-key      @conn (or routing-key   "")))))
+     (:routing-key      @conn (or routing-key   *default-routing-key*)))))
 
 (defn publish-1 [^Atom conn ^String exchange ^String routing-key ^Boolean mandatory ^Boolean immediate ^AMQP$BasicProperties props ^bytes body]
   (try
@@ -110,8 +112,15 @@
     immediate
     props
     body)
-   (printf "Publish Succeeded: %s/%s\n" exchange routing-key)
+   (printf "Publish Succeeded: exchange:%s routing-key:%s\n" exchange routing-key)
    {:res true :ex nil}
+   (catch AlreadyClosedException ex
+     (printf "Error publishing: %s\n" ex)
+     (.printStackTrace ex)
+     (log/warnf "Error during one of the publishes to: %s : %s\n" conn ex)
+     (close-connection! conn)
+     (printf "closed connection: %s\n" conn)
+     {:res false :ex ex})
    (catch IOException ex
      (printf "Error publishing: %s\n" ex)
      (.printStackTrace ex)
@@ -234,27 +243,28 @@
       (raise "Error: unrecognized listener type: %s (not one of: :consumer or :return-listener)" listener-type)))  )
 
 (defn start-consumer! [consumer]
+  (shutdown-consumer-quietly! consumer)
   (doseq [listener (:listeners consumer)]
     (let [conn          (:conn listener)
           channel       (:channel   @conn)
           exchange-name (:exchange-name  @conn "")
           queue-name    (:queue-name @conn "")
-          routing-key   (:routing-key @conn "")
+          routing-key   (:routing-key @conn *default-routing-key*)
           listener-type (:type listener)]
       (ensure-connection! conn)
       (exchange-declare! conn)
-      (queue-declare! conn)
-      (queue-bind conn)
-      (attach-listener! conn listener)))
+      (queue-declare!    conn)
+      (queue-bind        conn)
+      (attach-listener!  conn listener)))
   consumer)
-
 
 (defn make-default-return-listener [conn]
   (make-return-listener
    conn
    {:handle-return
     (fn [conn listener reply-code reply-text exchange routing-key props body]
-      (let [msg (format "RETURNED: code=%s text=%s exchange=%s routing-key:%s props=%s body=%s"
+      (let [msg (format "RETURNED: conn=%s code=%s text=%s exchange=%s routing-key:%s props=%s body=%s\n"
+                        @conn
                         reply-code
                         reply-text
                         exchange
@@ -269,15 +279,20 @@
 
   (def *c1*
        (let [conn (atom {:port 25672
-                         :exchange-name   "test"
-                         :queue-name "/"})]
+                         :vhost           "/"
+                         :exchange-name   "/foof"
+                         :queue-name      "foofq"})]
          {:listeners
           [(make-consumer
             conn
-            {:delivery (fn [conn consumer consumer-tag envelope properties body]
-                         (let [msg (String. body)]
-                           (println "got a delivery! %s\n" msg))
-                         (.basicAck (:channel @conn)))})
+            {:delivery
+             (fn [conn consumer consumer-tag envelope properties body]
+               (.println System/err "CONSUMER: got a delivery")
+               (let [msg (String. body)]
+                 (.println System/err (format "CONSUMER: body='%s'\n" msg)))
+               (.basicAck (:channel @conn)
+                          (.getDeliveryTag envelope) ;; delivery tag
+                          false))})                  ;; multiple
            (make-default-return-listener conn)]}))
 
 
@@ -294,6 +309,7 @@
                               :vhost "/"
                               :exchange-name "/foof"})]})
    (doseq [conn (:connections *foo*)]
+     (close-connection! conn)
      (ensure-connection! conn)
      (exchange-declare! conn)
      (attach-listener! conn
@@ -315,6 +331,10 @@
      MessageProperties/PERSISTENT_TEXT_PLAIN
      (.getBytes "hello there")
      2))
+
+
+
+
 
 
   )
