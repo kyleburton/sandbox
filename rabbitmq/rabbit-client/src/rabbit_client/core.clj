@@ -67,20 +67,20 @@
       (swap! conn dissoc :channel :connection :factory)))
   conn)
 
-(defn exchange-declare [conn & [exchange-name exchange-type exchange-durable]]
+(defn exchange-declare! [conn & [exchange-name exchange-type exchange-durable]]
   (if (contains? @conn :connections)
     (doseq [conn (:connections @conn)]
-      (exchange-declare conn exchange-name exchange-type exchange-durable))
+      (exchange-declare! conn exchange-name exchange-type exchange-durable))
     (.exchangeDeclare
      (:channel          @conn)
      (:exchange-name    @conn exchange-name)
      (:exchange-type    @conn (or exchange-type "direct"))
      (:exchange-durable @conn (or exchange-durable true)))))
 
-(defn queue-declare [conn & [name durable exclusive autodelete arguments]]
+(defn queue-declare! [conn & [name durable exclusive autodelete arguments]]
   (if (contains? @conn :connections)
     (doseq [conn (:connections @conn)]
-      (queue-declare conn name durable exclusive autodelete arguments))
+      (queue-declare! conn name durable exclusive autodelete arguments))
     (.queueDeclare
      (:channel          @conn)
      (:queue-name       @conn name)
@@ -206,6 +206,33 @@
     (close-connection! (:conn listener)))
   consumer)
 
+(defn attach-listener! [conn listener]
+  (let [listener-type (:type listener)
+        channel       (:channel @conn)
+        listener      (:listener listener)]
+    (cond
+      (= :consumer listener-type)
+      (do
+        (printf "attaching consumer...\n")
+        (.basicConsume channel
+                       (:queue-name   @conn)
+                       (:auto-ack     @conn false)
+                       (:consumer-tag @conn "")
+                       listener))
+      (= :return-listener listener-type)
+      (do
+        (printf "attaching return-listener...\n")
+        (.setReturnListener channel
+                            listener))
+      (= :confirm-listener listener-type)
+      (.setConfirmListener channel listener)
+      (= :default-consumer listener-type)
+      (.setDefaultConsumer channel listener)
+      (= :flow-listener     listener-type)
+      (.setFlowListener    channel listener)
+      :else
+      (raise "Error: unrecognized listener type: %s (not one of: :consumer or :return-listener)" listener-type)))  )
+
 (defn start-consumer! [consumer]
   (doseq [listener (:listeners consumer)]
     (let [conn          (:conn listener)
@@ -215,27 +242,28 @@
           routing-key   (:routing-key @conn "")
           listener-type (:type listener)]
       (ensure-connection! conn)
-      (exchange-declare conn)
-      (queue-declare conn)
+      (exchange-declare! conn)
+      (queue-declare! conn)
       (queue-bind conn)
-      (cond
-        (= :consumer listener-type)
-        (do
-          (printf "attaching consumer...\n")
-          (.basicConsume (:channel      @conn)
-                         (:queue-name   @conn)
-                         (:auto-ack     @conn false)
-                         (:consumer-tag @conn "")
-                         (:listener     listener)))
-        (= :return-listener listener-type)
-        (do
-          (printf "attaching return-listener...\n")
-          (.setReturnListener (:channel @conn)
-                              (:listener listener)))
-        ;; TODO: support confirm, default and flow listener types
-        :else
-        (raise "Error: unrecognized listener type: %s (not one of: :consumer or :return-listener)" listener-type))))
+      (attach-listener! conn listener)))
   consumer)
+
+
+(defn make-default-return-listener [conn]
+  (make-return-listener
+   conn
+   {:handle-return
+    (fn [conn listener reply-code reply-text exchange routing-key props body]
+      (let [msg (format "RETURNED: code=%s text=%s exchange=%s routing-key:%s props=%s body=%s"
+                        reply-code
+                        reply-text
+                        exchange
+                        routing-key
+                        props
+                        (String. body))]
+        (println msg)
+        (log/errorf msg)))}))
+
 
 (comment
 
@@ -250,34 +278,38 @@
                          (let [msg (String. body)]
                            (println "got a delivery! %s\n" msg))
                          (.basicAck (:channel @conn)))})
-           (make-return-listener
-            conn
-            {:handle-return
-             (fn [conn listener reply-code reply-text exchange routing-key props body]
-               (let [msg (format "RETURNED: code=%s text=%s exchange=%s routing-key:%s props=%s body=%s"
-                                 reply-code
-                                 reply-text
-                                 exchange
-                                 routing-key
-                                 props
-                                 (String. body))]
-                 (println msg)
-                 (log/errorf msg)))})]}))
+           (make-default-return-listener conn)]}))
 
 
   (start-consumer! *c1*)
 
   (shutdown-consumer-quietly! *c1*)
 
-  (def *foo* {:connections [(atom {:port 25671})
-                            (atom {:port 25672})]})
+  (do
+   (def *foo*
+        {:connections [(atom {:port 25671
+                              :vhost "/"
+                              :exchange-name "/foof"})
+                       (atom {:port 25672
+                              :vhost "/"
+                              :exchange-name "/foof"})]})
+   (doseq [conn (:connections *foo*)]
+     (ensure-connection! conn)
+     (exchange-declare! conn)
+     (attach-listener! conn
+                       (make-default-return-listener conn))))
+
+
   (close-connection! *foo*)
+
+  (.getReturnListener (:channel @(first  (:connections *foo*))))
+  (.getReturnListener (:channel @(second (:connections *foo*))))
 
   (do
     (publish
      *foo*
      "/foof"
-     "/blarf"
+     ""
      true
      true
      MessageProperties/PERSISTENT_TEXT_PLAIN
