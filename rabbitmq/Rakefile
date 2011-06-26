@@ -1,0 +1,78 @@
+RABBIT_NODES = [
+  { :name => 'rabbit01', :host => 'localhost', :port => 15671 },
+  { :name => 'rabbit02', :host => 'localhost', :port => 15672 }
+]
+
+def nodename node
+  "#{node[:name]}@#{node[:host]}"
+end
+
+def rabbitmqctl node, action, *args
+  name = nodename node
+  puts "#{name}"
+  system "rabbitmqctl", "-q", "-n", name, action, *args
+  puts ""
+end
+
+namespace :rabbit do
+  RABBIT_NODES.each do |node|
+    name = node[:name]
+    tname = "start_#{name}"
+    desc "Start #{name}"
+    task tname.to_sym do 
+      ENV['RABBITMQ_NODE_IP_ADDRESS'] = node[:ip] || '127.0.0.1'
+      ENV['RABBITMQ_NODE_PORT']       = node[:port].to_s
+      ENV['RABBITMQ_NODENAME']        = nodename(node)
+      ENV['RABBITMQ_MNESIA_BASE']     = "#{ENV['HOME']}/tmp/harabbit/#{node[:name]}/mnesia"
+      ENV['RABBITMQ_LOG_BASE']        = "#{ENV['HOME']}/tmp/harabbit/#{node[:name]}/logs"
+
+      [ ENV['RABBITMQ_MNESIA_BASE'], ENV['RABBITMQ_LOG_BASE'] ].each do |dir|
+        FileUtils.mkdir_p(dir) unless File.exist?(dir)
+      end
+
+      system "rabbitmq-server"
+    end
+  end
+
+  %w|list_vhosts list_connections list_channels list_users|.each do |cmd|
+    desc cmd
+    task cmd.to_sym do
+      RABBIT_NODES.each do |node|
+        rabbitmqctl node, cmd
+      end
+    end
+  end
+
+  %w|list_permissions list_exchanges list_bidings  list_consumers|.each do |cmd|
+    desc cmd
+    task cmd.to_sym, :vhost do |t,args|
+      vhost = args[:vhost] || "/"
+      RABBIT_NODES.each do |node|
+        rabbitmqctl node, cmd, '-p', vhost
+      end
+    end
+  end
+
+  desc "list queues"
+  task :list_queues, :vhost do |t,args|
+    vhost = args[:vhost] || "/"
+    RABBIT_NODES.each do |node|
+      name = noename node
+
+      puts [ "name", "durable", "auto_delete", "arguments", "pid", "owner_pid",
+        "exclusive_consumer_pid", "exclusive_consumer_tag", 
+        "messages_ready", "messages_unacknowledged", "messages", "consumers", "memory"
+      ].join("\t")
+      rabbitmqctl node, '-p', vhost, "list_queues",
+        "name", "durable", "auto_delete", "arguments", "pid", "owner_pid",
+        "exclusive_consumer_pid", "exclusive_consumer_tag", 
+        "messages_ready", "messages_unacknowledged", "messages", "consumers", "memory"
+
+#      system "rabbitmqctl", "-q", "-n", node, "-p", vhost, "list_queues",
+#        "name", "durable", "auto_delete", "arguments", "pid", "owner_pid",
+#        "exclusive_consumer_pid", "exclusive_consumer_tag", 
+#        "messages_ready", "messages_unacknowledged", "messages", "consumers", "memory"
+    end
+  end
+
+end
