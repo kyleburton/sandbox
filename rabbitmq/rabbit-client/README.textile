@@ -81,7 +81,12 @@ for this.
 
 h2. Example
 
+Given the following Clojure client side code:
+
 <pre class="code">
+    (ns example
+      (:use rabbit-client.core)
+
     (def *publisher*
          {:connections [(atom {:name "rabbit-1"
                                :port 25671
@@ -111,4 +116,35 @@ h2. Example
          (.getBytes "hello there")
          2)
 </pre>
+
+If you invoke the publish with no brokers running you will get an exception
+indicating that the maximum retries has been exceeded (which is 2 in the above
+example).
+
+You can run 2 rabbit instances using the provided Rakefile:
+
+<pre class="code">
+  20:51 kburton@Kyle-Burtons-MacBook-Pro-2: ~/personal/projects/sandbox/rabbitmq (master) 変
+  &gt; rake rabbit:start_rabbit01
+</pre>
+
+And in another terminal:
+
+<pre class="code">
+  20:51 kburton@Kyle-Burtons-MacBook-Pro-2: ~/personal/projects/sandbox/rabbitmq (master) 変
+  &gt; rake rabbit:start_rabbit02
+</pre>
+
+Note that if you tripped both circuit breakers by attempting a publish when no
+brokers were running, you'll have to exhaust the breaker's back off period
+before attempts to publish will resume.
+
+If at least one broker is running, then the publish will succeed.  You can take
+one broker off-line and the library will continue to publish successfuly.  If
+you bring it back on line and allow the breaker to close again, then you can
+take the other broker off line.  As long as one remains running, and at least
+one breaker is closed, publishing will succeed.
+
+In the event that all of your brokers are unreliable, and publishing can not
+succeed, the library will throw an exception when the retries are exhausted.
 
