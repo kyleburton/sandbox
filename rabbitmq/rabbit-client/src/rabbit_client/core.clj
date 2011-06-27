@@ -193,9 +193,10 @@
       :else
       (raise "Error: unrecognized listener type: %s (not one of: :consumer or :return-listener)" listener-type)))  )
 
-(defn make-publish-circuit-breaker []
+(defn make-publish-circuit-breaker [opts]
   (breaker/basic-breaker
    (fn [conn exchange routing-key mandatory immediate props body]
+
      (try
       (ensure-publisher conn)
       (let [channel (:channel @conn)]
@@ -220,7 +221,8 @@
       (catch IOException ex
         (log/errorf ex "Error publishing to %s: %s" @conn ex)
         (close-connection! conn)
-        (throw ex))))))
+        (throw ex))))
+   opts))
 
 (defn ensure-publisher [conn]
   (if (contains? conn :connections)
@@ -287,31 +289,30 @@
      (log/errorf ex "Error: conn[%s] circuit breaker is open: %s" @conn ex)
      {:res false :ex ex})))
 
-(defn publish [^Map conn ^String exchange ^String routing-key ^Boolean mandatory ^Boolean immediate ^AMQP$BasicProperties props ^bytes body retries & [errors]]
+(defn publish [^Map publisher ^String exchange ^String routing-key ^Boolean mandatory ^Boolean immediate ^AMQP$BasicProperties props ^bytes body retries & [errors]]
   (when (< retries 1)
-    (log/errorf "Error: exceeded max retries for publish %s : %s" conn
+    (log/errorf "Error: exceeded max retries for publish %s : %s" publisher
                 (vec errors))
     (doseq [err errors]
       (if err
         (log/errorf err "Max retries due to: %s" err)))
     (raise (RuntimeException. "Error: exceeded max retries for publish." (first errors))))
-  ;; this has changed, we need to do a make-publisher if anything has closed
-  ;; (ensure-connection! conn)
-  ;; try publishing to all, ensure we publish to at least 1
-  (let [num-published  (atom 0)
-        pub-errs       (atom [])
-        mandatory      (if-not (nil? mandatory) mandatory true)
-        immediate      (if-not (nil? immediate) immediate true)
-        message-props  (or props MessageProperties/PERSISTENT_TEXT_PLAIN)]
-    (doseq [conn (:connections conn)]
+  ;; try publishing to all brokers, ensure we publish to at least the min required
+  (let [num-published             (atom 0)
+        min-brokers-published-to  (:min-brokers-published-to publisher 1)
+        pub-errs                  (atom [])
+        mandatory                 (if-not (nil? mandatory) mandatory true)
+        immediate                 (if-not (nil? immediate) immediate true)
+        message-props             (or props MessageProperties/PERSISTENT_TEXT_PLAIN)]
+    (doseq [conn (:connections publisher)]
       (let [res (publish-1 conn exchange routing-key mandatory immediate props body)]
         (if (:res res)
           (swap! num-published inc)
           (swap! pub-errs conj (:ex res)))))
-    (if (zero? @num-published)
+    (if (< @num-published min-brokers-published-to)
       (do
-        (log/debugf "num-published was %s, recursing..." @num-published)
-        (publish conn exchange routing-key mandatory immediate props body (dec retries) (concat errors @pub-errs)))
+        (log/debugf "num-published %s was <%s, retrying..." @num-published min-brokers-published-to)
+        (publish publisher exchange routing-key mandatory immediate props body (dec retries) (concat errors @pub-errs)))
       (log/debugf "looks like we published to %s brokers.\n" @num-published))))
 
 
@@ -394,6 +395,32 @@
 
   (shutdown-consumer-quietly! *c1*)
 
+  (def *c2*
+       (let [conn (atom {:port 25671
+                         :vhost           "/"
+                         :exchange-name   "/foof"
+                         :queue-name      "foofq"})]
+         {:listeners
+          [(make-consumer
+            conn
+            {:delivery
+             (fn [conn consumer consumer-tag envelope properties body]
+               (try
+                (log/infof "CONSUMER: got a delivery")
+                (let [msg (String. body)]
+                  (log/infof "CONSUMER: body='%s'" msg))
+                (.basicAck (:channel @conn)
+                           (.getDeliveryTag envelope) ;; delivery tag
+                           false)                      ;; multiple
+                (catch Exception ex
+                  (log/errorf ex "Consumer Error: %s" ex))))})
+           (make-default-return-listener conn)]}))
+
+  (start-consumer! *c2*)
+
+  (shutdown-consumer-quietly! *c2*)
+
+
   (do
     (def *foo*
          {:connections [(atom {:name "rabbit-1"
@@ -404,7 +431,8 @@
                                :routing-key ""
                                :vhost "/"
                                :exchange-name "/foof"
-                               :publish (make-publish-circuit-breaker)})
+                               :publish (make-publish-circuit-breaker
+                                         {:retry-after 10})})
                         (atom {:name "rabbit-2"
                                :port 25672
                                :connecton-timeout 10
@@ -413,7 +441,8 @@
                                :routing-key "#"
                                :vhost "/"
                                :exchange-name "/foof"
-                               :publish (make-publish-circuit-breaker)})]}))
+                               :publish (make-publish-circuit-breaker
+                                         {:retry-after 10})})]}))
 
   (close-connection! *foo*)
   (.getConfirmListener (:channel @(first (:connections *foo*))))
@@ -424,16 +453,21 @@
   (.getConnectionTimeout (:factory @(first (:connections *foo*))))
   (.getConnectionTimeout (:factory @(second (:connections *foo*))))
 
-  (do
-    (publish
-     *foo*
-     "/foof"
-     ""
-     true
-     false
-     MessageProperties/PERSISTENT_TEXT_PLAIN
-     (.getBytes "hello there")
-     2))
+  (dotimes [ii 100]
+    (try
+     (publish
+      *foo*
+      "/foof"
+      ""
+      true
+      false
+      MessageProperties/PERSISTENT_TEXT_PLAIN
+      (.getBytes (str "hello there:" ii))
+      2)
+     (printf "SUCCESS[%s]: Published to at least 1 broker.\n" ii)
+     (catch Exception ex
+       (printf "FAILURE[%s] %s\n" ii ex))))
+
 
 
   )

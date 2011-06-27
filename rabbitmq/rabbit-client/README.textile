@@ -1,19 +1,54 @@
-h1. Rabbit Client Library
+h1. Teporingo: Clojure RabbitMQ Client Library
 
-h3. Goals
+h3. Library's Goals
 
-The goals I had in mind when I created this were to use AMQP for relaible
-message delivery.  The defualt settings reflect that choice.
+The primary goal I had in mind when I created teporingo was to achieve relaible
+message publishing for clients with HA configurations for RabbitMQ.  
+
+If you're using a single broker and do not require HA, the library will still
+work for you and will hopefuly provide a simplified interface over the Java
+client for interacting with RabbitMQ.
+
+RabbitMQ is the broker that I use, the library is written directly to the Java
+client API, no special considerations have been taken to make the library
+portable to other broker implementations or other AMQP versions.
+
+h3. Dependencies
 
 The library uses the rabbitmq-java-client library version 2.5.0, and uses AMPP
 0.9 by default.
 
-The library is designed around an array of brokers, where a publish will
-attempt to publish to all of the brokers in the array.
+h3. Design
 
-If a message can not be published to at least N brokers (where N is declared in
-the publisher configuration) an exception is thrown allowing callers of the
-client to know that the message could not be reliably delivered.
+The library is designed to use an array of one or more broker configurations,
+where a publish will attempt to publish to all of the configured brokers.
+
+In the case where there is only 1 broker, there will be little to no additional
+robustness over using the Java client library directly.  The retry logic may help 
+with broken connections and where a fresh connection can be established.
+
+This library's design reflects several trade offs.  RabbitMQ has an "HA
+configuation guide":http://www.rabbitmq.com/pacemaker.html.  That configuration
+requires shared disk, as well as a fail-over in the case that the master
+encounters an error. 
+
+One of my goals was to eliminate the posibility of outage during fail-over from
+the master to a slave.  Using multiple, independent brokers, acheives this, the
+trade off having to implement eventual consistency.
+
+Since a message will be published up to N times, where you have N brokers, you
+must ensure messages are processed idempotently by consumers, or you must
+implement deduplication of messages in your consumers.
+"Beetle":http://xing.github.com/beetle/ takes a similar approach publishing to
+multiple brokers and de-duplicating messages on the consumer side by using an
+HA "Redis":http://redis.io/ cluster.
+
+How you do this will be defined by your application's needs and constraints.
+
+If a message can not be published to at least N brokers (where the intention is
+for N to be able to be declared in the publisher configuration, currently the
+library hard-codes N to 1) an exception is thrown allowing callers of the
+client to know that the message could not be reliably delivered to a broker.
 
 If a broker can not be contacted during a publish it will be passed over.  The
 library uses a circuit breaker around the broker connections and will attempt
@@ -28,7 +63,52 @@ If the client library reaches this condition, backpressure will be put on the
 code calling this library based on the time it takes to attempt the broker
 connections.
 
-... 
-Use a background process to re-establish broken connections?  That way
-publish's stay fast, and reconnects still happen ?
-...
+h3. Other Considerations and Future Work
+
+Slow brokers will tie up clients on publish interferring with performance.
+
+The publish circuit breaker could be implemented to use the connection itself
+as the mutex instead of a counter.  A background thread could then be used to
+attempt reconnection to failed brokers, resetting the connection in the
+breaker, thus closing the breaker again.  This would decouple the connection
+attempts from the invocation of publish, allowing messages to be published at
+the fastest rate possible without having to await connection timeouts every X
+failed attempts (as the basic-breaker does now).
+
+This library does not address connection pooling for publishing.  Incorporation
+of "clorine's":https://github.com/relaynetwork/clorine generic pool would allow
+for this.
+
+h2. Example
+
+<pre class="code">
+    (def *publisher*
+         {:connections [(atom {:name "rabbit-1"
+                               :port 25671
+                               :use-confirm true
+                               :queue-name "foofq"
+                               :routing-key ""
+                               :vhost "/"
+                               :exchange-name "/foof"
+                               :publish (make-publish-circuit-breaker)})
+                        (atom {:name "rabbit-2"
+                               :port 25672
+                               :use-confirm true
+                               :queue-name "foofq"
+                               :routing-key "#"
+                               :vhost "/"
+                               :exchange-name "/foof"
+                               :publish (make-publish-circuit-breaker)})]
+        :min-brokers-published-to 2}))
+
+    (publish
+         *publisher*
+         "/foof"
+         ""
+         true
+         false
+         MessageProperties/PERSISTENT_TEXT_PLAIN
+         (.getBytes "hello there")
+         2)
+</pre>
+
