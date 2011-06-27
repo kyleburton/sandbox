@@ -125,14 +125,14 @@ You can run 2 rabbit instances using the provided Rakefile:
 
 <pre class="code">
   20:51 kburton@Kyle-Burtons-MacBook-Pro-2: ~/personal/projects/sandbox/rabbitmq (master) 変
-  &gt; rake rabbit:start_rabbit01
+  > rake rabbit:start_rabbit01
 </pre>
 
 And in another terminal:
 
 <pre class="code">
   20:51 kburton@Kyle-Burtons-MacBook-Pro-2: ~/personal/projects/sandbox/rabbitmq (master) 変
-  &gt; rake rabbit:start_rabbit02
+  > rake rabbit:start_rabbit02
 </pre>
 
 Note that if you tripped both circuit breakers by attempting a publish when no
