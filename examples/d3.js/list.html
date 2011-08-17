@@ -1,0 +1,55 @@
+<html>
+  <head>
+    <title>List Example</title>
+  </head>
+  <body>
+
+  <script type="text/javascript" src="http://mbostock.github.com/d3/d3.js?1.29.1"></script>
+
+<div id="main">
+  <ul id="letters" class="ex1">
+    <li>a</li>
+    <li>b</li>
+    <li>c</li>
+    <li>d</li>
+  </ul>
+
+  <ul id="symbols" class="ex1">
+    <li>!</li>
+    <li>@</li>
+    <li>#</li>
+    <li>$</li>
+  </ul>
+
+  <ul id="filled-from-js">
+  </ul>
+</div>
+
+<script type="text/javascript">
+var App = function () {
+  var self = {};
+
+  self.init = function () {
+    self.updateList();
+  };
+
+  self.updateList = function () {
+    d3.selectAll("ul.ex1")
+      .selectAll("li")
+      .text(function (d,i) { 
+          var originalValue = this.innerHTML;
+          return originalValue + " : I am number " + (1+i) + "!"; 
+          });
+
+    var ul = d3.selectAll("#filled-from-js").selectAll("li")
+      .data([1,2,3,4]);
+    ul.enter().append("li").text(function (d) { return 1.0 + (d/10.0); });
+  };
+
+  return self;
+}();
+
+App.init();
+</script>
+  </body>
+</html>
