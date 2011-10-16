@@ -105,7 +105,7 @@ int main ( int argc, char** argv ) {
     bit_pattern_1();
     rate = t / (time(NULL) - started_at);
     clear_line(); 
-    printf ("% 12ld: %s % 12lu  %3.2f/s", t, int_to_binary_ascii(x), x, rate);
+    printf ("% 12ld: %s %12lu  %3.2f/s", t, int_to_binary_ascii(x), x, rate);
     fflush(stdout);
     adjust();
     if ( ! keep_running ) {
