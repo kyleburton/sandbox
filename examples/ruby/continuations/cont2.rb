@@ -12,13 +12,20 @@ end
 
 def foo
   puts "foo: enter"
+
+  the_fn = lambda do
+    #puts "foo: count=#{$count} callcc res:'#{res}'"
+    puts "foo: count=#{$count}"
+    show_stack
+    $count -= 1
+    bar
+  end
+
   res = callcc do |k|
     $k1 = k
   end
-  puts "foo: count=#{$count} callcc res:'#{res}'"
-  show_stack
-  $count -= 1
-  bar
+
+  the_fn.call
 end
 
 def bar
@@ -30,3 +37,4 @@ def bar
 end
 
 foo
+

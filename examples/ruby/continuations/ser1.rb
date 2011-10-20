@@ -6,13 +6,11 @@ class Foo
   end
 
   def first data
-    #puts "first: #{data.inspect}"
     self.prompt = 'Last Name: '
     self.fname = data.chomp
   end
 
   def second data
-    #puts "second: #{data.inspect}"
     self.lname = data.chomp
   end
 
@@ -33,3 +31,9 @@ def controler
 end
 
 controler
+
+
+
+
+
+
