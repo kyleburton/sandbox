@@ -5,6 +5,7 @@ set -x
 trap "stty sane" INT TERM EXIT
 
 F="$1"
+shift
 
 if [ -e $F ]; then
   SRC=$F
@@ -19,5 +20,5 @@ function compile () {
 
 compile $SRC $F
 stty raw
-./$F
+./$F "$@"
 rm $F
