@@ -11,5 +11,8 @@
 (let ((input "1"))
   (printf "parsing: ~s yields: ~s\n" input (string->sexp input)))
 
+(let [(s "foo,bar,qux,baz")]
+  (printf "~s split on ',' => ~a\n" s (string-split s ",")))
+
 (exit)
 
