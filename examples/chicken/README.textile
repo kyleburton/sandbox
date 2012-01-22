@@ -9,3 +9,9 @@ h2. Examples I want
 * processing yaml, probably via C library libyaml, see: http://pyyaml.org/wiki/LibYAML (exists in homebrew and apt)
 * interacting with a database, eg: postgres and mysql
 * easyweb: spiffy has no routing table to map routes to handlers as with projects like Rails, the more automagical the better.  Also: show cookie support
+* concurrency and threading examples: ipc between threads, mutexes, passing information and coordination
+* examples of non-blocking IO (select, [ke]poll, etc) - maybe even a web server framework
+* sending mail via smtp (there is an smtp egg for chicken v3 but not one for v4 that I was able to find)
+* 0mq
+* amqp interaction, see http://www.rabbitmq.com/c-client.html
+* redis, see http://redis.io/clients and https://github.com/antirez/hiredis, start w/synchronous API
