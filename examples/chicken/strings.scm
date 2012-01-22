@@ -1,6 +1,5 @@
 #!/usr/bin/env csi -q
-(use posix)
-(use ports)
+(use posix ports srfi-13)
 
 
 (define (string->sexp s)
@@ -13,6 +12,9 @@
 
 (let [(s "foo,bar,qux,baz")]
   (printf "~s split on ',' => ~a\n" s (string-split s ",")))
+
+(printf "foo starts with x: ~a\n" (string-prefix? "a" "foo"))
+(printf "foo starts with f: ~a\n" (string-prefix? "f" "foo"))
 
 (exit)
 
