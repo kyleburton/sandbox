@@ -1,0 +1,33 @@
+$eggs = %w[matchable smtp]
+
+def is_installed? test_prog
+  thing = `which #{test_prog}`
+  thing.chomp!
+  File.exist? thing
+end
+
+def install_package pkg, test_prog
+  return true if is_installed? test_prog
+  brew_path = `which brew`
+  brew_path.chomp!
+  puts "Looking for: #{brew_path}"
+  if File.exist? brew_path
+    system "brew", "install", pkg
+    return true
+  end
+
+  raise "Can't determine package manager for this platform (no brew or apt)"
+end
+
+def install_egg egg_name
+  if !system("csi","-e","(use #{egg_name})")
+    system "chicken-install", egg_name
+  end
+end
+
+task :setup do
+  install_package "chicken", "csi"
+  $eggs.each do |egg|
+    install_egg egg
+  end
+end
