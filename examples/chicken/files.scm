@@ -15,4 +15,7 @@
       (printf "line: '~a'\n" l))
     lines))
 
+(printf "find files: ~a\n"
+        (find-files "."))
+
 (exit)
