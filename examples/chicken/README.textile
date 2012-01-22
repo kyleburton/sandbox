@@ -1,0 +1,11 @@
+h1. Chicken Scheme Examples
+
+  "Official Chicken Scheme Site":http://call-cc.org/
+  "Chicken Libraries (eggs)":http://wiki.call-cc.org/chicken-projects/egg-index-4.html
+
+h2. Examples I want
+
+* Mechanize like http client example code, show use of auth, cookies and ssl
+* processing yaml
+* interacting with a database, eg: postgres and mysql
+* easyweb: spiffy has no routing table to map routes to handlers as with projects like Rails, the more automagical the better.  Also: show cookie support
