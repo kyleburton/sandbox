@@ -11,4 +11,6 @@
 (let [(lines (string->lines (sh:capture (ls))))]
   (printf "output of ls[~a]: ~a\n" (length lines) lines))
 
+(system "date")
+
 (exit)
