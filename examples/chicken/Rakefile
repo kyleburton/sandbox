@@ -1,4 +1,9 @@
-$eggs = %w[matchable smtp]
+require 'rubygems'
+require 'fileutils'
+
+$eggs = %w[matchable smtp shell]
+
+$modules = %w[ffi-demo.scm]
 
 def is_installed? test_prog
   thing = `which #{test_prog}`
@@ -29,5 +34,20 @@ task :setup do
   install_package "chicken", "csi"
   $eggs.each do |egg|
     install_egg egg
+  end
+end
+
+task :build do
+  $modules.each do |m|
+    system "csc", m
+  end
+end
+
+task :clean do
+  Dir['*.scm'].each do |f|
+    fname = File.basename f, '.scm'
+    if File.exist? fname
+      FileUtils.rm fname
+    end
   end
 end
