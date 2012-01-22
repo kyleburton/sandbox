@@ -6,6 +6,6 @@ h1. Chicken Scheme Examples
 h2. Examples I want
 
 * Mechanize like http client example code, show use of auth, cookies and ssl
-* processing yaml
+* processing yaml, probably via C library libyaml, see: http://pyyaml.org/wiki/LibYAML (exists in homebrew and apt)
 * interacting with a database, eg: postgres and mysql
 * easyweb: spiffy has no routing table to map routes to handlers as with projects like Rails, the more automagical the better.  Also: show cookie support
