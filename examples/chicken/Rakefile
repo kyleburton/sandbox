@@ -1,7 +1,7 @@
 require 'rubygems'
 require 'fileutils'
 
-$eggs = %w[matchable smtp shell base64]
+$eggs = %w[matchable smtp shell base64 spiffy]
 
 $modules = %w[ffi-demo.scm]
 
