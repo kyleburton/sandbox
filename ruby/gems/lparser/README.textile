@@ -1,0 +1,13 @@
+h1. lparser
+
+
+
+h1. FAQ
+
+h2. Does this parse XML, HTML, etc?
+
+No, library is not for creating object graphs from well structured document formats.
+
+h2. How is this different from XPath?
+
+
