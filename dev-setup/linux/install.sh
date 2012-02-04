@@ -27,6 +27,26 @@ done
 
 mkdir ~/projects/sandbox/dev-setup/linux/software
 cd ~/projects/sandbox/dev-setup/linux/software
-wget http://code.call-cc.org/releases/4.7.0/chicken-4.7.0.tar.gz
-tar xzvf chicken-4.7.0.tar.gz
-cd chicken-4.7.0
+CHICKEN_VER=4.7.0
+
+download_file() {
+  F=$1
+  URL=$2
+  if [ ! -f $F ]; then
+    wget $URL
+  fi
+}
+
+untar_file() {
+  D=$1
+  F=$2
+  test -d $D || tar xzvf $F
+
+}
+
+download_file chicken-$CHICKEN_VER.tar.gz http://code.call-cc.org/releases/$CHICKEN_VER/chicken-$CHICKEN_VER.tar.gz
+untar_file chicken-$CHICKEN_VER chicken-$CHICKEN_VER.tar.gz
+cd chicken-$CHICKEN_VER
+make PLATFORM=linux
+make PLATFORM=linux PREFIX=$HOME/local/chicken-$CHICKEN_VER install
+ln -s $HOME/local/chicken-$CHICKEN_VER $HOME/local/chicken
