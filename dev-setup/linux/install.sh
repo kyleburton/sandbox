@@ -1,3 +1,4 @@
+. common.sh
 sudo apt-get -y update
 sudo apt-get -y upgrade
 
@@ -5,16 +6,16 @@ sudo apt-get -y install ruby1.9.1 git emacs23-nox wget curl rake
 
 cd
 if [ ! -d .profile.d ]; then
-  git clone git@github.com:kyleburton/profile.git .profile.d
-  mv .bashrc .dist.bashrc
-  cd .profile.d
-  bash install.sh kburton
-  cd
+    git clone git@github.com:kyleburton/profile.git .profile.d
+    mv .bashrc .dist.bashrc
+    cd .profile.d
+    bash install.sh kburton
+    cd
 fi
 
 cd
 if [ ! -d projects ]; then
-  test -d projects || mkdir projects
+    test -d projects || mkdir projects
 fi
 
 
@@ -22,27 +23,12 @@ cd projects
 GITPROJS="sandbox teporingo clj-etl-utils system-utils krbemacs jrclj clj-bloom clj-xpath credit_card_validator impresario lein-marginalia lein-margauto perCEPtor dev-utils twilio-in-ten-minutes tellmewhen abstract-tables large-data-and-clojure base-app jbit clorine abottleinfrontofme clj-lfsr fuzzy-string typrtail kyles-secret-interviewing-techniques intro-to-genetic-algorithms introduction-to-git"
 
 for proj in $GITPROJS; do
-  test -d $proj || git clone git@github.com:kyleburton/$proj.git
+    test -d $proj || git clone git@github.com:kyleburton/$proj.git
 done
 
 test -d ~/projects/sandbox/dev-setup/linux/software || mkdir ~/projects/sandbox/dev-setup/linux/software
 cd ~/projects/sandbox/dev-setup/linux/software
 CHICKEN_VER=4.7.0
-
-download_file() {
-  F=$1
-  URL=$2
-  if [ ! -f $F ]; then
-    wget $URL
-  fi
-}
-
-untar_file() {
-  D=$1
-  F=$2
-  test -d $D || tar xzvf $F
-
-}
 
 if [ ! -x $HOME/local/chicken/bin/csi ]; then
     download_file chicken-$CHICKEN_VER.tar.gz http://code.call-cc.org/releases/$CHICKEN_VER/chicken-$CHICKEN_VER.tar.gz
@@ -64,3 +50,12 @@ if [ ! -f /etc/apt/sources.list.d/rabbitmq-sources.list ]; then
 fi
 
 sudo apt-get -y install rabbitmq-server
+
+if [ ! -x $HOME/bin/lein ]; then
+    cd
+    test -d bin || mkdir bin
+    cd bin
+    wget https://raw.github.com/technomancy/leiningen/stable/bin/lein
+    chmod 755 lein
+    ./lein help
+fi
