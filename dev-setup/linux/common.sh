@@ -25,3 +25,9 @@ untar_file() {
 ensure_dir () {
   test -d "$1" || mkdir "$1"
 }
+
+unzip_unless() {
+  F=$1
+  Z=$2
+  test -e $F || unzip $Z
+}
