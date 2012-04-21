@@ -1,0 +1,81 @@
+require 'rubygems'
+require 'fileutils'
+
+CONFIG = {:package => {:url => "http://redis.googlecode.com/files/redis-2.4.11.tar.gz" } }
+
+def package_url
+  CONFIG[:package][:url]
+end
+
+def redis_server_bin
+  pkg_dir = nil
+  mchdir "redis" do
+    pkg_dir = pkg_dir_from_tgz(file_from_url package_url)
+  end
+  "redis/#{pkg_dir}/src/redis-server"
+end
+
+def redis_cli_bin
+  pkg_dir = nil
+  mchdir "redis" do
+    pkg_dir = pkg_dir_from_tgz(file_from_url package_url)
+  end
+  "redis/#{pkg_dir}/src/redis-cli"
+end
+
+def file_from_url u
+  u.split('/').last
+end
+
+def pkg_dir_from_tgz archive
+  file = file_from_url archive
+  line = `tar tzvf #{archive} | head -n1`
+  line.split(/\s+/).last
+end
+
+def mchdir path
+  unless File.exist?(path)
+    puts "Creating: #{path}"
+    FileUtils.mkdir(path)
+  end
+
+  Dir.chdir(path) do |p|
+    yield p
+  end
+end
+
+namespace :redis do
+  desc "Download the server"
+  task :download do
+    mchdir("redis") do |p|
+      unless File.exist? file_from_url(package_url)
+        system "wget", package_url
+      end
+    end
+  end
+
+  desc "Install the server"
+  task :install => [:download] do
+    mchdir("redis") do
+      archive = file_from_url package_url
+      pkg_dir = pkg_dir_from_tgz(archive)
+      unless File.exist? pkg_dir
+        system "tar", "xzf", archive
+        chdir(pkg_dir) do
+          system "make"
+        end
+      end
+    end
+  end
+
+  desc "Run the server"
+  task :server => [:install] do
+    system redis_server_bin
+  end
+
+  desc "Run the cli"
+  task :cli => [:install] do
+    system redis_cli_bin
+  end
+
+end
