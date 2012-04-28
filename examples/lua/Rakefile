@@ -39,6 +39,10 @@ namespace :lua do
 
   desc "Run luac on file"
   task :luac, :file do |t,args|
-    system "lua/bin/luc", args[:file]
+    file = args[:file]
+    target_name = File.basename(file,".lua") + ".luac"
+    cmd = ["lua/bin/luac", "-o", target_name, file]
+    puts cmd.join(" ")
+    system *cmd
   end
 end
