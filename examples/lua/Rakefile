@@ -31,4 +31,14 @@ namespace :lua do
   task :install do
     install_lua
   end
+
+  desc "Run lua"
+  task :lua do
+    system "lua/bin/lua"
+  end
+
+  desc "Run luac on file"
+  task :luac, :file do |t,args|
+    system "lua/bin/luc", args[:file]
+  end
 end
