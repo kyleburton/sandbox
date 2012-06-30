@@ -4,7 +4,7 @@
 //   Foo.playGames( 7, 99 ) 
 // to play 99 games starting with the opening value of 7
 Foo = (function () {
-  var self = {autoContinue: true};
+  var self = {autoContinue: false};
 
   self.startGame = function (numCandies) {
     $.ajax({
