@@ -1,0 +1,48 @@
+require 'fileutils'
+
+def install_lua
+  url = "http://www.lua.org/ftp/lua-5.2.0.tar.gz"
+  pkg_file = "lua-5.2.0.tar.gz"
+  pkg_dir = "lua-5.2.0"
+  
+  unless File.exist? "lua"
+    FileUtils.mkdir "lua"
+  end
+  Dir.chdir "lua" do
+    unless File.exist? pkg_file
+      system "wget", url
+    end
+
+    unless File.exist? pkg_dir
+      system "tar","xzvf",pkg_file
+    end
+
+    Dir.chdir pkg_dir do
+      unless File.exist? "lua/src/lua"
+        system "make", "linux"
+        system "make install INSTALL_TOP=../.."
+      end
+    end
+  end
+end
+
+namespace :lua do
+  desc "Install lua"
+  task :install do
+    install_lua
+  end
+
+  desc "Run lua"
+  task :lua do
+    system "lua/bin/lua"
+  end
+
+  desc "Run luac on file"
+  task :luac, :file do |t,args|
+    file = args[:file]
+    target_name = File.basename(file,".lua") + ".luac"
+    cmd = ["lua/bin/luac", "-o", target_name, file]
+    puts cmd.join(" ")
+    system *cmd
+  end
+end
