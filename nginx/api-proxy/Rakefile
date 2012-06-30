@@ -1,0 +1,19 @@
+CONFIG = {
+}
+
+namespace :nginx do
+  desc "Downlaod the server"
+  task :download do
+    raise "implement this"
+  end
+
+  desc "Install the server"
+  task :install => [:download] do
+    raise "implement this"
+  end
+
+  desc "Run the server"
+  task :server => [:install] do
+    raise "implement this"
+  end
+end
