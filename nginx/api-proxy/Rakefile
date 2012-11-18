@@ -1,19 +1,24 @@
 CONFIG = {
+  :pacakge_url => ""
 }
+
+unless File.exist? "nginx"
+  FileUtils.mkdir "nginx"
+end
 
 namespace :nginx do
   desc "Downlaod the server"
   task :download do
-    raise "implement this"
+    raise "download: implement this"
   end
 
   desc "Install the server"
   task :install => [:download] do
-    raise "implement this"
+    raise "install: implement this"
   end
 
   desc "Run the server"
   task :server => [:install] do
-    raise "implement this"
+    raise "server: implement this"
   end
 end
