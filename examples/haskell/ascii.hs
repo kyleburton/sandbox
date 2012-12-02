@@ -1,7 +1,5 @@
 import Char
 
-intListToString l = [ chr x | x <- l ]
-
 main = do
-  putStrLn $ "the string: " ++ (intListToString [72,73,74,75])
+  putStrLn $ "the string: " ++ (map chr [72,73,74,75])
 
