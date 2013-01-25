@@ -1,0 +1,7 @@
+h3. Print the 4 before and after a particular line number (10,060,654):
+
+<pre>
+perl -ne 'print if abs($.-10060654) < 5' input-file.txt
+</pre>
+
+@$.@ is the current line number in the file.  Subtracting the current line number from our target (around the ten millionth line) and taking the absolute value gives us a magnitude we can measure.  In this case we can test if the magnitude of the difference is less than 5, giving us the 4 lines before, he line itself and the 4 following lines.
