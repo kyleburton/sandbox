@@ -1,0 +1,29 @@
+<html>
+  <head>
+    <title>Parsing</title>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
+    <script src="jslint.js"></script>
+  </head>
+  <body>
+    <script>
+      var result = [], expression = '2+323*4.5/5', lastToken = {thru: -1}, nextToken;
+      expression = '2 + 323*4.5';
+      console.log('ready');
+      // initialize JSLINT by parsing an empty string (sets up options)
+      JSLINT('', {});
+      JSLINT.lex.init(expression);
+      // when JSLINT.lex.token().thru stops changing, we're done
+
+      nextToken = JSLINT.lex.token();
+      while (nextToken.thru !== lastToken.thru) {
+        var tok = nextToken.number || nextToken.string;
+        console.log('tok[%o]: %o', nextToken, tok);
+        result.push(tok);
+        lastToken = nextToken;
+        nextToken = JSLINT.lex.token();
+      }
+
+      console.log('result: %o', result);
+    </script>
+  </body>
+</html>
