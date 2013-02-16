@@ -1,9 +1,0 @@
-h1. Nanite Examples
-
-These examples make use of the "Nanite":http://github.com/ezmobius/nanite messaging and job processing framework.
-
-h2. Overview
-
-Nanite uses the "RabbitMQ":http://www.rabbitmq.com/ AMQP messaging broker to distribute messages from a central @Mapper@ to @Agent@s (workers).  The mapper listens to the broker for agents registring themselves for work to be done.  When a mapper has a job to be submitted, it will sent it to what it beleives is the least busy worker and optionally wait for a reply.
-
-The first example @./simple-service@ implements the basic model where a mapper hands jobs out to agents advertisting the @/example/additiou@ service.

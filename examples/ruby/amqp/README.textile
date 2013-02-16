@@ -1,5 +1,0 @@
-h1. AMQP
-
-Examples are built using the "AMQP Gem":http://github.com/tmm1/amqp.git 
-
-
