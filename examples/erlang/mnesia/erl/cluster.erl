@@ -2,7 +2,8 @@
 
 -export([test_node/1, join/1, create_usr_table/0, local_init/0,
   insert_some_recs/0,
-  add_usr/3, find_usr/1]).
+  add_usr/3, find_usr/1,
+  show_all_usr_recs/0]).
 
 -include("usr.hrl").
 
@@ -57,3 +58,17 @@ add_usr(PhoneNo, CustId, Plan) when Plan==prepay; Plan==postpay ->
 find_usr(Phone) ->
   mnesia:transaction(fun() -> mnesia:read({usr, Phone}) end).
 
+
+show_all_usr_recs () ->
+  TableName = usr,
+  Iterator = fun(Rec, Total) ->
+      io:format("~p~n", [Rec]),
+      Total + 1
+  end,
+  case mnesia:is_transaction() of
+    true ->
+        mnesia:foldl(Iterator, [], TableName);
+    false ->
+      Exec = fun({Fun, Tab}) -> mnesia:foldl(Fun, 0, Tab) end,
+      mnesia:activity(transaction, Exec, [{Iterator, TableName}], mnesia_frag)
+  end.
