@@ -1,0 +1,1 @@
+http://stackoverflow.com/questions/624570/online-mnesia-recovery-from-network-partition

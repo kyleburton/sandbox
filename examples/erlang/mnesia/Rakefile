@@ -1,0 +1,9 @@
+desc "start erl n1@localhost"
+task :n1 do
+  system "erl", "-pa", "erl", "-sname", "n1@localhost", "-mnesia", "-s", "mnesia"
+end
+
+desc "start erl n2@localhost"
+task :n2 do
+  system "erl", "-pa", "erl", "-sname", "n2@localhost", "-mnesia", "-s", "mnesia"
+end
