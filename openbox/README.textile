@@ -1,0 +1,52 @@
+h1. Ubuntu and Unity 12.04 and 12.10
+
+Sorry, no.
+
+Inside VirtualBox it is just too slow, the Alt-Tab behavior is different that my
+twitch reflexes can't adapt to it.  The Unity taskbar just seems to be in my way.
+
+"Openbox":http://openbox.org/ is an alternative I'm exploring.
+
+"Openbox: Bindings":http://openbox.org/wiki/Help:Bindings
+
+This directory contains my OpenBox configuration.  It can be installed by typing 'rake', which will also call @openbox --reconfigure'.
+
+h2. The setup I like
+
+h3. Desktops
+
+I like having 10 desktops.
+
+* 1 is for local administration
+* 2 is where I run a browser and do front-end web development
+* 3 is where I do my main coding
+
+At $WORK, I like following a convention of assigning a project to a particular
+desktop.  That way I always know where things are.
+
+h3. Mouse Focus
+
+I love focus follows mouse.  I like being able to have a smaller terminal
+'float' on top of a larger one, and be typing and interacting with the lower
+one.
+
+I love being able to hold down Alt and drag windows around from any pixel
+inside the window.
+
+h3. Keybindings
+
+* C-F12 open a new terminal
+* A-Home toggle maximization
+* A-Right toggle maximization horizontal
+* A-Up toggle maximization vertical
+* A-1 go to desktop 1
+* A-2 go to desktop 2
+* A-3 go to desktop 3
+* A-4 go to desktop 4
+* A-5 go to desktop 5
+* A-6 go to desktop 6
+* A-7 go to desktop 7
+* A-8 go to desktop 8
+* A-9 go to desktop 9
+* A-10 go to desktop 10
+

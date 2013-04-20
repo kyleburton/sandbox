@@ -10,4 +10,6 @@ task :install do
     FileUtils.ln_s "#{File.dirname(__FILE__)}/files/rc.xml", "#{ENV['HOME']}/.config/openbox/rc.xml"
   end
 
+  system "openbox --reconfigure"
+
 end
