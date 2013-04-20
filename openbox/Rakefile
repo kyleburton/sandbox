@@ -1,15 +1,44 @@
 task :default => [:install]
 
+$config = {
+  :wallpapers => [
+    {:url => "http://www.crestock.com/uploads/blog/wallpapers/set2/crestock-114164-1600x1200.jpg"},
+    {:url => "http://www.crestock.com/uploads/blog/wallpapers/set2/crestock-281777-1600x1200.jpg"},
+    {:url => "http://www.crestock.com/uploads/blog/wallpapers/set1/crestock-70406-1600x1200.jpg"},
+    {:url => "http://www.crestock.com/uploads/blog/wallpapers/set1/crestock-213752-1600x1200.jpg"}
+],
+  :files => %w[rc.xml autostart]
+}
+
 desc "install"
 task :install do
-  unless File.exist? "#{ENV['HOME']}/.config/openbox/bak.rc.xml"
-    FileUtils.mv "#{ENV['HOME']}/.config/openbox/rc.xml", "#{ENV['HOME']}/.config/openbox/bak.rc.xml"
+  $config[:files].each do |file|
+    src  = "#{File.dirname(__FILE__)}/files/#{file}"
+    dst  = "#{ENV['HOME']}/.config/openbox/#{file}"
+    bkup = "#{ENV['HOME']}/.config/openbox/bak.#{file}"
+    if File.exist? dst
+      unless File.exist? bkup
+        FileUtils.mv src, bkup
+      end
+    end
+
+    unless File.exist? dst
+      puts "ln -s #{src} #{dst}"
+      FileUtils.ln_s src, dst
+    end
+
   end
 
-  unless File.exist? "#{ENV['HOME']}/.config/openbox/rc.xml"
-    FileUtils.ln_s "#{File.dirname(__FILE__)}/files/rc.xml", "#{ENV['HOME']}/.config/openbox/rc.xml"
+  unless File.exist? "#{ENV['HOME']}"
+    Dir.mkdir "#{ENV['HOME']}"
   end
-
+  $config[:wallpapers].each do |c|
+    url = c[:url]
+    lfile = "#{ENV['HOME']}/images/#{File.basename(url)}"
+    unless File.exist? lfile
+      system "curl #{url} > #{lfile}"
+    end
+  end
+  
   system "openbox --reconfigure"
-
 end
