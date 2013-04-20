@@ -7,6 +7,10 @@ twitch reflexes can't adapt to it.  The Unity taskbar just seems to be in my way
 
 "Openbox":http://openbox.org/ is an alternative I'm exploring.
 
+Install openbox:
+
+    sudo apt-get install openbox
+
 "Openbox: Bindings":http://openbox.org/wiki/Help:Bindings
 
 This directory contains my OpenBox configuration.  It can be installed by typing 'rake', which will also call @openbox --reconfigure'.
