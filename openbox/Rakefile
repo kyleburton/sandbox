@@ -1,0 +1,13 @@
+task :default => [:install]
+
+desc "install"
+task :install do
+  unless File.exist? "#{ENV['HOME']}/.config/openbox/bak.rc.xml"
+    FileUtils.mv "#{ENV['HOME']}/.config/openbox/rc.xml", "#{ENV['HOME']}/.config/openbox/bak.rc.xml"
+  end
+
+  unless File.exist? "#{ENV['HOME']}/.config/openbox/rc.xml"
+    FileUtils.ln_s "#{File.dirname(__FILE__)}/files/rc.xml", "#{ENV['HOME']}/.config/openbox/rc.xml"
+  end
+
+end
