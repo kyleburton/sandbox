@@ -127,6 +127,8 @@
     <name>desktop 1</name>
     <name>desktop 2</name>
     -->
+    <name>1: Remote Admin</name>
+    <name>2: Browser</name>
     </names>
     <popupTime>0</popupTime>
     <!-- The number of milliseconds to show the popup for when switching
@@ -390,7 +392,7 @@
         <to>9</to>
       </action>
     </keybind>
-    <keybind key="A-10">
+    <keybind key="A-0">
       <action name="GoToDesktop">
         <to>10</to>
       </action>
