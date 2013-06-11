@@ -7,6 +7,7 @@ Rake-like build scripting example using Go with concurrent execution of task dep
 
 # TODO
 
+* documentation, documentation, documentation
 * take list of tasks to execute from command line arguments
 * support task argument processing: "task1[arg1,arg2]"
 * support 'once only' execution of tasks
