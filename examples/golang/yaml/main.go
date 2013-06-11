@@ -23,6 +23,10 @@ func parse_yaml( file string ) map[interface{}]interface{} {
 func main() {
 	flag.Parse()
 
+  if len(flag.Args()) == 0 {
+    panic("You must supply one or more yaml files to parse")
+  }
+
 	for _, arg := range flag.Args() {
 	  fmt.Printf("arg: %v\n", arg)
     res := parse_yaml(arg)
