@@ -107,7 +107,18 @@ func init () {
   Task("task2", func (self *task) {
     fmt.Printf("task2\n")
     fmt.Printf("ls=%s\n", System("ls", "-ltrh"))
+    fmt.Printf("sleep=%s\n", System("sleep", "4"))
   }).
   Depends("hello")
+
+  Task("task3", func (self *task) {
+    fmt.Printf("task3\n")
+    fmt.Printf("sleep=%s\n", System("sleep", "4"))
+  }).
+
+  Task("task4", func (self *task) {
+    fmt.Printf("task4\n")
+  }).
+  Depends("task2", "task3")
 }
 
