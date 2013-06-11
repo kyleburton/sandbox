@@ -5,11 +5,12 @@ package main
 // TODO: how can we support additional imports?
 import(
   "fmt"
-  "strings"
+  _ "strings"
   "os/exec"
   "grake"
 )
 
+var debug = false
 
 type task struct {
 	Name        string
@@ -24,11 +25,27 @@ type taskmanager map[string]*task
 var TaskManager taskmanager
 
 func (self *task) String() string {
-	return fmt.Sprintf("Task{descr=\"%s\";name=\"%s\";block=%s;deps=%s",
-  self.Description,
-  self.Name,
-  self.block,
-  strings.Join(self.deps, ","))
+  if debug {
+    fmt.Printf("Converting to String\n")
+  }
+
+  deps := self.deps
+  if nil == deps {
+    deps = make([]string, 0)
+  }
+
+  if debug {
+    fmt.Printf("Converting to String, deps=%q\n", deps)
+  }
+	//return fmt.Sprintf("Task{descr=\"%s\";name=\"%s\";block=%s;deps=%s}",
+  //  self.Description,
+  //  self.Name,
+  //  self.block,
+  //  strings.Join(deps, ","))
+	return fmt.Sprintf("Task{descr=\"%s\";name=\"%s\";block=%s}",
+    self.Description,
+    self.Name,
+    self.block)
 }
 
 func Desc(descr string) (t *task) {
@@ -55,6 +72,9 @@ func Task(name string, block func(*task)) (t *task) {
 
 func (self *task) Depends(deps ...string) (t *task) {
   self.deps = deps
+  if debug {
+    fmt.Printf("Task[%s] deps: %q\n", self.Name, self.deps)
+  }
   return self
 }
 
@@ -64,17 +84,28 @@ func InvokeTask (name string) {
     ok := make(chan bool)
 
     // TODO: make sure a task can't depend on itself
-    for _, dep := range t.deps {
-      go func() {
-        InvokeTask(dep)
-        ok <- true
-      }()
+    if nil != t.deps {
+      for idx, dep := range t.deps {
+        go func(name string, idx int, dep string) {
+          if debug {
+            fmt.Printf("InvokeTask[%s] execing dep: %d/%s\n", name, idx, dep)
+          }
+          InvokeTask(dep)
+          ok <- true
+        }(name, idx, dep)
+      }
+
+      if debug {
+        fmt.Printf("InvokeTask[%s] waiting for deps\n", name)
+      }
+      for i := 0; i < len(t.deps); i++ {
+        <-ok
+      }
     }
 
-    for i := 0; i < len(t.deps); i++ {
-      <-ok
+    if debug {
+      fmt.Printf("InvokeTask[%s] executing this task\n", name)
     }
-
     t.block(t)
   } else {
     panic(fmt.Sprintf("Error: no such task: %q", name))
@@ -85,7 +116,8 @@ func InvokeTask (name string) {
 // TODO: parse task arguments
 func main () {
   // fmt.Printf("TaskManager: %q\n", TaskManager)
-  InvokeTask("task2")
+  //InvokeTask("task2")
+  InvokeTask("task4")
 }
 
 
@@ -118,11 +150,16 @@ func init () {
   Task("task3", func (self *task) {
     fmt.Printf("task3\n")
     fmt.Printf("sleep=%s\n", System("sleep", "4"))
-  }).
+  })
+
+  Task("task3.3", func (self *task) {
+    fmt.Printf("task3.3\n")
+    fmt.Printf("sleep=%s\n", System("sleep", "4"))
+  })
 
   Task("task4", func (self *task) {
     fmt.Printf("task4\n")
   }).
-  Depends("task2", "task3")
+  Depends("task2", "task3", "task3.3")
 }
 

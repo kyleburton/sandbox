@@ -5,6 +5,10 @@ Inspried by, draws heavily from: [makengo](https://github.com/remogatto/makengo)
 Rake-like build scripting example using Go with concurrent execution of task dependencies.
 
 
+Run:
+
+    GOPATH="$GOPATH:$(pwd)" go run grake.go
+
 # TODO
 
 * documentation, documentation, documentation
