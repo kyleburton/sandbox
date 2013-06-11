@@ -6,6 +6,7 @@ package main
 import(
   "fmt"
   "strings"
+  "os/exec"
 )
 
 
@@ -56,19 +57,6 @@ func (self *task) Depends(deps ...string) (t *task) {
   return self
 }
 
-func init () {
-  TaskManager = make(taskmanager)
-  Desc("Hello's Description").
-  Task("hello", func (self *task) {
-    fmt.Printf("Hello!\n")
-  })
-
-  Task("task2", func (self *task) {
-    fmt.Printf("task2\n")
-  }).
-  Depends("hello")
-}
-
 // TODO: support task arguments ala rake: task[arg1,arg2]
 func InvokeTask (name string) {
   if t, ok := TaskManager[name]; ok {
@@ -98,3 +86,28 @@ func main () {
   // fmt.Printf("TaskManager: %q\n", TaskManager)
   InvokeTask("task2")
 }
+
+
+// TODO: how to have System that returns stdout, or a version that doesn't capture output?
+func System(cmd string, args ...string) (res string) {
+  out, err := exec.Command(cmd, args...).Output()
+  if err != nil {
+    panic(err)
+  }
+  return string(out)
+}
+
+func init () {
+  TaskManager = make(taskmanager)
+  Desc("Hello's Description").
+  Task("hello", func (self *task) {
+    fmt.Printf("Hello!\n")
+  })
+
+  Task("task2", func (self *task) {
+    fmt.Printf("task2\n")
+    fmt.Printf("ls=%s\n", System("ls", "-ltrh"))
+  }).
+  Depends("hello")
+}
+
