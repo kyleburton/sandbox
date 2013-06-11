@@ -5,8 +5,8 @@ package main
 // TODO: how can we support additional imports?
 import (
 	"fmt"
-	g "grake/tasks"
 	f "grake/fileutils"
+	g "grake/tasks"
 	"os/exec"
 	// "strings"
 )
@@ -32,7 +32,7 @@ func System(cmd string, args ...string) (res string) {
 
 func init() {
 	g.Desc("Hello's Description")
-  g.Task("hello", func(self *g.TaskInfo) {
+	g.Task("hello", func(self *g.TaskInfo) {
 		fmt.Printf("Hello!\n")
 	})
 
@@ -44,7 +44,7 @@ func init() {
 			fmt.Printf("")
 		}
 	})
-  g.Depends("hello")
+	g.Depends("hello")
 
 	g.Task("task3", func(self *g.TaskInfo) {
 		fmt.Printf("task3\n")
@@ -57,8 +57,8 @@ func init() {
 	})
 
 	g.Desc("Task to execute, with 3 deps")
-  g.Task("task4", func(self *g.TaskInfo) {
+	g.Task("task4", func(self *g.TaskInfo) {
 		fmt.Printf("task4 self=%q\n", self)
 	})
-  g.Depends("task2", "task3", "task3.3")
+	g.Depends("task2", "task3", "task3.3")
 }
