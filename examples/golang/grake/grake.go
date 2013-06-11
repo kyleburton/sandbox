@@ -7,6 +7,7 @@ import(
   "fmt"
   "strings"
   "os/exec"
+  "grake"
 )
 
 
@@ -108,6 +109,9 @@ func init () {
     fmt.Printf("task2\n")
     fmt.Printf("ls=%s\n", System("ls", "-ltrh"))
     fmt.Printf("sleep=%s\n", System("sleep", "4"))
+    if !fileutils.Exists("output-file.txt") {
+      fmt.Printf("")
+    }
   }).
   Depends("hello")
 
