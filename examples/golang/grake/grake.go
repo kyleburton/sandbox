@@ -5,7 +5,7 @@ package main
 // TODO: how can we support additional imports?
 import(
   "fmt"
-  _ "strings"
+  "strings"
   "os/exec"
   "grake"
 )
@@ -37,15 +37,11 @@ func (self *task) String() string {
   if debug {
     fmt.Printf("Converting to String, deps=%q\n", deps)
   }
-	//return fmt.Sprintf("Task{descr=\"%s\";name=\"%s\";block=%s;deps=%s}",
-  //  self.Description,
-  //  self.Name,
-  //  self.block,
-  //  strings.Join(deps, ","))
-	return fmt.Sprintf("Task{descr=\"%s\";name=\"%s\";block=%s}",
+	return fmt.Sprintf("Task{descr=\"%s\";name=\"%s\";block=%s;deps=%s}",
     self.Description,
     self.Name,
-    self.block)
+    self.block,
+    strings.Join(deps, ","))
 }
 
 func Desc(descr string) (t *task) {
@@ -157,8 +153,9 @@ func init () {
     fmt.Printf("sleep=%s\n", System("sleep", "4"))
   })
 
+  Desc("Task to execute, with 3 deps").
   Task("task4", func (self *task) {
-    fmt.Printf("task4\n")
+    fmt.Printf("task4 self=%q\n", self)
   }).
   Depends("task2", "task3", "task3.3")
 }
