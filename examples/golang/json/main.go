@@ -27,5 +27,17 @@ func main() {
     }
     fmt.Printf("Decoded: %q\n", m)
   }
+
+  const jsonStr2 = `
+{"this": "that", "other": [1, 3, 3.4], "nested": {"thing": ["five", 3]}}
+`
+  stuff := make(map[string] interface{})
+
+  err := json.Unmarshal([]byte(jsonStr2), &stuff)
+  if err != nil {
+    panic(err)
+  }
+
+  fmt.Printf("stuff=%q\n", stuff)
 }
 
