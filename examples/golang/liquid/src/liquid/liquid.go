@@ -14,17 +14,28 @@ type Context map[string][]string
 type itemType int
 type stateFn func(*lexer) stateFn
 
+/*
+type token struct {
+  fn        stateFn
+  tokenType int
+  body      string
+}
+*/
+
+const debug = true
+
 const (
   itemError itemType = iota
   itemEOF
   itemText
-  itemOpenExpression
-  itemCloseExpression
-  itemContent
-  itemEquals
-  itemAssign
-  itemVar
-  itemValue
+  itemOpenMarkup  // {{
+  itemCloseMarkup // }}
+  itemOpenTag     // {%
+  itemCloseTag    // %}
+  //itemEquals
+  //itemNotEquals
+  //itemAssign
+  itemExpression
 )
 
 const eof = -1
@@ -40,6 +51,10 @@ func (i item) String () string {
     return "EOF"
   case itemEquals:
     return "="
+  case itemNotEquals:
+    return "!="
+  case itemAssign:
+    return "=="
   case itemError:
     return i.val
   }
@@ -48,7 +63,7 @@ func (i item) String () string {
     return fmt.Sprintf("%.10q...", i.val)
   }
 
-  return fmt.Sprintf("%q", i.val)
+  return fmt.Sprintf("item{typ=%q, val=%q}", i.typ, i.val)
 }
 
 type lexer struct {
@@ -72,30 +87,55 @@ func lex(name, input string) (*lexer, chan item) {
 }
 
 func (l *lexer) run() {
+  fmt.Printf("lexer.run: starting run, l=%q\n", l)
   for state := lexText; state != nil; {
     state = state(l)
+    fmt.Printf("lexer.run: parsed next state: %q\n", state)
   }
+  fmt.Printf("lexer.run: exhausted stream, closing l.items channel\n")
   close(l.items)
 }
 
 func (l *lexer) emit(t itemType) {
-  l.items <- item{t, l.input[l.start:l.pos]}
+  fmt.Printf("l.emit: itemType=%q\n", t)
+  ii := item{t, l.input[l.start:l.pos]}
+  l.items <- ii
+  fmt.Printf("l.emit setting l.start(%d) = l.pos(%d)\n", l.start, l.pos)
   l.start = l.pos
 }
 
-const openExpression = "{%"
-const closeExpression = "%}"
+const openOutputMarkup = "{{"
+const endOutputMarkup  = "}}"
+
+const openTagMarkup    = "{%"
+const endTagMarkup     = "%}"
 
 func lexText(l *lexer) stateFn {
   for {
-    if strings.HasPrefix(l.input[l.pos:], openExpression) {
+    fmt.Printf("lexText: checking for (output) %s has?=%q\n", openOutputMarkup, strings.HasPrefix(l.input[l.pos:], openOutputMarkup))
+    if strings.HasPrefix(l.input[l.pos:], openOutputMarkup) {
+      fmt.Printf("lexText: l.pos=%d > l.start=%d\n", l.pos, l.start)
+      if l.pos > l.start {
+        fmt.Printf("lexText: emitting itemText=%q text=%s\n", itemText, string(l.input[l.start:l.pos]))
+        l.emit(itemText)
+        fmt.Printf("lexText: emitted itemText=%q\n", itemText)
+      }
+      fmt.Printf("lexText: found %s, l.emit(%s) => lexOutputMarkup\n", openOutputMarkup, itemText)
+      return lexOutputMarkup
+    }
+
+    fmt.Printf("lexText: checking for (tag) %s\n", openTagMarkup)
+    if strings.HasPrefix(l.input[l.pos:], openTagMarkup) {
       if l.pos > l.start {
         l.emit(itemText)
       }
-      return lexOpenExpression
+      fmt.Printf("lexText: found %s, l.emit(%s) => lexTagMarkup\n", openTagMarkup, itemText)
+      return lexTagMarkup
     }
 
+    fmt.Printf("lexText: calling l.next()\n")
     if l.next() == eof { break }
+    fmt.Printf("lexText: was not eof, looping around\n")
   }
 
   // correctly reached EOF
@@ -107,35 +147,50 @@ func lexText(l *lexer) stateFn {
   return nil
 }
 
-func lexOpenExpression(l *lexer) stateFn {
-  l.pos += len(openExpression)
-  l.emit(itemOpenExpression)
-  return lexInsideExpression
+func lexOutputMarkup(l *lexer) stateFn {
+  l.pos += len(openOutputMarkup)
+  l.emit(itemOpenMarkup)
+  return lexInsideMarkupExpression
 }
 
-func lexCloseExpression(l *lexer) stateFn {
-  l.pos += len(closeExpression)
-  l.emit(itemCloseExpression)
+func lexTagMarkup(l *lexer) stateFn {
+  l.pos += len(openTagMarkup)
+  l.emit(itemOpenTag)
+  return lexInsideTagExpression
+}
+
+func lexCloseMarkupExpression(l *lexer) stateFn {
+  l.pos += len(endOutputMarkup)
+  l.emit(itemCloseMarkup)
+  return lexText
+}
+
+func lexCloseTagExpression(l *lexer) stateFn {
+  l.pos += len(endTagMarkup)
+  l.emit(itemCloseTag)
   return lexText
 }
 
 func (l *lexer) next() (r rune) {
+  fmt.Printf("l.next: r=%q, pos=%d len(l.input)=%d l=%q\n", r, l.pos, len(l.input), l)
   if l.pos >= len(l.input) {
     l.width = 0
     return eof
   }
   r, l.width = utf8.DecodeRuneInString(l.input[l.pos:])
   l.pos += l.width
+  fmt.Printf("l.next: utf8.DecodeRuneInString(\"%s\") r=%q l.width=%d\n", l.input[l.pos:],
+    r, l.width)
   return r
 }
 
-func lexInsideExpression(l *lexer) stateFn {
-  // Any of: 'assign'
+func lexInsideMarkupExpression(l *lexer) stateFn {
   for {
-    if strings.HasPrefix(l.input[l.pos:], closeExpression) {
-      return lexCloseExpression
+    if strings.HasPrefix(l.input[l.pos:], endOutputMarkup) {
+      return lexCloseMarkupExpression
     }
 
+    // switch this to consume the entire statement
     switch r := l.next(); {
     case r == eof || r == '\n':
       return l.errorf("unclosed expression")
@@ -149,8 +204,31 @@ func lexInsideExpression(l *lexer) stateFn {
   }
 }
 
+func lexInsideTagExpression(l *lexer) stateFn {
+  for {
+    if strings.HasPrefix(l.input[l.pos:], endTagMarkup) {
+      return lexCloseTagExpression
+    }
+
+    r := l.next()
+    if r == eof || r == '\n' {
+      return l.errorf("unclosed expression")
+    }
+  }
+}
+
 func lexExpression(l *lexer) stateFn {
-  panic("Not implemented");
+  for {
+    if strings.HasPrefix(l.input[l.pos:], endOutputMarkup) {
+      l.emit(itemExpression)
+      return lexCloseMarkupExpression
+    }
+
+    r := l.next()
+    if r == eof || r == '\n' {
+      return l.errorf("unclosed expression")
+    }
+  }
 }
 
 func (l *lexer) ignore() {
@@ -190,10 +268,13 @@ func (l *lexer) errorf(format string, args ...interface{}) stateFn {
 }
 
 func Parse (tmpl string) {
+  fmt.Printf("Parse: tmpl=%s\n", tmpl)
   l, items := lex("liquid", tmpl)
-  fmt.Printf("l=%q items=%q\n", l, items)
+  fmt.Printf("Parse: lexer=%q items=%q\n", l, items)
+  for item := range items {
+    fmt.Printf("Parse: item=%q\n", item)
+  }
 }
-
 
 func Render (tmpl string, ctx Context) (error, string) {
   Parse(tmpl)
