@@ -1,0 +1,11 @@
+h1. Golang Sqlite Example
+
+https://raw.github.com/mattn/go-sqlite3/master/example/main.go
+
+
+    go get
+    go run main.go
+
+After running @main.go@, you can inspect the db file:
+
+    sqlite3 test.db
