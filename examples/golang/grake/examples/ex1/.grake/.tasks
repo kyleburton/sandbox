@@ -1,0 +1,37 @@
+// vim: ft=go
+
+
+
+g.Desc("not in a namespace")
+g.Task("hello", func (self *g.TaskInfo) {
+  fmt.Printf("in task: %s\n", self.Name)
+})
+
+g.Namespace("main", func () {
+  g.Desc("This is a test task")
+  g.Task("hello", func (self *g.TaskInfo) {
+    fmt.Printf("Hello! from: %s\n", self.Name)
+  });
+  g.Depends("hello")
+
+  g.Namespace("two", func () {
+    g.Desc("a task with arguments")
+    g.Task("hasargs[a,b,c]", func (self *g.TaskInfo) {
+      fmt.Printf("%s, self.Args: %q\n", self.Name, self.Args)
+      fmt.Printf("%s, and I have arguments: a=%s, b=%s, c=%s\n", self.Name, self.Args["a"], self.Args["b"], self.Args["c"])
+    })
+    g.Depends("main:hello")
+  })
+})
+
+g.Desc("make a file")
+g.Task("createfile", func (self *g.TaskInfo) {
+  txt := 
+`this is 
+the 
+file contents`
+  WriteFile("output.txt", txt)
+})
+
+
+g.Default("main:hello")

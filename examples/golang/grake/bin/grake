@@ -1,0 +1,113 @@
+#!/usr/bin/env bash
+set -eu
+
+if [ -n "${DEBUG:-}" ]; then
+    set -x
+fi
+
+PROJ_ROOT=$(dirname $(dirname $(readlink -e $0)))
+GOPATH="$GOPATH:$PROJ_ROOT"
+
+
+ensure_working_directory () {
+    if [ ! -d .grake ]; then
+        mkdir .grake
+    fi
+}
+
+find_grakefile () {
+    if [ -e grakefile ]; then
+        echo "grakefile"
+        return 0
+    fi
+
+    if [ -e Grakefile ]; then
+        echo "Grakefile"
+        return 0
+    fi
+
+    if [ -e GRakefile ]; then
+        echo "GRakefile"
+        return 0
+    fi
+
+    echo "Error: GRakefile not found!"
+    exit 1
+}
+
+make_grakefile () {
+    IN_GRAKEFILE="$1"
+    OUT_GRAKEFILE=".grake/main.go"
+
+    # pull any imports out into .grake/.imports
+    # pull any function definitions into .grake/.toplevel
+    # any remaining lines become the body of make_all_tasks
+    ruby $PROJ_ROOT/lib/process_grakefile.rb "$IN_GRAKEFILE"
+
+    cat <<EOF > "$OUT_GRAKEFILE"
+package main
+
+import(
+  "flag"
+  "fmt"
+  "strings"
+  f "grake/fileutils"
+  g "grake/tasks"
+$(cat .grake/.imports)
+)
+
+var _ = f.Exists // ignore if unused
+var _ = g.Desc   // ignore if unused
+var _ = strings.Join
+
+$(cat .grake/.toplevel)
+
+func make_all_tasks () {
+$(cat .grake/.tasks)
+}
+
+func main () {
+  showTasks := flag.Bool("T", false, "Show Tasks")
+  showHelp  := flag.Bool("help", false, "Show Help")
+  flag.Parse()
+
+  if *showHelp {
+    fmt.Printf("Show Help here\n")
+    return
+  }
+
+  make_all_tasks()
+
+  taskName := g.DefaultTaskName
+  if (len(flag.Args()) > 0) {
+    taskName = flag.Args()[0]
+  }
+
+  taskName, args := g.ParseTaskString(taskName)
+
+  if *showTasks {
+    g.ShowTasks()
+    return
+  }
+
+  g.InvokeTask(taskName, args)
+}
+EOF
+
+go fmt $OUT_GRAKEFILE >/dev/null
+
+}
+
+run_grake () {
+    exec go run .grake/main.go $@
+}
+
+if [ -n "${DEBUG:-}" ]; then
+    echo PROJ_ROOT=$PROJ_ROOT
+    echo grakefile=$(find_grakefile)
+    echo $GOPATH
+fi
+
+ensure_working_directory
+make_grakefile $(find_grakefile)
+run_grake $@

@@ -1,4 +1,4 @@
-package main
+package grake
 
 // TODO: support namespaces
 // TODO: lots of helpers: system, system! chdir, chdir!, test file mtimes, test file exists
@@ -15,10 +15,10 @@ var debug = false
 
 // TODO: handle command line arguments, take the task to run from the cmdline
 // TODO: parse task arguments
-func main() {
+func xmain() {
 	// fmt.Printf("TaskManager: %q\n", TaskManager)
 	//InvokeTask("task2")
-	g.InvokeTask("task4")
+	g.InvokeTask("task4", make([]string, 0))
 }
 
 // TODO: how to have System that returns stdout, or a version that doesn't capture output?
@@ -30,7 +30,7 @@ func System(cmd string, args ...string) (res string) {
 	return string(out)
 }
 
-func init() {
+func xinit() {
 	g.Desc("Hello's Description")
 	g.Task("hello", func(self *g.TaskInfo) {
 		fmt.Printf("Hello!\n")
@@ -62,3 +62,5 @@ func init() {
 	})
 	g.Depends("task2", "task3", "task3.3")
 }
+
+
