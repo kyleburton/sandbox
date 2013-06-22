@@ -1,0 +1,9 @@
+.{{ name }}.
+
+itemText:        '.'
+itemOpenMarkup:  '{{'
+itemVariable:    'name'
+itemCloseMarkup: '}}'
+itemText:        '.'
+
+
