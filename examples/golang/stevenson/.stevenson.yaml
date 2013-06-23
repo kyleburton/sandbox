@@ -1,0 +1,8 @@
+---
+sourceDirectory: examples/src
+destinationDirectory: examples/site
+processFilesWithExtension:
+- .html
+- .css
+- .js
+- .txt

@@ -1,0 +1,4 @@
+* make _includes directory configurable via the yaml file
+* ignore _includes when moving from src -> dst
+* hardlink non-template files
+* use go routines to build dependencies in parallel once we know the dependency structure
