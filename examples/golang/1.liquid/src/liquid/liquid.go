@@ -9,7 +9,7 @@ import (
 
 // see: http://cuddle.googlecode.com/hg/talk/lex.html#slide-16
 
-// TODO: change Context to be a map of 
+// TODO: change Context to be a map of
 //   string -> interface and use reflection?
 type Context map[string][]string
 
@@ -49,6 +49,8 @@ const eof = -1
 type item struct {
 	typ itemType
 	val string
+	lineNumber int
+	colNumber  int
 }
 
 func (i item) String() string {
@@ -75,12 +77,14 @@ func (i item) String() string {
 // TODO: include the line number and the column number
 // in order to produce better error messages
 type lexer struct {
-	name  string
-	input string
-	start int
-	pos   int
-	width int
-	items chan item
+	name   string
+	input  string
+	start  int
+	pos    int
+	lnum   int
+	rnum   int
+	width  int
+	items  chan item
 }
 
 func lex(name, input string) (*lexer, chan item) {
@@ -106,7 +110,7 @@ func (l *lexer) run() {
 
 func (l *lexer) emit(t itemType) {
 	fmt.Printf("l.emit: itemType=%q\n", t)
-	ii := item{t, l.input[l.start:l.pos]}
+	ii := item{t, l.input[l.start:l.pos], l.lnum, l.rnum}
 	l.items <- ii
 	fmt.Printf("l.emit setting l.start(%d) = l.pos(%d)\n", l.start, l.pos)
 	l.start = l.pos
@@ -118,10 +122,14 @@ const endOutputMarkup = "}}"
 const openTagMarkup = "{%"
 const endTagMarkup = "%}"
 
+func (l *lexer) StartsWith(pat string) bool {
+	return strings.HasPrefix(l.input[l.pos:], pat)
+}
+
 func lexText(l *lexer) stateFn {
 	for {
 		fmt.Printf("lexText: checking for (output) %s has?=%q\n", openOutputMarkup, strings.HasPrefix(l.input[l.pos:], openOutputMarkup))
-		if strings.HasPrefix(l.input[l.pos:], openOutputMarkup) {
+		if l.StartsWith(openOutputMarkup) {
 			fmt.Printf("lexText: l.pos=%d > l.start=%d\n", l.pos, l.start)
 			if l.pos > l.start {
 				fmt.Printf("lexText: emitting itemText=%q text=%s\n", itemText, string(l.input[l.start:l.pos]))
@@ -133,7 +141,7 @@ func lexText(l *lexer) stateFn {
 		}
 
 		fmt.Printf("lexText: checking for (tag) %s\n", openTagMarkup)
-		if strings.HasPrefix(l.input[l.pos:], openTagMarkup) {
+		if l.StartsWith(openTagMarkup) {
 			if l.pos > l.start {
 				l.emit(itemText)
 			}
@@ -196,7 +204,7 @@ func (l *lexer) next() (r rune) {
 
 func lexInsideMarkupExpression(l *lexer) stateFn {
 	for {
-		if strings.HasPrefix(l.input[l.pos:], endOutputMarkup) {
+		if l.StartsWith(endOutputMarkup) {
 			return lexCloseMarkupExpression
 		}
 
@@ -216,7 +224,7 @@ func lexInsideMarkupExpression(l *lexer) stateFn {
 
 func lexInsideTagExpression(l *lexer) stateFn {
 	for {
-		if strings.HasPrefix(l.input[l.pos:], endTagMarkup) {
+		if l.StartsWith(endTagMarkup) {
 			return lexCloseTagExpression
 		}
 
@@ -229,13 +237,13 @@ func lexInsideTagExpression(l *lexer) stateFn {
 
 func lexExpression(l *lexer) stateFn {
 	for {
-		if strings.HasPrefix(l.input[l.pos:], endOutputMarkup) {
+		if l.StartsWith(endOutputMarkup) {
 			l.emit(itemCloseMarkup)
 			return lexCloseMarkupExpression
 		}
 
 		/*
-		   if strings.HasPrefix(l.input[l.pos:], "if") {
+		   if l.StartsWith("if") {
 		     l.emit(itemIf)
 		     return lexBooleanExpression
 		   }
@@ -280,6 +288,8 @@ func (l *lexer) errorf(format string, args ...interface{}) stateFn {
 	l.items <- item{
 		itemError,
 		fmt.Sprintf(format, args...),
+		l.lnum,
+		l.rnum,
 	}
 	return nil
 }

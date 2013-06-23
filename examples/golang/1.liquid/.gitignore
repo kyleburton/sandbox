@@ -1,3 +1,4 @@
 Shopify.liquid
 out.txt
 pkg/darwin_amd64/
+pkg/linux_amd64

@@ -1,0 +1,18 @@
+Identify files with YAML front-matter
+
+Compute and track dependency graph of files
+  when a file changes, recompute only those
+  that hae it as a dependency
+
+
+Minimum Liquid Features I need to support:
+* Layouts
+* Simple plugins for:
+  * js_includes_cdn: [ f1.js, f2.js ]
+     NB: this can span multiple lines
+  * stylesheet_cdn : {% stylesheet_cdn "/path/css/foo.css" %}
+  * rn_build_info (one instance?)
+  * javascript_cdn : {% javascript_cdn %}
+  * include:         {% include "/paht/to/filename.js" %}
+  * include:         {% include filename %}
+    
