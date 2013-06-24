@@ -36,7 +36,7 @@ func recursiveAddPath(watcher *fsnotify.Watcher, path string) error {
     }
 
     if isDir(path) {
-      fmt.Printf("add to watcher: path:%v info:%v er:%v\n", path, info)
+      //fmt.Printf("add to watcher: path:%v info:%v er:%v\n", path, info)
 	    err3 := watcher.Watch(path)
       if err3 != nil {
         panic(err3)
@@ -71,7 +71,34 @@ func ShouldBuild(fi FileInfo) bool {
   return srcStat.ModTime().After(dstStat.ModTime())
 }
 
-func CopyFile(fi FileInfo) error {
+func CopyRawFile(fi FileInfo) error {
+  src := fi.SrcPath
+  dst := fi.DstPath
+  destDir := path.Dir(dst)
+  if err := os.MkdirAll(destDir, 0755); err != nil {
+    return err
+  }
+
+  s, err := os.Open(src)
+  if err != nil {
+    return err
+  }
+
+  defer s.Close()
+
+  d, err := os.Create(dst)
+  if err != nil {
+    return err
+  }
+
+  if _, err := io.Copy(d, s); err != nil {
+    d.Close()
+    return err
+  }
+  return d.Close()
+}
+
+func CopyFileStripFrontMatter(fi FileInfo) error {
   src := fi.SrcPath
   dst := fi.DstPath
   destDir := path.Dir(dst)
@@ -108,22 +135,40 @@ func CopyFile(fi FileInfo) error {
   return d.Close()
 }
 
-func ProcessFile(path string, fi FileInfo) {
-  // if fi.SourcePath is newer than fi.DestinationPath, rebuild it
-  // if fi.DestinationPath does not exist, rebuild it
-  //fmt.Printf("Check[%s] vs it's destination: %q\n", path, fi)
-  if ShouldBuild(fi) {
-    fmt.Printf("!Rebuild %s => %s\n", fi.SrcPath, fi.DstPath)
-    err := CopyFile(fi)
+func ProcessFileWithFrontMatter (fi FileInfo) error {
+    err := CopyFileStripFrontMatter(fi)
     if err != nil {
-      fmt.Printf("Error building (copy) file: %s : %s\n", fi.SrcPath, err)
+      return err
+    }
+    return nil
+}
+
+func ProcessRawFile (fi FileInfo) error {
+    err := CopyRawFile(fi)
+    if err != nil {
+      return err
+    }
+    return nil
+}
+
+func ProcessFile(path string, fi FileInfo) error {
+  if ShouldBuild(fi) {
+    fmt.Printf("Compiling %s => %s\n", fi.SrcPath, fi.DstPath)
+    err := fi.Builder(fi)
+    if err != nil {
+      return err
     }
   }
+  return nil
 }
+
 
 func ProcessAllFiles () {
   for path, fi := range(ProjectFiles) {
-    ProcessFile(path,fi)
+    err := ProcessFile(path, fi)
+    if err != nil {
+      panic(err)
+    }
   }
 }
 
@@ -134,7 +179,7 @@ func Run() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("watcher: %s\n", watcher)
+	defer watcher.Close()
 
 	// Process events
 	go func() {
@@ -175,25 +220,21 @@ func Run() {
 		log.Fatal(err)
 	}
 
-	fmt.Printf("watching %s\n", Configuration.SourcePath)
+  fmt.Printf("%d files to build:\n", len(ProjectFiles))
+  for _, file := range(ProjectFiles) {
+    fmt.Printf("  %s\n", file.SrcPath)
+  }
+  fmt.Printf("\n\n")
 
   // process all files into the target directory
   ProcessAllFiles()
 
-  var ii = 0
-	for {
-    if 0 == ii % 5 {
-      fmt.Printf("\nWatching[%d]:\n", ii)
-      for _, file := range(ProjectFiles) {
-        fmt.Printf("  %q\n", file)
-      }
-      fmt.Printf("\n\n")
+  if Configuration.AutoMode {
+    fmt.Printf("watching for changes: %s...\n", Configuration.SourcePath)
+    var ii = 0
+    for {
+      ii = 1 + ii
+      time.Sleep(1 * time.Second)
     }
-    ii = 1 + ii
-		time.Sleep(1 * time.Second)
-		fmt.Printf(".")
-	}
-
-	/* ... do stuff ... */
-	watcher.Close()
+  }
 }

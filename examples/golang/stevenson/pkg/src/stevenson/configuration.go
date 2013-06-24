@@ -12,6 +12,7 @@ type StevensonConfiguration struct {
   SourcePath string
   DestinationPath string
   ProcessFileExtensions []string
+  AutoMode bool
 }
 
 var Configuration StevensonConfiguration

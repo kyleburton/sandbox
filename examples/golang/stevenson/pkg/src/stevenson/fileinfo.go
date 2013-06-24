@@ -18,6 +18,7 @@ type FileInfo struct {
   Dependencies []FileInfo
   DependedOnBy []FileInfo
   Attributes   map[interface{}]interface{}
+  Builder      func(FileInfo) error
 }
 
 var ProjectFiles map[string]FileInfo
@@ -78,10 +79,8 @@ func NewFromFile (path string) (fi FileInfo) {
   if fi.HasFrontMatter {
     spos := strings.Index(content, "---\n") + len("---\n")
     epos := spos + strings.Index(content[spos:], "---\n")
-    fmt.Printf("Start=%d End=%d Len=%d\n", spos, epos, len(content))
     frontMatter := content[spos:epos]
     fi.ContentStart = epos + len("---\n")
-    fmt.Printf("GOT FRONTMATTER: %s\n", frontMatter)
     goyaml.Unmarshal([]byte(frontMatter), &fi.Attributes)
   }
 
@@ -97,6 +96,33 @@ func NewFromFile (path string) (fi FileInfo) {
     }
   }
 
+  switch {
+  case fi.IsTemplate && fi.HasFrontMatter:
+    fi.Builder = ProcessLiquidFileWithFrontMatter
+  case fi.IsTemplate:
+    fi.Builder = ProcessFileWithFrontMatter
+  case fi.HasFrontMatter:
+    fi.Builder = ProcessLiquidFile
+  default:
+    fi.Builder = ProcessRawFile
+  }
+
+  if fi.IsTemplate && fi.HasFrontMatter {
+  }
+
   return
 }
 
+
+func (self FileInfo) GetContent() (string, error) {
+  data, err := ioutil.ReadFile(self.SrcPath)
+  if err != nil  {
+    return "", err
+  }
+
+  if self.HasFrontMatter {
+    return string(data)[self.ContentStart:], nil
+  }
+
+  return string(data), nil
+}
