@@ -4,9 +4,33 @@ import(
   "fmt"
   "os"
   "unicode/utf8"
+  "unicode"
   "strings"
   "io/ioutil"
 )
+
+
+type Stack struct {
+  entries []stateFn
+  count int
+}
+
+var stateStack *Stack = &Stack{}
+
+func (s *Stack) Push(fn stateFn, note string) {
+  s.entries = append(s.entries[:s.count], fn)
+  s.count++
+  fmt.Printf("Stack.Push(%s) count=%d\n", note, s.count)
+}
+
+func (s *Stack) Pop() stateFn {
+  if s.count == 0 {
+    return nil
+  }
+  fmt.Printf("Stack.Pop: count=%d - 1\n", s.count)
+  s.count--
+  return s.entries[s.count]
+}
 
 type LiquidDocument struct {
   Source string
@@ -35,6 +59,10 @@ const (
   itemExpression
   itemExpressionEnd
   itemInclude
+  itemPipe
+  itemDoubleQuote
+  itemDoubleQuotedString
+  itemRawFilePath
   itemEOF
 )
 
@@ -58,18 +86,26 @@ func (self Item) String () string {
   switch self.typ {
   // case itemText:
   //   return Item.val
-  case itemMarkupStart:
-    return "{{"
-  case itemMarkup:
-    return fmt.Sprintf("[[Markup:%s]]", self.val)
-  case itemMarkupEnd:
-    return "}}"
   case itemExpressionStart:
-    return "{%"
+    return "{{"
   case itemExpression:
     return fmt.Sprintf("[[Expression:%s]]", self.val)
   case itemExpressionEnd:
+    return "}}"
+  case itemMarkupStart:
+    return "{%"
+  case itemMarkup:
+    return fmt.Sprintf("[[Markup:%s]]", self.val)
+  case itemMarkupEnd:
     return "%}"
+  case itemInclude:
+    return fmt.Sprintf("[[Include:%s]]", self.val)
+  case itemRawFilePath:
+    return fmt.Sprintf("[[RawFilePath:%s]]", self.val)
+  case itemDoubleQuote:
+    return "\""
+  case itemDoubleQuotedString:
+    return fmt.Sprintf("q[%s]", self.val)
   case itemEOF:
     return "EOF"
   }
@@ -86,6 +122,14 @@ func (l *Lexer) next() (r rune, eof bool) {
   r, l.Width = utf8.DecodeRuneInString(l.Input[l.Pos:])
   l.Pos += l.Width
   return r, false
+}
+
+func (l *Lexer) ignore() {
+  l.Start = l.Pos
+}
+
+func (l *Lexer) backup() {
+  l.Pos -= l.Width
 }
 
 func LexExpressionEnd(l *Lexer) stateFn {
@@ -127,6 +171,71 @@ func LexMarkupEnd(l *Lexer) stateFn {
   return LexText
 }
 
+func LexDoubleQuote(l *Lexer) stateFn {
+  l.emit(itemDoubleQuote)
+  for {
+    switch {
+    case strings.HasPrefix(l.Input[l.Pos:], "\\\""):
+      l.Pos += len("\\\"")
+    case strings.HasPrefix(l.Input[l.Pos:], "\""):
+      l.emit(itemDoubleQuotedString)
+      l.Pos += len("\"")
+      l.emit(itemDoubleQuote)
+      return stateStack.Pop()
+    }
+    if _, eof := l.next(); eof {
+      l.emit(itemError)
+      return nil
+    }
+  }
+}
+
+func LexRawFilePath(l *Lexer) stateFn {
+  for {
+    r, eof := l.next()
+    if eof {
+      l.emit(itemRawFilePath)
+      return nil
+    }
+
+    if unicode.IsSpace(r) {
+      l.backup()
+      l.emit(itemRawFilePath)
+      return stateStack.Pop()
+    }
+  }
+}
+
+func LexInclude(l *Lexer) stateFn {
+
+  for {
+    if strings.HasPrefix(l.Input[l.Pos:], "%}") {
+      l.Pos += len("%}")
+      l.emit(itemMarkupEnd)
+      return LexText
+    }
+    r, eof := l.next()
+    if eof {
+      l.emit(itemError)
+      return nil
+    }
+    switch {
+    case r == '\n':
+      l.ignore()
+      continue
+    case unicode.IsSpace(r):
+      l.ignore()
+      continue
+    case r == '"':
+      stateStack.Push(LexInclude, "LexInclude->LexDoubleQuote")
+      return LexDoubleQuote
+    }
+
+    stateStack.Push(LexInclude, "LexInclude->LexRawFilePath")
+    return LexRawFilePath
+  }
+}
+
 func LexMarkup(l *Lexer) stateFn {
   for {
     if strings.HasPrefix(l.Input[l.Pos:], "%}") {
@@ -136,14 +245,11 @@ func LexMarkup(l *Lexer) stateFn {
       }
     }
 
-    /*
     if strings.HasPrefix(l.Input[l.Pos:], "include") {
-      if l.Pos > l.Start {
-        l.emit(itemInclude)
-        return LexMarkupEnd
-      }
+      l.Pos += len("include")
+      l.emit(itemInclude)
+      return LexInclude
     }
-    */
 
     if _, eof := l.next(); eof {
       fmt.Printf("Error: unclosed markup!\n")
@@ -158,7 +264,7 @@ func LexMarkup(l *Lexer) stateFn {
 }
 
 func LexMarkupStart(l *Lexer) stateFn {
-  l.Pos += len("}}")
+  l.Pos += len("{%")
   l.emit(itemMarkupStart)
   return LexMarkup
 }
@@ -180,6 +286,7 @@ func LexText(l *Lexer) stateFn {
     }
 
     if _, eof := l.next(); eof {
+      fmt.Printf("LexText: hit EOF\n")
       break
     }
   }
@@ -189,8 +296,8 @@ func LexText(l *Lexer) stateFn {
     l.emit(itemText)
   }
 
+  fmt.Printf("LexText: emit(itemEOF)\n")
   l.emit(itemEOF)
-
   return nil
 }
 
