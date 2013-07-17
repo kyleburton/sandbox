@@ -1,5 +1,7 @@
 package main
 
+// http://blog.golang.org/json-and-go
+
 import (
 	"encoding/json"
 	"strings"
