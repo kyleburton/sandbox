@@ -1,0 +1,11 @@
+.h1 Track Rowcounts for PostgreSQL
+
+See:
+
+* "http://www.varlena.com/GeneralBits/120.php":http://www.varlena.com/GeneralBits/120.php
+* "http://www.varlena.com/GeneralBits/49.php":http://www.varlena.com/GeneralBits/49.php
+* "http://wiki.postgresql.org/wiki/Slow_Counting":http://wiki.postgresql.org/wiki/Slow_Counting
+
+Structure, form and approaches taken from:
+
+* "http://wiki.postgresql.org/wiki/Audit_trigger_91plus":http://wiki.postgresql.org/wiki/Audit_trigger_91plus
