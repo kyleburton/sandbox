@@ -1,4 +1,4 @@
-.h1 Track Rowcounts for PostgreSQL
+h1. Track Rowcounts for PostgreSQL
 
 See:
 
