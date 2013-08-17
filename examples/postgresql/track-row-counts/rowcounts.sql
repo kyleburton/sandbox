@@ -22,7 +22,8 @@ CREATE TABLE rowcounts.count_metrics (
   schema_name    text   not null,
   table_name     text   not null,
   period         text not null,
-  num_rows       bigint not null default 0
+  num_inserts    bigint not null default 0,
+  num_updates    bigint not null default 0
 );
 
 GRANT ALL ON rowcounts.count_metrics TO public;
@@ -31,21 +32,80 @@ COMMENT ON TABLE rowcounts.count_metrics IS 'Row Counts by table, from rowcounts
 
 CREATE INDEX rowcount_metrics_schema_name_table_name_idx ON rowcounts.count_metrics (schema_name,table_name,period);
 
+CREATE OR REPLACE FUNCTION rowcounts.track_rowcount_metrics_func(in_table_schema text, in_table_name text, in_period text, incrby integer) RETURNS void AS $body$
+DECLARE
+  _q_txt  text;
+  _n_inserts integer;
+  _n_updates integer;
+BEGIN
+  IF incrby < 0 THEN -- an update
+    _n_inserts = 0;
+    _n_updates = 1;
+  ELSE               -- an insert
+    _n_inserts = 1;
+    _n_updates = 0;
+  END IF;
+
+  LOOP
+    UPDATE rowcounts.count_metrics 
+       SET num_inserts = num_inserts + _n_inserts,
+           num_updates = num_updates + _n_updates
+     WHERE schema_name = in_table_schema 
+       AND table_name = in_table_name 
+       AND period = in_period;
+    IF found THEN
+      RETURN;
+    END IF;
+
+    BEGIN
+      INSERT INTO rowcounts.count_metrics 
+             (schema_name,table_name,period,num_inserts, num_updates)
+      VALUES (in_table_schema,in_table_name,in_period,_n_inserts,_n_updates);
+      RETURN;
+    EXCEPTION WHEN unique_violation THEN
+      -- do nothing, make the update
+    END;
+  END LOOP;
+END;
+$body$
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, public;
+
 CREATE OR REPLACE FUNCTION rowcounts.track_rowcount_func() RETURNS TRIGGER AS $body$
 DECLARE
-  _q_txt text;
+  _q_txt  text;
+  _m_year text;
+  _m_mon  text;
+  _m_day  text;
+  _m_hour text;
+  _m_min  text;
 BEGIN
+  _m_year = lpad(extract(year  from current_timestamp)::text, 4, '0');
+  _m_mon  = lpad(extract(month from current_timestamp)::text, 2, '0');
+  _m_day  = lpad(extract(day   from current_timestamp)::text, 2, '0');
+  _m_hour = lpad(extract(hour  from current_timestamp)::text, 2, '0');
+  _m_min  = lpad(extract(min   from current_timestamp)::text, 2, '0');
+
   IF TG_OP = 'INSERT' THEN
     _q_txt = 'UPDATE rowcounts.counts SET num_rows = num_rows+1 WHERE schema_name = $1 AND table_name = $2';
-    -- RAISE NOTICE '%', _q_txt;
-    EXECUTE _q_txt
-      USING TG_TABLE_SCHEMA, TG_TABLE_NAME;
+    EXECUTE _q_txt USING TG_TABLE_SCHEMA, TG_TABLE_NAME;
+    PERFORM rowcounts.track_rowcount_metrics_func(TG_TABLE_SCHEMA, TG_TABLE_NAME, _m_year, 1);
+    PERFORM rowcounts.track_rowcount_metrics_func(TG_TABLE_SCHEMA, TG_TABLE_NAME, _m_year || '.' || _m_mon, 1);
+    PERFORM rowcounts.track_rowcount_metrics_func(TG_TABLE_SCHEMA, TG_TABLE_NAME, _m_year || '.' || _m_mon || '.' || _m_day, 1);
+    PERFORM rowcounts.track_rowcount_metrics_func(TG_TABLE_SCHEMA, TG_TABLE_NAME, _m_year || '.' || _m_mon || '.' || _m_day || '.' || _m_hour, 1);
+    PERFORM rowcounts.track_rowcount_metrics_func(TG_TABLE_SCHEMA, TG_TABLE_NAME, _m_year || '.' || _m_mon || '.' || _m_day || '.' || _m_hour || '.' || _m_min, 1);
+
     RETURN NEW;
   ELSIF TG_OP = 'DELETE' THEN
     _q_txt = 'UPDATE rowcounts.counts SET num_rows = num_rows-1 WHERE schema_name = $1 AND table_name = $2';
-    -- RAISE NOTICE '%', _q_txt;
-    EXECUTE _q_txt
-      USING TG_TABLE_SCHEMA, TG_TABLE_NAME;
+    EXECUTE _q_txt USING TG_TABLE_SCHEMA, TG_TABLE_NAME;
+    PERFORM rowcounts.track_rowcount_metrics_func(TG_TABLE_SCHEMA, TG_TABLE_NAME, _m_year, -1);
+    PERFORM rowcounts.track_rowcount_metrics_func(TG_TABLE_SCHEMA, TG_TABLE_NAME, _m_year || '.' || _m_mon, -1);
+    PERFORM rowcounts.track_rowcount_metrics_func(TG_TABLE_SCHEMA, TG_TABLE_NAME, _m_year || '.' || _m_mon || '.' || _m_day, -1);
+    PERFORM rowcounts.track_rowcount_metrics_func(TG_TABLE_SCHEMA, TG_TABLE_NAME, _m_year || '.' || _m_mon || '.' || _m_day || '.' || _m_hour, -1);
+    PERFORM rowcounts.track_rowcount_metrics_func(TG_TABLE_SCHEMA, TG_TABLE_NAME, _m_year || '.' || _m_mon || '.' || _m_day || '.' || _m_hour || '.' || _m_min, -1);
+
     RETURN OLD;
   END IF;
 END;
