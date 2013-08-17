@@ -1,6 +1,29 @@
 h1. Track Rowcounts for PostgreSQL
 
-See:
+This creates a 'rowcounts' schema and the following two tables:
+
+* rowcounts.counts
+* rowcounts.count_metrics
+
+The counts table maintains an accurate rowcount by table.  The count_metrics table maintains a count of inserts and deletes aggregated by the following periods:
+
+* year
+* year, month
+* year, month, day
+* year, month, day, hour
+* year, month, day, hour, minute
+
+h2. Installation
+
+To enable the row tracking triggers for a table, execute:
+
+<pre>
+    select rowcounts.track_rowcount_on('schema_name','table_name');
+</pre>
+
+NB: calling this will temporarily lock the table in order to get an accurate initial count.
+
+h2. See Also
 
 * "http://www.varlena.com/GeneralBits/120.php":http://www.varlena.com/GeneralBits/120.php
 * "http://www.varlena.com/GeneralBits/49.php":http://www.varlena.com/GeneralBits/49.php

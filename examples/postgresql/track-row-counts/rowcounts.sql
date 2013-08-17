@@ -23,7 +23,7 @@ CREATE TABLE rowcounts.count_metrics (
   table_name     text   not null,
   period         text not null,
   num_inserts    bigint not null default 0,
-  num_updates    bigint not null default 0
+  num_deletes    bigint not null default 0
 );
 
 GRANT ALL ON rowcounts.count_metrics TO public;
@@ -36,20 +36,20 @@ CREATE OR REPLACE FUNCTION rowcounts.track_rowcount_metrics_func(in_table_schema
 DECLARE
   _q_txt  text;
   _n_inserts integer;
-  _n_updates integer;
+  _n_deletes integer;
 BEGIN
   IF incrby < 0 THEN -- an update
     _n_inserts = 0;
-    _n_updates = 1;
+    _n_deletes = 1;
   ELSE               -- an insert
     _n_inserts = 1;
-    _n_updates = 0;
+    _n_deletes = 0;
   END IF;
 
   LOOP
     UPDATE rowcounts.count_metrics 
        SET num_inserts = num_inserts + _n_inserts,
-           num_updates = num_updates + _n_updates
+           num_deletes = num_deletes + _n_deletes
      WHERE schema_name = in_table_schema 
        AND table_name = in_table_name 
        AND period = in_period;
@@ -59,8 +59,8 @@ BEGIN
 
     BEGIN
       INSERT INTO rowcounts.count_metrics 
-             (schema_name,table_name,period,num_inserts, num_updates)
-      VALUES (in_table_schema,in_table_name,in_period,_n_inserts,_n_updates);
+             (schema_name,table_name,period,num_inserts, num_deletes)
+      VALUES (in_table_schema,in_table_name,in_period,_n_inserts,_n_deletes);
       RETURN;
     EXCEPTION WHEN unique_violation THEN
       -- do nothing, make the update
