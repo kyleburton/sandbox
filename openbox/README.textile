@@ -48,7 +48,7 @@ inside the window.
 
 h3. Keybindings
 
-* C-F12 open a new terminal
+* C-F12 open a gnome-terminal
 * A-Home toggle maximization
 * A-Right toggle maximization horizontal
 * A-Up toggle maximization vertical

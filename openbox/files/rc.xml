@@ -347,6 +347,11 @@
         <command>gnome-terminal</command>
       </action>
     </keybind>
+    <keybind key="C-F9">
+      <action name="Execute">
+        <command>gnome-terminal --maximize -x open-project</command>
+      </action>
+    </keybind>
     <keybind key="A-1">
       <action name="GoToDesktop">
         <to>1</to>
