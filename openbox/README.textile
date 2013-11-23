@@ -1,10 +1,10 @@
-h1. Ubuntu and Unity 12.04 and 12.10
+h1. Ubuntu Started using Unity for 12.04, 12.10
 
-Sorry, no.
+Sorry, no.  I'm going to have to move away.
 
-Inside VirtualBox it is just too slow, the Alt-Tab behavior is different enough
-that my twitch reflexes can't adapt to it.  The Unity taskbar just seems to be
-in my way.
+Especially Inside VirtualBox it is just too slow, the Alt-Tab behavior is
+different enough that my twitch reflexes can't adapt to it.  The Unity taskbar
+just seems to be in my way.
 
 "Openbox":http://openbox.org/ is an alternative I'm exploring.
 
@@ -20,11 +20,19 @@ h2. The setup I like
 
 h3. Desktops
 
-I like having 10 desktops.
+I like having 10 desktops and using each one (as possible) for a specific set
+of tasks, like devloping a particular service or library.
 
-* 1 is for local administration
-* 2 is where I run a browser and do front-end web development
-* 3 is where I do my main coding
+* 1  administration, local or remote
+* 2  browser and front-end web development
+* 3  primary/core services
+* 4  some other service
+* 5  data store (DDL, Schema manipulation, etc)
+* 6  reporting, analytics systems
+* 7  devops
+* 8  client facing web site
+* 9  integratin testing suites and tools
+* 10 primary user facing services
 
 At $WORK, I like following a convention of assigning a project to a particular
 desktop.  That way I always know where things are.
