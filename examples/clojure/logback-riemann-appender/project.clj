@@ -8,7 +8,7 @@
             [lein-swank                "1.4.5"]]
   :dependencies [
     [org.clojure/clojure            "1.5.1"]
-    [com.aphyr/riemann-java-client  "0.2.4"]
+    [com.aphyr/riemann-java-client  "0.2.8"]
     [ch.qos.logback/logback-classic "1.0.13"]
     [org.clojure/tools.logging      "0.2.6"]
   ])

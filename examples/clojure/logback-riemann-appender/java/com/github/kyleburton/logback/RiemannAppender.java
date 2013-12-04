@@ -30,7 +30,7 @@ public class RiemannAppender<E> extends AppenderBase<E> {
 
   public static AtomicLong timesCalled = new AtomicLong(0);
 
-  private static final boolean debug = false;
+  private static boolean debug = false;
 
   private RiemannClient riemannClient = null;
 
@@ -42,7 +42,13 @@ public class RiemannAppender<E> extends AppenderBase<E> {
       SynchronousTransport transport = new SimpleUdpTransport(riemannHostname, Integer.parseInt(riemannPort));
       final RiemannClient cli = new RiemannClient(transport);
       riemannClient = cli;
+      if (debug) {
+        System.err.println(String.format("%s.start: connecting", this));
+      }
       riemannClient.connect();
+      if (debug) {
+        System.err.println(String.format("%s.start: connected", this));
+      }
     }
     catch (IOException ex) {
       if (debug) {
@@ -81,7 +87,10 @@ public class RiemannAppender<E> extends AppenderBase<E> {
         state("error").
         attribute("message", logEvent.getFormattedMessage());
 
-      if (logEvent.hasCallerData()) {
+      if (logEvent.getCallerData() != null) {
+        if (debug) {
+          System.err.println(String.format("%s.append: adding in stacktrace", this));
+        }
         StringBuilder sb = new StringBuilder();
         for ( StackTraceElement elt : logEvent.getCallerData()) {
           sb.append(elt);
@@ -91,6 +100,9 @@ public class RiemannAppender<E> extends AppenderBase<E> {
       }
 
       try {
+        if (debug) {
+          System.err.println(String.format("%s.append: sending riemann event: %s", this, rEvent));
+        }
         rEvent.send();
         if (debug) {
           System.err.println(String.format("%s.append(logEvent): sent to riemann %s:%s", this, riemannHostname, riemannPort));
@@ -145,5 +157,9 @@ public class RiemannAppender<E> extends AppenderBase<E> {
 
   public void setHostname (String s) {
     hostname = s;
+  }
+
+  public void setDebug (String s) {
+    debug = "true" == s;
   }
 }

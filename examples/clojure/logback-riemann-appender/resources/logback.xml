@@ -14,10 +14,11 @@
     </encoder>
   </appender>
   <appender name="R1" class="com.github.kyleburton.logback.RiemannAppender">
-    <ServiceName>test service</ServiceName>
+    <ServiceName>Test Service</ServiceName>
     <RiemannHostname>127.0.0.1</RiemannHostname>
     <RiemannPort>5555</RiemannPort>
     <Hostname>graphene</Hostname>
+    <!--<Debug>true</Debug>-->
   </appender>
   <logger name="com.netflix.hystrix.strategy.properties.HystrixPropertiesChainedArchaiusProperty" level="WARN"/>
   <root level="DEBUG">
