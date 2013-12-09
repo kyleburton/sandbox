@@ -1,0 +1,1 @@
+lein javac && lein run
