@@ -23,5 +23,29 @@ desc "Run server"
 task :server => [:install] do
   cmd = ["software/#{$dname}/bin/elasticsearch", "-f"]
   puts "cmd=#{cmd.join(" ")}"
+  puts ""
+  puts "To test it out, run:"
+  puts ""
+  puts "  curl -X GET http://localhost:9200/"
+  puts ""
+  puts "Starting elasticsearch..."
   system *cmd
+end
+
+desc "load fixtures"
+task :fixtures, :fixture do |t, args|
+  fixture = args[:fixture]
+  fixtures = []
+  if fixture
+    fixtures = [fixture]
+  else
+    fixtures = Dir["fixtures/*.json"]
+  end
+
+  fixtures.each do |fixture|
+    cmd = ["curl", "-XPUT", "http://localhost:9200/twitter/user/kimchy", "-d", "@#{fixture}"]
+    puts "cmd=#{cmd.join(" ")}"
+    system *cmd
+    puts ""
+  end
 end
