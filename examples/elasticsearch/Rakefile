@@ -1,0 +1,27 @@
+$url = 'https://download.elasticsearch.org/elasticsearch/elasticsearch/elasticsearch-0.90.7.tar.gz'
+$local_file = File.basename($url)
+$dname = File.basename($local_file, '.tar.gz')
+
+desc "Install"
+task :install do
+  if !File.exist? "software"
+    mkdir "software"
+  end
+
+  Dir.chdir "software" do |p|
+    unless File.exist? $local_file
+      system "wget", $url
+    end
+
+    if !File.exist? $dname
+      system "tar", "xzvf", $local_file
+    end
+  end
+end
+
+desc "Run server"
+task :server => [:install] do
+  cmd = ["software/#{$dname}/bin/elasticsearch", "-f"]
+  puts "cmd=#{cmd.join(" ")}"
+  system *cmd
+end
