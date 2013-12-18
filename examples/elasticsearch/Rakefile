@@ -49,3 +49,8 @@ task :fixtures, :fixture do |t, args|
     puts ""
   end
 end
+
+desc "show nodes"
+task :cluster_info do
+  system "curl localhost:9200/_nodes/process?pretty"
+end

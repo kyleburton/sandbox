@@ -1,0 +1,20 @@
+'River'[1] Plugin allows for streaming a RabbitMQ queue directly into ElasticSearch using the bulk import api[2].
+
+
+  [1] https://github.com/elasticsearch/elasticsearch-river-rabbitmq/blob/master/README.md
+  [2] http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/docs-bulk.html
+
+Multi-Tennancy
+  handled via separate indexes, though
+  ES doens't recommend large numbers of indexes, may be able to handle via "filtered aliases"
+
+    https://groups.google.com/forum/#!topic/elasticsearch/kiFI0QoZ3v4
+
+
+Clustering
+  Node Names
+  Discovery
+
+
+Security Concerns:
+  http://www.elasticsearch.org/guide/en/elasticsearch/reference/current/url-access-control.html
