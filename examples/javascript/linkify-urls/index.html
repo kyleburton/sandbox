@@ -1,0 +1,37 @@
+<html>
+  <head>
+    <title>Test Document</title>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/backbone.js/1.1.2/backbone-min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js"></script>
+    <script src="linkify.js"></script>
+  </head>
+  <body>
+    <div>
+      1. Basic url / link to http://google.com
+    </div>
+    <div>
+      2.1 US / CAN Phone Number 16105551212
+    </div>
+    <div>
+      2.2 US / CAN Phone Number 610-555-1212
+    </div>
+    <div>
+      2.2 US / CAN Phone Number 1-610-555-1212
+    </div>
+    <div>
+      2.3 US / CAN Phone Number (610) 555-1212
+    </div>
+    <div>
+      2.4 US / CAN Phone Number 1 (610) 555-1212
+    </div>
+    <div>
+      2.5 US / CAN Phone Number 1.610.555.1212
+    </div>
+    <script>
+      $('div').each(function (elt) {
+        console.log(Linkify.findLinksInElement(elt));
+      });
+    </script>
+  </body>
+</html>
