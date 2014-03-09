@@ -2,36 +2,49 @@
   <head>
     <title>Test Document</title>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/backbone.js/1.1.2/backbone-min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.6.0/underscore-min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/backbone.js/1.1.2/backbone-min.js"></script>
     <script src="linkify.js"></script>
   </head>
   <body>
-    <div>
+    <div data-idx="1">
       1. Basic url / link to http://google.com
     </div>
-    <div>
+    <div data-idx="2.1">
       2.1 US / CAN Phone Number 16105551212
     </div>
-    <div>
+    <div data-idx="2.2">
       2.2 US / CAN Phone Number 610-555-1212
     </div>
-    <div>
-      2.2 US / CAN Phone Number 1-610-555-1212
+    <div data-idx="2.2">
+      2.3 US / CAN Phone Number 1-610-555-1212
     </div>
-    <div>
-      2.3 US / CAN Phone Number (610) 555-1212
-    </div>
-    <div>
+    <div data-idx="2.4">
       2.4 US / CAN Phone Number 1 (610) 555-1212
     </div>
-    <div>
-      2.5 US / CAN Phone Number 1.610.555.1212
+    <div data-idx="2.5">
+      2.5 US / CAN Phone Number 1 (610) 555-1212
     </div>
+    <div data-idx="2.6">
+      2.6 US / CAN Phone Number 1.610.555.1212  and a second one 1.610.555.1213
+    </div>
+    <div data-idx="3.1">
+      3.1  email address kyle.burton@gmail.com
+    </div>
+    <div data-idx="3.2">
+      3.2  email address kburton@some-other-domain.com
+    </div>
+    <script id="result" type="text/html">
+<pre><%= JSON.stringify(res, null, 2) %></pre>
+    </script>
     <script>
-      $('div').each(function (elt) {
-        console.log(Linkify.findLinksInElement(elt));
+      $('div').each(function (idx, elt) {
+          $('body').append(_.template($('#result').html(), {res: Linkify.findLinksInElement(elt)}));
       });
+      //var elt = $('div[data-idx="2.5"]');
+      //$('body').append(_.template($('#result').html(), {res: Linkify.findLinksInElement(elt)}));
+      //var elt = $('div[data-idx="2.4"]');
+      //$('body').append(_.template($('#result').html(), {res: Linkify.findLinksInElement(elt)}));
     </script>
   </body>
 </html>
