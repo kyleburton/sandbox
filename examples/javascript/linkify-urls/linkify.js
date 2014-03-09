@@ -1,3 +1,12 @@
+//
+// TODO: don't find URLs that are part of email addresses
+// TODO: grab all urls
+// TODO: grab all email addresses
+// TODO: do not grab items if they are already clickable / inside an anchor tag
+// TODO: support wrapping an anchor tag around the found item
+//
+//
+// 
 // http://stackoverflow.com/questions/14863026/javascript-regex-find-all-possible-matches-even-in-already-captured-matches
 // http://code.tutsplus.com/tutorials/8-regular-expressions-you-should-know--net-6149
 (function (root) {
@@ -27,7 +36,7 @@
     /1?\(\d{3}\)\d{7}/gm
   ];
 
-  self.regexes.emailAddress = /(?:[a-z0-9_\.-]+)@(?:[\da-z\.-]+)\.(?:[a-z\.]{2,6})/gm;
+  self.regexes.emailAddress = /(?:[a-z0-9_\.\-]+)@(?:[\da-z\.\-]+)\.(?:[a-z\.]{2,6})/gm;
 
   self.canonicalizePhoneNumber = function (s) {
     s = s.toString().replace(/\D+/g, "");
@@ -58,11 +67,15 @@
   };
 
   self.findUrls = function (s) {
-    return self.regexes.url.exec(s);
+    var regex = eval(self.regexes.url.toString());
+    // TODO: grab all matches
+    return regex.exec(s);
   };
 
   self.findEmailAddresses = function (s) {
-    return self.regexes.emailAddress.exec(s);
+    var regex = eval(self.regexes.emailAddress.toString());
+    // TODO: grab all matches
+    return regex.exec(s.toLowerCase());
   };
 
   self.findLinksInElement = function (elt) {
