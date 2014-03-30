@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+set -eu
+
+DO_CREDS_FILE="${DO_CREDS_FILE:-$HOME/.digital-ocean.env}"
+DO_CLIENT_ID="${DO_CLIENT_ID:-}"
+DO_API_KEY="${DO_API_KEY:-}"
+
+init_credentials () {
+  if [ -n "${DO_CLIENT_ID}" -a -n "${DO_API_KEY}" ]; then
+    return 0
+  fi
+
+  if [ -e "${DO_CREDS_FILE}" ]; then
+    source $DO_CREDS_FILE
+  fi
+
+  if [ -n "${DO_CLIENT_ID}" -a -n "${DO_API_KEY}" ]; then
+    return 0
+  fi
+
+  return 1
+}
+
+if ! init_credentials; then
+  echo "Error: you must create a Credentials file: $DO_CREDS_FILE"
+  echo "  See: https://cloud.digitalocean.com/api_access"
+  echo "  an place the following in your $DO_CREDS_FILE:"
+  echo ""
+  echo "    CLIENT_ID=<<your Client ID>>"
+  echo "    API_KEY=<<your API Key>>"
+  echo ""
+  exit 1
+fi
+
+# routing table for commands
+ROUTING_TABLE=""
+ROUTING_TABLE[0]="do_types_ls types ls"
+ROUTING_TABLE[1]="do_types_ls t ls"
+
+find_matching_route () {
+  for idx in $(seq 0 ${#ROUTING_TABLE[*]}); do
+    route="${ROUTING_TABLE[$idx]}"
+    echo "route: '${ROUTING_TABLE[$idx]}' vs args: '$@'"
+  done
+}
+
+find_matching_route "$@"
+
+#case "$1" in
+#  *)
+#    echo ""
+#    ;;
+#esac
