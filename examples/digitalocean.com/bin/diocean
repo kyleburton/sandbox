@@ -40,6 +40,7 @@ ROUTING_TABLE[1]="do_types_ls t ls"
 find_matching_route () {
   for idx in $(seq 0 ${#ROUTING_TABLE[*]}); do
     route="${ROUTING_TABLE[$idx]}"
+    shift 
     echo "route: '${ROUTING_TABLE[$idx]}' vs args: '$@'"
   done
 }
