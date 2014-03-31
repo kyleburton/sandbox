@@ -1,6 +1,6 @@
 h1. Digial Ocean Command Line Client
 
-h3. Roadmap / TODO
+h3. Roadmap / *TODO*
 
 Documentation: both a basic manual and help text for the application (scrape some of this from the on-line html guide?).
 
@@ -10,52 +10,52 @@ h5. API Support
 
 * Droplets
 ** [DONE] Show All Active Droplets
-** [TODO] New Droplet
+** [*TODO*] New Droplet
 ** [DONE] Show Droplet
-** [TODO] Reboot Droplet
-** [TODO] Power Cycle Droplet
-** [TODO] Shut Down Droplet
-** [TODO] Power Off
-** [TODO] Power On
-** [TODO] Reset Root Password
-** [TODO] Resize Droplet
-** [TODO] Take a Snapshot
-** [TODO] Restore Droplet
-** [TODO] Rebuild Droplet
-** [TODO] Rename Droplet
+** [*TODO*] Reboot Droplet
+** [*TODO*] Power Cycle Droplet
+** [*TODO*] Shut Down Droplet
+** [*TODO*] Power Off
+** [*TODO*] Power On
+** [*TODO*] Reset Root Password
+** [*TODO*] Resize Droplet
+** [*TODO*] Take a Snapshot
+** [*TODO*] Restore Droplet
+** [*TODO*] Rebuild Droplet
+** [*TODO*] Rename Droplet
 
 * Regions
-** [TODO] All Regions
+** [*TODO*] All Regions
 
 * Images
 ** [DONE] All Images
 ** [DONE] Show Image
-** [TODO] Destroy Image
-** [TODO] Transfer Image
+** [*TODO*] Destroy Image
+** [*TODO*] Transfer Image
 
 * SSH Keys
-** [TODO] All SSH Keys
-** [TODO] Add SSH Keys
-** [TODO] Show SSH Keys
-** [TODO] Edit SSH Keys
-** [TODO] Destroy SSH Keys
+** [*TODO*] All SSH Keys
+** [*TODO*] Add SSH Keys
+** [*TODO*] Show SSH Keys
+** [*TODO*] Edit SSH Keys
+** [*TODO*] Destroy SSH Keys
 
 * Sizes
 ** [DONE] All Sizes
 
 * Domains
-** [TODO] All Domains
-** [TODO] New Domain
-** [TODO] Domain Show
-** [TODO] Destroy Domain
-** [TODO] All Domain Records
-** [TODO] New Domain Record
-** [TODO] Show Domain Record
-** [TODO] Edit Domain Record
-** [TODO] Destroy Domain Record
+** [*TODO*] All Domains
+** [*TODO*] New Domain
+** [*TODO*] Domain Show
+** [*TODO*] Destroy Domain
+** [*TODO*] All Domain Records
+** [*TODO*] New Domain Record
+** [*TODO*] Show Domain Record
+** [*TODO*] Edit Domain Record
+** [*TODO*] Destroy Domain Record
 
 * Events
-* [TODO] Show Event
+* [*TODO*] Show Event
 
 h3. References
 
