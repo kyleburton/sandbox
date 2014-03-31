@@ -1,5 +1,64 @@
 h1. Digial Ocean Command Line Client
 
-http://blog.equanimity.nl/blog/2013/05/29/a-beginners-guide-to-erlang/
-https://developers.digitalocean.com/sizes/
-https://developers.digitalocean.com/images/
+h3. Roadmap / TODO
+
+Documentation: both a basic manual and help text for the application (scrape some of this from the on-line html guide?).
+
+Factor the HTTP Api into a re-useable library, separate the command line interface and formatting of results into a separate module.  The command line interface deals with configuration, input and output.  The light-weight api abstracts the HTTP interface.
+
+h5. API Support
+
+* Droplets
+** [DONE] Show All Active Droplets
+** [TODO] New Droplet
+** [DONE] Show Droplet
+** [TODO] Reboot Droplet
+** [TODO] Power Cycle Droplet
+** [TODO] Shut Down Droplet
+** [TODO] Power Off
+** [TODO] Power On
+** [TODO] Reset Root Password
+** [TODO] Resize Droplet
+** [TODO] Take a Snapshot
+** [TODO] Restore Droplet
+** [TODO] Rebuild Droplet
+** [TODO] Rename Droplet
+
+* Regions
+** [TODO] All Regions
+
+* Images
+** [DONE] All Images
+** [DONE] Show Image
+** [TODO] Destroy Image
+** [TODO] Transfer Image
+
+* SSH Keys
+** [TODO] All SSH Keys
+** [TODO] Add SSH Keys
+** [TODO] Show SSH Keys
+** [TODO] Edit SSH Keys
+** [TODO] Destroy SSH Keys
+
+* Sizes
+** [DONE] All Sizes
+
+* Domains
+** [TODO] All Domains
+** [TODO] New Domain
+** [TODO] Domain Show
+** [TODO] Destroy Domain
+** [TODO] All Domain Records
+** [TODO] New Domain Record
+** [TODO] Show Domain Record
+** [TODO] Edit Domain Record
+** [TODO] Destroy Domain Record
+
+* Events
+* [TODO] Show Event
+
+h3. References
+
+* http://blog.equanimity.nl/blog/2013/05/29/a-beginners-guide-to-erlang/
+* https://developers.digitalocean.com/sizes/
+* https://developers.digitalocean.com/images/
