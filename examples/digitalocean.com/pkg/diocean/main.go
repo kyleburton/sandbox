@@ -66,6 +66,12 @@ func InitRoutingTable() {
     Handler: DoImagesLs,
 	})
 
+	RoutingTable = append(RoutingTable, &Route{
+    Pattern: []string{"images", "show", ":imageId"},
+		Params:  make(map[string]string),
+    Handler: DoImageShow,
+	})
+
 }
 
 func ApiGet (path string) (*http.Response, map[string]interface{}, error) {
@@ -142,6 +148,33 @@ func DoImagesLs (route *Route) {
     }, "\t"))
     fmt.Print("\n")
   }
+}
+
+func DoImageShow (route *Route) {
+  _, content, err := ApiGet(fmt.Sprintf("/images/%s", route.Params["imageId"]))
+
+  if err != nil {
+    fmt.Fprintf(os.Stderr, "Error: %s\n", err)
+    os.Exit(1)
+  }
+
+  header := []string {
+    "image.id",
+    "image.name",
+    "image.distribution",
+  }
+
+  fmt.Printf("%s\n", strings.Join(header, "\t"))
+  item := content["image"].(map[string]interface{})
+  if Verbose {
+    fmt.Fprintf(os.Stderr, "item: %s\n", item)
+  }
+  fmt.Print(strings.Join([]string{
+    fmt.Sprintf("%.f", item["id"]),
+    MapGetString(item, "name", ""),
+    MapGetString(item, "distribution", ""),
+  }, "\t"))
+  fmt.Print("\n")
 }
 
 func DoDropletsLs (route *Route) {
