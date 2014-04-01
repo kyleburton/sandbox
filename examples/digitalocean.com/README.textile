@@ -10,7 +10,7 @@ h5. API Support
 
 * Droplets
 ** [DONE] Show All Active Droplets
-** [*TODO*] New Droplet
+** [DONE] New Droplet
 ** [DONE] Show Droplet
 ** [*TODO*] Reboot Droplet
 ** [*TODO*] Power Cycle Droplet
@@ -23,6 +23,7 @@ h5. API Support
 ** [*TODO*] Restore Droplet
 ** [*TODO*] Rebuild Droplet
 ** [*TODO*] Rename Droplet
+** [DONE] Destroy Droplet
 
 * Regions
 ** [*TODO*] All Regions
@@ -56,6 +57,10 @@ h5. API Support
 
 * Events
 * [*TODO*] Show Event
+
+h3. Roadmap:
+
+* re-implement DoDropletsLsDroplet using structs
 
 h3. References
 
