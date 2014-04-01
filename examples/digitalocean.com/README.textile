@@ -57,10 +57,12 @@ h5. API Support
 
 * Events
 * [*TODO*] Show Event
+* [*TODO*] Wait For Event (percentage=100)
 
 h3. Roadmap:
 
 * re-implement DoDropletsLsDroplet using structs
+* implement 'events wait :event_id'
 
 h3. References
 
