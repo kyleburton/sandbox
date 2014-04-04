@@ -56,8 +56,8 @@ h5. API Support
 ** [*TODO*] Destroy Domain Record
 
 * Events
-* [*TODO*] Show Event
-* [*TODO*] Wait For Event (percentage=100)
+* DONE Show Event
+* DONE Wait For Event (percentage=100)
 
 h3. Roadmap:
 
