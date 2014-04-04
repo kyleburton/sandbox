@@ -275,6 +275,25 @@ func (self *ImagesResponse) Unmarshal (body []byte) {
   json.Unmarshal(body, self)
 }
 
+type ImageShowResponse struct {
+	Status   string
+	Image ImageInfo
+}
+
+func (self *ImageShowResponse) Header () []string {
+  return []string {
+    "id",
+    "name",
+    "distribution",
+    "slug",
+    "public",
+  }
+}
+
+func (self *ImageShowResponse) Unmarshal (body []byte) {
+  json.Unmarshal(body, self)
+}
+
 type ImageInfo struct {
 	Id           float64
 	Name         string
@@ -350,21 +369,18 @@ var RoutingTable []*Route
 func InitRoutingTable() {
 	RoutingTable = make([]*Route, 0)
 
-	// done
 	RoutingTable = append(RoutingTable, &Route{
 		Pattern: []string{"sizes", "ls"},
 		Params:  make(map[string]string),
 		Handler: DropletSizesLs,
 	})
 
-	// todo
 	RoutingTable = append(RoutingTable, &Route{
 		Pattern: []string{"droplets", "ls", ":dropletId"},
 		Params:  make(map[string]string),
 		Handler: DoDropletsLsDroplet,
 	})
 
-	// done
 	RoutingTable = append(RoutingTable, &Route{
 		Pattern: []string{"droplets", "new", ":name", ":size", ":image", ":region", ":ssh_key_ids", ":private_networking", ":backups_enabled"},
 		Params:  make(map[string]string),
@@ -377,7 +393,6 @@ func InitRoutingTable() {
 		Handler: DoDropletsDestroyDroplet,
 	})
 
-	// done
 	RoutingTable = append(RoutingTable, &Route{
 		Pattern: []string{"droplets", "ls"},
 		Params:  make(map[string]string),
@@ -523,30 +538,18 @@ func DoImagesLs(route *Route) {
 
 func DoImageShow(route *Route) {
   path := fmt.Sprintf("/images/%s", route.Params["imageId"])
-	_, content, err := ApiGetParsed(path)
+	_, body, err := ApiGet(path, nil)
 
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error performing http.get[%s]: %s\n", path, err)
 		os.Exit(1)
 	}
 
-  // TODO
-	header := []string{
-		"image.id",
-		"image.name",
-		"image.distribution",
-	}
-
-	fmt.Printf("%s\n", strings.Join(header, "\t"))
-	item := content["image"].(map[string]interface{})
-	if CmdlineOptions.Verbose {
-		fmt.Fprintf(os.Stderr, "item: %s\n", item)
-	}
-	fmt.Print(strings.Join([]string{
-		fmt.Sprintf("%.f", item["id"]),
-		MapGetString(item, "name", ""),
-		MapGetString(item, "distribution", ""),
-	}, "\t"))
+  var resp ImageShowResponse
+  resp.Unmarshal(body)
+	fmt.Print(strings.Join(resp.Header(), "\t"))
+	fmt.Print("\n")
+	fmt.Print(strings.Join(resp.Image.ToStringArray(), "\t"))
 	fmt.Print("\n")
 }
 
