@@ -295,6 +295,46 @@ func (self *ImageInfo) ToStringArray() []string {
 
 ////////////////////
 
+type EventResponse struct {
+	Status   string
+	Event    EventInfo
+}
+
+func (self *EventResponse) Unmarshal (body []byte) {
+  json.Unmarshal(body, self)
+}
+
+
+func (self *EventResponse) Header () []string {
+  return []string {
+    "id",
+    "action_status",
+    "droplet_id",
+    "event_type_id",
+    "percentage",
+  }
+}
+
+type EventInfo struct {
+  Id float64
+  Action_status string
+  Droplet_id float64
+  Event_type_id float64
+  Percentage string
+}
+
+func (self *EventInfo) ToStringArray() []string {
+  return []string {
+    fmt.Sprintf("%.f", self.Id),
+    self.Action_status,
+    fmt.Sprintf("%.f", self.Droplet_id),
+    fmt.Sprintf("%.f", self.Event_type_id),
+    self.Percentage,
+  }
+}
+
+////////////////////
+
 type RouteHandler func(*Route)
 
 type Route struct {
@@ -347,13 +387,24 @@ func InitRoutingTable() {
 	RoutingTable = append(RoutingTable, &Route{
 		Pattern: []string{"images", "ls"},
 		Params:  make(map[string]string),
-		Handler: DoImagesLs,
-	})
+		Handler: DoImagesLs, })
 
 	RoutingTable = append(RoutingTable, &Route{
 		Pattern: []string{"images", "show", ":imageId"},
 		Params:  make(map[string]string),
 		Handler: DoImageShow,
+	})
+
+	RoutingTable = append(RoutingTable, &Route{
+		Pattern: []string{"events", "show", ":eventId"},
+		Params:  make(map[string]string),
+		Handler: DoEventShow,
+	})
+
+	RoutingTable = append(RoutingTable, &Route{
+		Pattern: []string{"events", "wait", ":eventId"},
+		Params:  make(map[string]string),
+		Handler: DoEventWait,
 	})
 
 	RoutingTable = append(RoutingTable, &Route{
@@ -408,7 +459,7 @@ func ApiGet(path string, params *url.Values) (*http.Response, []byte, error) {
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
+		fmt.Fprintf(os.Stderr, "Error reading body: %s\n", err)
 		return resp, nil, err
 	}
 
@@ -419,7 +470,7 @@ func ApiGetParsed(path string) (*http.Response, map[string]interface{}, error) {
 	resp, body, err := ApiGet(path, nil)
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
+		fmt.Fprintf(os.Stderr, "Error performing http.get[%s]: %s\n", path, err)
 		return resp, nil, err
 	}
 
@@ -450,10 +501,11 @@ func MapGetString(m map[string]interface{}, k string, defaultValue string) strin
 }
 
 func DoImagesLs(route *Route) {
-	_, body, err := ApiGet("/images/", nil)
+  path := "/images/"
+	_, body, err := ApiGet(path, nil)
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
+		fmt.Fprintf(os.Stderr, "Error performing http.get[%s]: %s\n", path, err)
 		os.Exit(1)
 	}
 
@@ -470,13 +522,15 @@ func DoImagesLs(route *Route) {
 }
 
 func DoImageShow(route *Route) {
-	_, content, err := ApiGetParsed(fmt.Sprintf("/images/%s", route.Params["imageId"]))
+  path := fmt.Sprintf("/images/%s", route.Params["imageId"])
+	_, content, err := ApiGetParsed(path)
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
+		fmt.Fprintf(os.Stderr, "Error performing http.get[%s]: %s\n", path, err)
 		os.Exit(1)
 	}
 
+  // TODO
 	header := []string{
 		"image.id",
 		"image.name",
@@ -496,11 +550,63 @@ func DoImageShow(route *Route) {
 	fmt.Print("\n")
 }
 
-func DoDropletsLs(route *Route) {
-	_, body, err := ApiGet("/droplets/", nil)
+func EventShow(route *Route) *EventResponse {
+  path := fmt.Sprintf("/events/%s/", route.Params["eventId"])
+	_, body, err := ApiGet(path, nil)
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
+		fmt.Fprintf(os.Stderr, "Error performing http.get[%s]: %s\n", path, err)
+		os.Exit(1)
+	}
+
+	if CmdlineOptions.Verbose {
+		fmt.Fprintf(os.Stderr, "body=%s\n", body)
+	}
+
+	var resp EventResponse
+	resp.Unmarshal(body)
+	if resp.Status != "OK" {
+		fmt.Fprintf(os.Stderr, "Error: status != OK status=%s resp=%s\n", resp.Status, string(body))
+		os.Exit(1)
+	}
+
+	if CmdlineOptions.Verbose {
+		fmt.Fprintf(os.Stderr, "resp=%s\n", resp)
+	}
+
+  return &resp
+}
+
+func DoEventShow(route *Route) {
+  resp := EventShow(route)
+
+	fmt.Print(strings.Join(resp.Header(), "\t"))
+	fmt.Print("\n")
+  fmt.Print(strings.Join(resp.Event.ToStringArray(), "\t"))
+	fmt.Print("\n")
+}
+
+func DoEventWait(route *Route) {
+  resp := EventShow(route)
+
+	fmt.Print(strings.Join(resp.Header(), "\t"))
+	fmt.Print("\n")
+  for ;; {
+    fmt.Print(strings.Join(resp.Event.ToStringArray(), "\t"))
+    fmt.Print("\n")
+    if (resp.Event.Percentage == "100") {
+      break
+    }
+    resp = EventShow(route)
+  }
+}
+
+func DoDropletsLs(route *Route) {
+  path := "/droplets/"
+	_, body, err := ApiGet(path, nil)
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error performing http.get[%s]: %s\n", path, err)
 		os.Exit(1)
 	}
 
@@ -508,10 +614,11 @@ func DoDropletsLs(route *Route) {
 	resp.Unmarshal(body)
 
 	if resp.Status != "OK" {
-		fmt.Fprintf(os.Stderr, "Error: status=%s\n", resp.Status)
+		fmt.Fprintf(os.Stderr, "Error: status != OK status=%s resp=%s\n", resp.Status, string(body))
 		os.Exit(1)
 	}
 
+  // TODO
 	header := []string{
 		"id",
 		"name",
@@ -535,13 +642,16 @@ func DoDropletsLs(route *Route) {
 
 func DoDropletsDestroyDroplet (route *Route) {
 	params := &url.Values{}
-  fmt.Printf("DoDropletsDestroyDroplet: route=%s\n", route)
+	if CmdlineOptions.Verbose {
+    fmt.Printf("DoDropletsDestroyDroplet: route=%s\n", route)
+  }
 	params.Add("scrub_data", route.Params["scrub_data"])
 
-	_, body, err := ApiGet(fmt.Sprintf("/droplets/%s/destroy/", route.Params["droplet_id"]), params)
+  path := fmt.Sprintf("/droplets/%s/destroy/", route.Params["droplet_id"])
+	_, body, err := ApiGet(path, params)
 
   if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
+		fmt.Fprintf(os.Stderr, "Error performing http.get[%s]: %s\n", path, err)
 		os.Exit(1)
   }
 
@@ -549,7 +659,7 @@ func DoDropletsDestroyDroplet (route *Route) {
   resp.Unmarshal(body)
 
 	if resp.Status != "OK" {
-		fmt.Fprintf(os.Stderr, "Error: status=%s\n", resp.Status)
+		fmt.Fprintf(os.Stderr, "Error: status != OK status=%s resp=%s\n", resp.Status, string(body))
 		os.Exit(1)
 	}
 
@@ -565,7 +675,7 @@ func DoDropletsNewDroplet(route *Route) {
 
   matched, err := regexp.MatchString("^\\d+$", route.Params["size"])
   if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
+		fmt.Fprintf(os.Stderr, "Error regex match failed: %s\n", err)
 		os.Exit(1)
   }
 
@@ -577,7 +687,7 @@ func DoDropletsNewDroplet(route *Route) {
 
   matched, err = regexp.MatchString("^\\d+$", route.Params["image"])
   if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
+		fmt.Fprintf(os.Stderr, "Error regex match failed: %s\n", err)
 		os.Exit(1)
   }
 
@@ -589,7 +699,7 @@ func DoDropletsNewDroplet(route *Route) {
 
   matched, err = regexp.MatchString("^\\d+$", route.Params["region"])
   if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
+		fmt.Fprintf(os.Stderr, "Error regex match failed: %s\n", err)
 		os.Exit(1)
   }
 
@@ -609,7 +719,7 @@ func DoDropletsNewDroplet(route *Route) {
   resp.Unmarshal(body)
 
 	if resp.Status != "OK" {
-		fmt.Fprintf(os.Stderr, "Error: status=%s\n", resp.Status)
+		fmt.Fprintf(os.Stderr, "Error: status != OK status=%s resp=%s\n", resp.Status, string(body))
 		os.Exit(1)
 	}
 
@@ -624,13 +734,15 @@ func DoDropletsLsDroplet(route *Route) {
 	if CmdlineOptions.Verbose {
 		fmt.Fprintf(os.Stderr, "DoDropletsLsDroplet %s\n", route)
 	}
-	_, content, err := ApiGetParsed(fmt.Sprintf("/droplets/%s", route.Params["dropletId"]))
+  path := fmt.Sprintf("/droplets/%s", route.Params["dropletId"])
+	_, content, err := ApiGetParsed(path)
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
+		fmt.Fprintf(os.Stderr, "Error performing http.get[%s]: %s\n", path, err)
 		os.Exit(1)
 	}
 
+  // TODO
 	header := []string{
 		"droplet.id",
 		"droplet.name",
@@ -672,16 +784,17 @@ func DropletSizesLs(route *Route) {
 		fmt.Fprintf(os.Stderr, "SizesLs: %s\n", route)
 	}
 
-	_, body, err := ApiGet("/sizes/", nil)
+  path := "/sizes/"
+	_, body, err := ApiGet(path, nil)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
+		fmt.Fprintf(os.Stderr, "Error performing http.get[%s]: %s\n", path, err)
 		os.Exit(1)
 	}
 
 	var resp DropletSizesResponse
 	resp.Unmarshal(body)
 	if resp.Status != "OK" {
-		fmt.Fprintf(os.Stderr, "Error: status=%s\n", resp.Status)
+		fmt.Fprintf(os.Stderr, "Error: status != OK status=%s resp=%s\n", resp.Status, string(body))
 		os.Exit(1)
 	}
 
@@ -695,16 +808,17 @@ func DropletSizesLs(route *Route) {
 
 func DoRegionsLs(route *Route) {
 
-	_, body, err := ApiGet("/regions/", nil)
+  path := "/regions/"
+	_, body, err := ApiGet(path, nil)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
+		fmt.Fprintf(os.Stderr, "Error performing http.get[%s]: %s\n", path, err)
 		os.Exit(1)
 	}
 
 	var resp RegionResponse
 	resp.Unmarshal(body)
 	if resp.Status != "OK" {
-		fmt.Fprintf(os.Stderr, "Error: status=%s\n", resp.Status)
+		fmt.Fprintf(os.Stderr, "Error: status != OK status=%s resp=%s\n", resp.Status, string(body))
 		os.Exit(1)
 	}
 
@@ -717,9 +831,10 @@ func DoRegionsLs(route *Route) {
 }
 
 func DoSshKeysLs(route *Route) {
-	_, body, err := ApiGet("/ssh_keys/", nil)
+  path := "/ssh_keys/"
+	_, body, err := ApiGet(path, nil)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %s\n", err)
+		fmt.Fprintf(os.Stderr, "Error performing http.get[%s]: %s\n", path, err)
 		os.Exit(1)
 	}
 
@@ -730,7 +845,7 @@ func DoSshKeysLs(route *Route) {
 	var resp SshKeysResponse
 	resp.Unmarshal(body)
 	if resp.Status != "OK" {
-		fmt.Fprintf(os.Stderr, "Error: status=%s\n", resp.Status)
+		fmt.Fprintf(os.Stderr, "Error: status != OK status=%s resp=%s\n", resp.Status, string(body))
 		os.Exit(1)
 	}
 
