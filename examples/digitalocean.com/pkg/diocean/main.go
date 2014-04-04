@@ -26,6 +26,9 @@ var CmdlineOptions CmdlineOptionsStruct
 // https://developers.digitalocean.com/sizes/
 
 // GET https://api.digitalocean.com/sizes/?client_id=[client_id]&api_key=[api_key]
+
+////////////////////
+
 type DropletSizesResponse struct {
 	Status string
 	Sizes  []DropletSize
@@ -621,22 +624,7 @@ func DoDropletsLs(route *Route) {
 		os.Exit(1)
 	}
 
-  // TODO
-	header := []string{
-		"id",
-		"name",
-		"image_id",
-		"size_id",
-		"region_id",
-		"backups_active",
-		"ip_address",
-		"private_ip_address",
-		"locked",
-		"status",
-		"created_at",
-	}
-
-	fmt.Printf("%s\n", strings.Join(header, "\t"))
+	fmt.Printf("%s\n", strings.Join(resp.Header(), "\t"))
 	for _, droplet := range resp.Droplets {
 		fmt.Print(strings.Join(droplet.ToStringArray(), "\t"))
 		fmt.Print("\n")
