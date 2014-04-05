@@ -233,16 +233,16 @@ func (self *NewDropletInfo) ToStringArray() []string {
 
 ////////////////////
 
-type DestroyDropletResponse struct {
+type SimpleEventResponse struct {
   Status string
   Event_id float64
 }
 
-func (self *DestroyDropletResponse) Unmarshal (body []byte) {
+func (self *SimpleEventResponse) Unmarshal (body []byte) {
   json.Unmarshal(body, self)
 }
 
-func (self *DestroyDropletResponse) Header () []string {
+func (self *SimpleEventResponse) Header () []string {
   return []string {
     "event_id",
   }
@@ -448,6 +448,18 @@ func InitRoutingTable() {
 		Pattern: []string{"droplets", "ls", ":dropletId"},
 		Params:  make(map[string]string),
 		Handler: DoDropletsLsDroplet,
+	})
+
+	RoutingTable = append(RoutingTable, &Route{
+		Pattern: []string{"droplets", "show", ":dropletId"},
+		Params:  make(map[string]string),
+		Handler: DoDropletsLsDroplet,
+	})
+
+	RoutingTable = append(RoutingTable, &Route{
+		Pattern: []string{"droplets", "reboot", ":droplet_id"},
+		Params:  make(map[string]string),
+		Handler: DoDropletsRebootDroplet,
 	})
 
 	RoutingTable = append(RoutingTable, &Route{
@@ -712,7 +724,7 @@ func DoDropletsDestroyDroplet (route *Route) {
 		os.Exit(1)
   }
 
-  var resp DestroyDropletResponse
+  var resp SimpleEventResponse
   resp.Unmarshal(body)
 
 	if resp.Status != "OK" {
@@ -806,6 +818,33 @@ func DoDropletsLsDroplet(route *Route) {
 	fmt.Print("\n")
 	fmt.Print(strings.Join(resp.Droplet.ToStringArray(), "\t"))
 	fmt.Print("\n")
+}
+
+func DoDropletsRebootDroplet(route *Route) {
+	if CmdlineOptions.Verbose {
+    fmt.Printf("DoDropletsRebootDroplet: route=%s\n", route)
+  }
+
+  path := fmt.Sprintf("/droplets/%s/reboot/", route.Params["droplet_id"])
+	_, body, err := ApiGet(path, nil)
+
+  if err != nil {
+		fmt.Fprintf(os.Stderr, "Error performing http.get[%s]: %s\n", path, err)
+		os.Exit(1)
+  }
+
+  var resp SimpleEventResponse
+  resp.Unmarshal(body)
+
+	if resp.Status != "OK" {
+		fmt.Fprintf(os.Stderr, "Error: status != OK status=%s resp=%s\n", resp.Status, string(body))
+		os.Exit(1)
+	}
+
+  fmt.Print(strings.Join(resp.Header(), "\t"))
+  fmt.Print("\n")
+  fmt.Printf("%.f", resp.Event_id)
+  fmt.Print("\n")
 }
 
 func DropletSizesLs(route *Route) {

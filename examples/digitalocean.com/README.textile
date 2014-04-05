@@ -15,8 +15,8 @@ h5. API Support
 ** [DONE] New Droplet
 ** [DONE] Show Droplet (sans backups and snapshots)
 ** [*TODO*] Show Droplet: Backups
-** [*TODO*] Show Droplet :Snapshots
-** [*TODO*] Reboot Droplet
+** [*TODO*] Show Droplet: Snapshots
+** [DONE] Reboot Droplet
 ** [*TODO*] Power Cycle Droplet
 ** [*TODO*] Shut Down Droplet
 ** [*TODO*] Power Off
