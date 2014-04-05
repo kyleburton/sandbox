@@ -10,7 +10,7 @@ Support json output in addition to tab delimited output.  This would be useful i
 
 h5. API Support
 
-* Support a -wait flag for all operations that return an event_id
+* [DONE] Support a -wait flag for all operations that return an event_id
 
 * Droplets
 ** [DONE] Show All Active Droplets
@@ -23,9 +23,9 @@ h5. API Support
 ** [DONE] Shut Down Droplet
 ** [DONE] Power Off
 ** [DONE] Power On
-** [*TODO*] Reset Root Password
-** [*TODO*] Resize Droplet
-** [*TODO*] Take a Snapshot
+** [DONE] Reset Root Password
+** [DONE] Resize Droplet
+** [DONE] Take a Snapshot
 ** [*TODO*] Restore Droplet
 ** [*TODO*] Rebuild Droplet
 ** [*TODO*] Rename Droplet
@@ -37,7 +37,7 @@ h5. API Support
 * Images
 ** [DONE] All Images
 ** [DONE] Show Image
-** [*TODO*] Destroy Image
+** [DONE] Destroy Image
 ** [*TODO*] Transfer Image
 
 * SSH Keys

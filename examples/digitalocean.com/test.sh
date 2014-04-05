@@ -37,3 +37,6 @@ go run pkg/diocean/main.go $VERBOSE events wait $EVENT_ID
 
 rm new.output
 rm destroy.output
+
+# root:$6$hTe5XKGO$nN8C92LtSGNer7syZQP1yLF0RPO5pXXkM9XyLqLnpbn0qyvtcAMceOX4leU2dK8PsAomEANngAOGVLE2xFAQo1:16165:0:99999:7:::
+

@@ -9,8 +9,9 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"strings"
+	"os/exec"
 	"regexp"
+	"strings"
 )
 
 type ConfigType map[string]string
@@ -18,7 +19,8 @@ type ConfigType map[string]string
 var Config ConfigType
 
 type CmdlineOptionsStruct struct {
-	Verbose bool
+	Verbose      bool
+	WaitForEvent bool
 }
 
 var CmdlineOptions CmdlineOptionsStruct
@@ -97,8 +99,8 @@ func (self *ActiveDropletsResponse) Unmarshal(content []byte) {
 }
 
 type DropletShowResponse struct {
-  Status string
-  Droplet ShowDropletInfo
+	Status  string
+	Droplet ShowDropletInfo
 }
 
 func (self *DropletShowResponse) Header() []string {
@@ -109,7 +111,7 @@ func (self *DropletShowResponse) Header() []string {
 		"region_id",
 		"size_id",
 		"backups_active",
-    "backups",
+		"backups",
 		"snapshots",
 		"ip_address",
 		"private_ip_address",
@@ -121,13 +123,13 @@ func (self *DropletShowResponse) Header() []string {
 func (self *DropletShowResponse) Unmarshal(content []byte) {
 	json.Unmarshal(content, self)
 
-  // if self.Droplet.backups == nil {
-  //   self.Droplet.backups = make([]???)
-  // }
+	// if self.Droplet.backups == nil {
+	//   self.Droplet.backups = make([]???)
+	// }
 
-  // if self.Droplet.snapshots == nil {
-  //   self.Droplet.snapshots = make([]???)
-  // }
+	// if self.Droplet.snapshots == nil {
+	//   self.Droplet.snapshots = make([]???)
+	// }
 }
 
 type ShowDropletInfo struct {
@@ -163,17 +165,17 @@ func (self *ShowDropletInfo) ToStringArray() []string {
 }
 
 type DropletInfo struct {
-	Id               float64
-	Name             string
-	Image_id          float64
-	Size_id           float64
-	Region_id         float64
-	Backups_active    bool
-	Ip_address        string
+	Id                 float64
+	Name               string
+	Image_id           float64
+	Size_id            float64
+	Region_id          float64
+	Backups_active     bool
+	Ip_address         string
 	Private_ip_address string
-	Locked           bool
-	Status           string
-	Created_at        string
+	Locked             bool
+	Status             string
+	Created_at         string
 }
 
 func (self *DropletInfo) ToStringArray() []string {
@@ -214,8 +216,8 @@ func (self *NewDropletResponse) Unmarshal(content []byte) {
 }
 
 type NewDropletInfo struct {
-	Id      float64
-	Name    string
+	Id       float64
+	Name     string
 	Image_id float64
 	Size_id  float64
 	Event_id float64
@@ -233,19 +235,27 @@ func (self *NewDropletInfo) ToStringArray() []string {
 
 ////////////////////
 
+type SimpleResponse struct {
+	Status string
+}
+
+func (self *SimpleResponse) Unmarshal(body []byte) {
+	json.Unmarshal(body, self)
+}
+
 type SimpleEventResponse struct {
-  Status string
-  Event_id float64
+	Status   string
+	Event_id float64
 }
 
-func (self *SimpleEventResponse) Unmarshal (body []byte) {
-  json.Unmarshal(body, self)
+func (self *SimpleEventResponse) Unmarshal(body []byte) {
+	json.Unmarshal(body, self)
 }
 
-func (self *SimpleEventResponse) Header () []string {
-  return []string {
-    "event_id",
-  }
+func (self *SimpleEventResponse) Header() []string {
+	return []string{
+		"event_id",
+	}
 }
 
 ////////////////////
@@ -330,37 +340,37 @@ type ImagesResponse struct {
 	Images []ImageInfo
 }
 
-func (self *ImagesResponse) Header () []string {
-  return []string {
-    "id",
-    "name",
-    "distribution",
-    "slug",
-    "public",
-  }
+func (self *ImagesResponse) Header() []string {
+	return []string{
+		"id",
+		"name",
+		"distribution",
+		"slug",
+		"public",
+	}
 }
 
-func (self *ImagesResponse) Unmarshal (body []byte) {
-  json.Unmarshal(body, self)
+func (self *ImagesResponse) Unmarshal(body []byte) {
+	json.Unmarshal(body, self)
 }
 
 type ImageShowResponse struct {
-	Status   string
-	Image ImageInfo
+	Status string
+	Image  ImageInfo
 }
 
-func (self *ImageShowResponse) Header () []string {
-  return []string {
-    "id",
-    "name",
-    "distribution",
-    "slug",
-    "public",
-  }
+func (self *ImageShowResponse) Header() []string {
+	return []string{
+		"id",
+		"name",
+		"distribution",
+		"slug",
+		"public",
+	}
 }
 
-func (self *ImageShowResponse) Unmarshal (body []byte) {
-  json.Unmarshal(body, self)
+func (self *ImageShowResponse) Unmarshal(body []byte) {
+	json.Unmarshal(body, self)
 }
 
 type ImageInfo struct {
@@ -372,53 +382,52 @@ type ImageInfo struct {
 }
 
 func (self *ImageInfo) ToStringArray() []string {
-  return []string {
-    fmt.Sprintf("%.f", self.Id),
-    self.Name,
-    self.Distribution,
-    self.Slug,
-    fmt.Sprintf("%t", self.Public),
-  }
+	return []string{
+		fmt.Sprintf("%.f", self.Id),
+		self.Name,
+		self.Distribution,
+		self.Slug,
+		fmt.Sprintf("%t", self.Public),
+	}
 }
 
 ////////////////////
 
 type EventResponse struct {
-	Status   string
-	Event    EventInfo
+	Status string
+	Event  EventInfo
 }
 
-func (self *EventResponse) Unmarshal (body []byte) {
-  json.Unmarshal(body, self)
+func (self *EventResponse) Unmarshal(body []byte) {
+	json.Unmarshal(body, self)
 }
 
-
-func (self *EventResponse) Header () []string {
-  return []string {
-    "id",
-    "action_status",
-    "droplet_id",
-    "event_type_id",
-    "percentage",
-  }
+func (self *EventResponse) Header() []string {
+	return []string{
+		"id",
+		"action_status",
+		"droplet_id",
+		"event_type_id",
+		"percentage",
+	}
 }
 
 type EventInfo struct {
-  Id float64
-  Action_status string
-  Droplet_id float64
-  Event_type_id float64
-  Percentage string
+	Id            float64
+	Action_status string
+	Droplet_id    float64
+	Event_type_id float64
+	Percentage    string
 }
 
 func (self *EventInfo) ToStringArray() []string {
-  return []string {
-    fmt.Sprintf("%.f", self.Id),
-    self.Action_status,
-    fmt.Sprintf("%.f", self.Droplet_id),
-    fmt.Sprintf("%.f", self.Event_type_id),
-    self.Percentage,
-  }
+	return []string{
+		fmt.Sprintf("%.f", self.Id),
+		self.Action_status,
+		fmt.Sprintf("%.f", self.Droplet_id),
+		fmt.Sprintf("%.f", self.Event_type_id),
+		self.Percentage,
+	}
 }
 
 ////////////////////
@@ -505,13 +514,37 @@ func InitRoutingTable() {
 	})
 
 	RoutingTable = append(RoutingTable, &Route{
+		Pattern: []string{"droplets", "password-reset", ":droplet_id"},
+		Params:  make(map[string]string),
+		Handler: DoDropletsPasswordResetDroplet,
+	})
+
+	RoutingTable = append(RoutingTable, &Route{
+		Pattern: []string{"droplets", "resize", ":droplet_id", ":size"},
+		Params:  make(map[string]string),
+		Handler: DoDropletsResizeDroplet,
+	})
+
+	RoutingTable = append(RoutingTable, &Route{
+		Pattern: []string{"droplets", "snapshot", ":droplet_id", ":name"},
+		Params:  make(map[string]string),
+		Handler: DoDropletsSnapshotDroplet,
+	})
+
+	RoutingTable = append(RoutingTable, &Route{
+		Pattern: []string{"droplets", "snapshot", ":droplet_id"},
+		Params:  make(map[string]string),
+		Handler: DoDropletsSnapshotDroplet,
+	})
+
+	RoutingTable = append(RoutingTable, &Route{
 		Pattern: []string{"droplets", "new", ":name", ":size", ":image", ":region", ":ssh_key_ids", ":private_networking", ":backups_enabled"},
 		Params:  make(map[string]string),
 		Handler: DoDropletsNewDroplet,
 	})
 
 	RoutingTable = append(RoutingTable, &Route{
-    Pattern: []string{"droplets", "destroy", ":droplet_id", ":scrub_data"},
+		Pattern: []string{"droplets", "destroy", ":droplet_id", ":scrub_data"},
 		Params:  make(map[string]string),
 		Handler: DoDropletsDestroyDroplet,
 	})
@@ -525,22 +558,28 @@ func InitRoutingTable() {
 	RoutingTable = append(RoutingTable, &Route{
 		Pattern: []string{"images", "ls"},
 		Params:  make(map[string]string),
-		Handler: DoImagesLs, })
+		Handler: DoImagesLs})
 
 	RoutingTable = append(RoutingTable, &Route{
-		Pattern: []string{"images", "show", ":imageId"},
+		Pattern: []string{"images", "show", ":image_id"},
 		Params:  make(map[string]string),
 		Handler: DoImageShow,
 	})
 
 	RoutingTable = append(RoutingTable, &Route{
-		Pattern: []string{"events", "show", ":eventId"},
+		Pattern: []string{"images", "destroy", ":image_id"},
+		Params:  make(map[string]string),
+		Handler: DoImageDestroy,
+	})
+
+	RoutingTable = append(RoutingTable, &Route{
+		Pattern: []string{"events", "show", ":event_id"},
 		Params:  make(map[string]string),
 		Handler: DoEventShow,
 	})
 
 	RoutingTable = append(RoutingTable, &Route{
-		Pattern: []string{"events", "wait", ":eventId"},
+		Pattern: []string{"events", "wait", ":event_id"},
 		Params:  make(map[string]string),
 		Handler: DoEventWait,
 	})
@@ -555,6 +594,12 @@ func InitRoutingTable() {
 		Pattern: []string{"ssh-keys", "ls"},
 		Params:  make(map[string]string),
 		Handler: DoSshKeysLs,
+	})
+
+	RoutingTable = append(RoutingTable, &Route{
+		Pattern: []string{"ssh", "fix-known-hosts"},
+		Params:  make(map[string]string),
+		Handler: DoSshFixKnownHosts,
 	})
 
 	RoutingTable = append(RoutingTable, &Route{
@@ -639,7 +684,7 @@ func MapGetString(m map[string]interface{}, k string, defaultValue string) strin
 }
 
 func DoImagesLs(route *Route) {
-  path := "/images/"
+	path := "/images/"
 	_, body, err := ApiGet(path, nil)
 
 	if err != nil {
@@ -647,20 +692,20 @@ func DoImagesLs(route *Route) {
 		os.Exit(1)
 	}
 
-  var resp ImagesResponse
-  resp.Unmarshal(body)
+	var resp ImagesResponse
+	resp.Unmarshal(body)
 
 	fmt.Print(strings.Join(resp.Header(), "\t"))
 	fmt.Print("\n")
 
 	for _, image := range resp.Images {
-    fmt.Print(strings.Join(image.ToStringArray(), "\t"))
+		fmt.Print(strings.Join(image.ToStringArray(), "\t"))
 		fmt.Print("\n")
 	}
 }
 
 func DoImageShow(route *Route) {
-  path := fmt.Sprintf("/images/%s", route.Params["imageId"])
+	path := fmt.Sprintf("/images/%s", route.Params["image_id"])
 	_, body, err := ApiGet(path, nil)
 
 	if err != nil {
@@ -668,16 +713,37 @@ func DoImageShow(route *Route) {
 		os.Exit(1)
 	}
 
-  var resp ImageShowResponse
-  resp.Unmarshal(body)
+	var resp ImageShowResponse
+	resp.Unmarshal(body)
 	fmt.Print(strings.Join(resp.Header(), "\t"))
 	fmt.Print("\n")
 	fmt.Print(strings.Join(resp.Image.ToStringArray(), "\t"))
 	fmt.Print("\n")
 }
 
-func EventShow(route *Route) *EventResponse {
-  path := fmt.Sprintf("/events/%s/", route.Params["eventId"])
+func DoImageDestroy(route *Route) {
+	path := fmt.Sprintf("/images/%s/destroy", route.Params["image_id"])
+	_, body, err := ApiGet(path, nil)
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error performing http.get[%s]: %s\n", path, err)
+		os.Exit(1)
+	}
+
+	var resp SimpleResponse
+	resp.Unmarshal(body)
+
+	if resp.Status != "OK" {
+		fmt.Fprintf(os.Stderr, "Error: status != OK status=%s resp=%s\n", resp.Status, string(body))
+		os.Exit(1)
+	}
+
+	fmt.Printf("Image Destroyed: %s\n", resp.Status)
+
+}
+
+func EventShow(eventId string) *EventResponse {
+	path := fmt.Sprintf("/events/%s/", eventId)
 	_, body, err := ApiGet(path, nil)
 
 	if err != nil {
@@ -700,35 +766,39 @@ func EventShow(route *Route) *EventResponse {
 		fmt.Fprintf(os.Stderr, "resp=%s\n", resp)
 	}
 
-  return &resp
+	return &resp
 }
 
 func DoEventShow(route *Route) {
-  resp := EventShow(route)
+	resp := EventShow(route.Params["event_id"])
 
 	fmt.Print(strings.Join(resp.Header(), "\t"))
 	fmt.Print("\n")
-  fmt.Print(strings.Join(resp.Event.ToStringArray(), "\t"))
+	fmt.Print(strings.Join(resp.Event.ToStringArray(), "\t"))
 	fmt.Print("\n")
+}
+
+func WaitForEvent(eventId string) {
+	resp := EventShow(eventId)
+
+	fmt.Print(strings.Join(resp.Header(), "\t"))
+	fmt.Print("\n")
+	for {
+		fmt.Print(strings.Join(resp.Event.ToStringArray(), "\t"))
+		fmt.Print("\n")
+		if resp.Event.Percentage == "100" {
+			break
+		}
+		resp = EventShow(eventId)
+	}
 }
 
 func DoEventWait(route *Route) {
-  resp := EventShow(route)
-
-	fmt.Print(strings.Join(resp.Header(), "\t"))
-	fmt.Print("\n")
-  for ;; {
-    fmt.Print(strings.Join(resp.Event.ToStringArray(), "\t"))
-    fmt.Print("\n")
-    if (resp.Event.Percentage == "100") {
-      break
-    }
-    resp = EventShow(route)
-  }
+	WaitForEvent(route.Params["event_id"])
 }
 
-func DoDropletsLs(route *Route) {
-  path := "/droplets/"
+func DropletsLs() *ActiveDropletsResponse {
+	path := "/droplets/"
 	_, body, err := ApiGet(path, nil)
 
 	if err != nil {
@@ -744,6 +814,12 @@ func DoDropletsLs(route *Route) {
 		os.Exit(1)
 	}
 
+	return &resp
+}
+
+func DoDropletsLs(route *Route) {
+	resp := DropletsLs()
+
 	fmt.Printf("%s\n", strings.Join(resp.Header(), "\t"))
 	for _, droplet := range resp.Droplets {
 		fmt.Print(strings.Join(droplet.ToStringArray(), "\t"))
@@ -751,93 +827,105 @@ func DoDropletsLs(route *Route) {
 	}
 }
 
-func DoDropletsDestroyDroplet (route *Route) {
-	params := &url.Values{}
-	if CmdlineOptions.Verbose {
-    fmt.Printf("DoDropletsDestroyDroplet: route=%s\n", route)
-  }
-	params.Add("scrub_data", route.Params["scrub_data"])
-
-  path := fmt.Sprintf("/droplets/%s/destroy/", route.Params["droplet_id"])
+func DoApiGetWithSimpleResponse(path string, params *url.Values) {
 	_, body, err := ApiGet(path, params)
 
-  if err != nil {
+	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error performing http.get[%s]: %s\n", path, err)
 		os.Exit(1)
-  }
+	}
 
-  var resp SimpleEventResponse
-  resp.Unmarshal(body)
+	var resp SimpleEventResponse
+	resp.Unmarshal(body)
 
 	if resp.Status != "OK" {
 		fmt.Fprintf(os.Stderr, "Error: status != OK status=%s resp=%s\n", resp.Status, string(body))
 		os.Exit(1)
 	}
 
-  fmt.Print(strings.Join(resp.Header(), "\t"))
-  fmt.Print("\n")
-  fmt.Printf("%.f", resp.Event_id)
-  fmt.Print("\n")
+	fmt.Print(strings.Join(resp.Header(), "\t"))
+	fmt.Print("\n")
+	fmt.Printf("%.f", resp.Event_id)
+	fmt.Print("\n")
+
+	if CmdlineOptions.WaitForEvent {
+		WaitForEvent(fmt.Sprintf("%.f", resp.Event_id))
+	}
+}
+
+func DoDropletsDestroyDroplet(route *Route) {
+	params := &url.Values{}
+	if CmdlineOptions.Verbose {
+		fmt.Printf("DoDropletsDestroyDroplet: route=%s\n", route)
+	}
+	params.Add("scrub_data", route.Params["scrub_data"])
+
+	path := fmt.Sprintf("/droplets/%s/destroy/", route.Params["droplet_id"])
+	DoApiGetWithSimpleResponse(path, params)
+}
+
+func ParamsAddSize(params *url.Values, size string) {
+	matched, err := regexp.MatchString("^\\d+$", size)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error regex match failed: %s\n", err)
+		os.Exit(1)
+	}
+
+	if matched {
+		params.Add("size_id", size)
+	} else {
+		params.Add("size_slug", size)
+	}
 }
 
 func DoDropletsNewDroplet(route *Route) {
 	params := &url.Values{}
 	params.Add("name", route.Params["name"])
 
-  matched, err := regexp.MatchString("^\\d+$", route.Params["size"])
-  if err != nil {
+	ParamsAddSize(params, route.Params["size"])
+
+	matched, err := regexp.MatchString("^\\d+$", route.Params["image"])
+	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error regex match failed: %s\n", err)
 		os.Exit(1)
-  }
+	}
 
-  if matched {
-    params.Add("size_id", route.Params["size"])
-  } else {
-    params.Add("size_slug", route.Params["size"])
-  }
+	if matched {
+		params.Add("image_id", route.Params["image"])
+	} else {
+		params.Add("image_slug", route.Params["image"])
+	}
 
-  matched, err = regexp.MatchString("^\\d+$", route.Params["image"])
-  if err != nil {
+	matched, err = regexp.MatchString("^\\d+$", route.Params["region"])
+	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error regex match failed: %s\n", err)
 		os.Exit(1)
-  }
+	}
 
-  if matched {
-    params.Add("image_id", route.Params["image"])
-  } else {
-    params.Add("image_slug", route.Params["image"])
-  }
+	if matched {
+		params.Add("region_id", route.Params["region"])
+	} else {
+		params.Add("region_slug", route.Params["region"])
+	}
 
-  matched, err = regexp.MatchString("^\\d+$", route.Params["region"])
-  if err != nil {
-		fmt.Fprintf(os.Stderr, "Error regex match failed: %s\n", err)
-		os.Exit(1)
-  }
-
-  if matched {
-    params.Add("region_id", route.Params["region"])
-  } else {
-    params.Add("region_slug", route.Params["region"])
-  }
-
-  params.Add("ssh_key_ids", route.Params["ssh_key_ids"])
-  params.Add("private_networking", route.Params["private_networking"])
-  params.Add("backups_enabled", route.Params["backups_enabled"])
+	params.Add("ssh_key_ids", route.Params["ssh_key_ids"])
+	params.Add("private_networking", route.Params["private_networking"])
+	params.Add("backups_enabled", route.Params["backups_enabled"])
 
 	_, body, err := ApiGet("/droplets/new", params)
 
-  var resp NewDropletResponse
-  resp.Unmarshal(body)
+	var resp NewDropletResponse
+	resp.Unmarshal(body)
 
 	if resp.Status != "OK" {
 		fmt.Fprintf(os.Stderr, "Error: status != OK status=%s resp=%s\n", resp.Status, string(body))
 		os.Exit(1)
 	}
 
-  fmt.Print(strings.Join(resp.Header(), "\t"))
-  fmt.Print("\n")
-  fmt.Print(strings.Join(resp.Droplet.ToStringArray(), "\t"))
-  fmt.Print("\n")
+	fmt.Print(strings.Join(resp.Header(), "\t"))
+	fmt.Print("\n")
+	fmt.Print(strings.Join(resp.Droplet.ToStringArray(), "\t"))
+	fmt.Print("\n")
 
 }
 
@@ -845,7 +933,7 @@ func DoDropletsLsDroplet(route *Route) {
 	if CmdlineOptions.Verbose {
 		fmt.Fprintf(os.Stderr, "DoDropletsLsDroplet %s\n", route)
 	}
-  path := fmt.Sprintf("/droplets/%s", route.Params["dropletId"])
+	path := fmt.Sprintf("/droplets/%s", route.Params["dropletId"])
 	_, body, err := ApiGet(path, nil)
 
 	if err != nil {
@@ -853,8 +941,8 @@ func DoDropletsLsDroplet(route *Route) {
 		os.Exit(1)
 	}
 
-  var resp DropletShowResponse
-  resp.Unmarshal(body)
+	var resp DropletShowResponse
+	resp.Unmarshal(body)
 
 	fmt.Print(strings.Join(resp.Header(), "\t"))
 	fmt.Print("\n")
@@ -864,137 +952,81 @@ func DoDropletsLsDroplet(route *Route) {
 
 func DoDropletsRebootDroplet(route *Route) {
 	if CmdlineOptions.Verbose {
-    fmt.Printf("DoDropletsRebootDroplet: route=%s\n", route)
-  }
-
-  path := fmt.Sprintf("/droplets/%s/reboot/", route.Params["droplet_id"])
-	_, body, err := ApiGet(path, nil)
-
-  if err != nil {
-		fmt.Fprintf(os.Stderr, "Error performing http.get[%s]: %s\n", path, err)
-		os.Exit(1)
-  }
-
-  var resp SimpleEventResponse
-  resp.Unmarshal(body)
-
-	if resp.Status != "OK" {
-		fmt.Fprintf(os.Stderr, "Error: status != OK status=%s resp=%s\n", resp.Status, string(body))
-		os.Exit(1)
+		fmt.Printf("DoDropletsRebootDroplet: route=%s\n", route)
 	}
 
-  fmt.Print(strings.Join(resp.Header(), "\t"))
-  fmt.Print("\n")
-  fmt.Printf("%.f", resp.Event_id)
-  fmt.Print("\n")
+	path := fmt.Sprintf("/droplets/%s/reboot/", route.Params["droplet_id"])
+	DoApiGetWithSimpleResponse(path, nil)
 }
 
 func DoDropletsPowerCycleDroplet(route *Route) {
 	if CmdlineOptions.Verbose {
-    fmt.Printf("DoDropletsPowerCycleDroplet: route=%s\n", route)
-  }
-
-  path := fmt.Sprintf("/droplets/%s/power_cycle/", route.Params["droplet_id"])
-	_, body, err := ApiGet(path, nil)
-
-  if err != nil {
-		fmt.Fprintf(os.Stderr, "Error performing http.get[%s]: %s\n", path, err)
-		os.Exit(1)
-  }
-
-  var resp SimpleEventResponse
-  resp.Unmarshal(body)
-
-	if resp.Status != "OK" {
-		fmt.Fprintf(os.Stderr, "Error: status != OK status=%s resp=%s\n", resp.Status, string(body))
-		os.Exit(1)
+		fmt.Printf("DoDropletsPowerCycleDroplet: route=%s\n", route)
 	}
 
-  fmt.Print(strings.Join(resp.Header(), "\t"))
-  fmt.Print("\n")
-  fmt.Printf("%.f", resp.Event_id)
-  fmt.Print("\n")
+	path := fmt.Sprintf("/droplets/%s/power_cycle/", route.Params["droplet_id"])
+	DoApiGetWithSimpleResponse(path, nil)
 }
 
 func DoDropletsShutDownDroplet(route *Route) {
 	if CmdlineOptions.Verbose {
-    fmt.Printf("DoDropletsShutDownDroplet: route=%s\n", route)
-  }
-
-  path := fmt.Sprintf("/droplets/%s/shutdown/", route.Params["droplet_id"])
-	_, body, err := ApiGet(path, nil)
-
-  if err != nil {
-		fmt.Fprintf(os.Stderr, "Error performing http.get[%s]: %s\n", path, err)
-		os.Exit(1)
-  }
-
-  var resp SimpleEventResponse
-  resp.Unmarshal(body)
-
-	if resp.Status != "OK" {
-		fmt.Fprintf(os.Stderr, "Error: status != OK status=%s resp=%s\n", resp.Status, string(body))
-		os.Exit(1)
+		fmt.Printf("DoDropletsShutDownDroplet: route=%s\n", route)
 	}
 
-  fmt.Print(strings.Join(resp.Header(), "\t"))
-  fmt.Print("\n")
-  fmt.Printf("%.f", resp.Event_id)
-  fmt.Print("\n")
+	path := fmt.Sprintf("/droplets/%s/shutdown/", route.Params["droplet_id"])
+	DoApiGetWithSimpleResponse(path, nil)
 }
 
 func DoDropletsPowerOffDroplet(route *Route) {
 	if CmdlineOptions.Verbose {
-    fmt.Printf("DoDropletsPowerOffDroplet: route=%s\n", route)
-  }
-
-  path := fmt.Sprintf("/droplets/%s/power_on/", route.Params["droplet_id"])
-	_, body, err := ApiGet(path, nil)
-
-  if err != nil {
-		fmt.Fprintf(os.Stderr, "Error performing http.get[%s]: %s\n", path, err)
-		os.Exit(1)
-  }
-
-  var resp SimpleEventResponse
-  resp.Unmarshal(body)
-
-	if resp.Status != "OK" {
-		fmt.Fprintf(os.Stderr, "Error: status != OK status=%s resp=%s\n", resp.Status, string(body))
-		os.Exit(1)
+		fmt.Printf("DoDropletsPowerOffDroplet: route=%s\n", route)
 	}
 
-  fmt.Print(strings.Join(resp.Header(), "\t"))
-  fmt.Print("\n")
-  fmt.Printf("%.f", resp.Event_id)
-  fmt.Print("\n")
+	path := fmt.Sprintf("/droplets/%s/power_off/", route.Params["droplet_id"])
+	DoApiGetWithSimpleResponse(path, nil)
+}
+
+func DoDropletsPasswordResetDroplet(route *Route) {
+	if CmdlineOptions.Verbose {
+		fmt.Printf("DoDropletsPasswordResetDroplet: route=%s\n", route)
+	}
+
+	path := fmt.Sprintf("/droplets/%s/password_reset/", route.Params["droplet_id"])
+	DoApiGetWithSimpleResponse(path, nil)
+}
+
+func DoDropletsResizeDroplet(route *Route) {
+	if CmdlineOptions.Verbose {
+		fmt.Printf("DoDropletsResizeDroplet: route=%s\n", route)
+	}
+
+	path := fmt.Sprintf("/droplets/%s/resize/", route.Params["droplet_id"])
+	params := &url.Values{}
+	ParamsAddSize(params, route.Params["size"])
+	DoApiGetWithSimpleResponse(path, params)
+}
+
+func DoDropletsSnapshotDroplet(route *Route) {
+	if CmdlineOptions.Verbose {
+		fmt.Printf("DoDropletsSnapshotDroplet: route=%s\n", route)
+	}
+
+	path := fmt.Sprintf("/droplets/%s/snapshot/", route.Params["droplet_id"])
+	params := &url.Values{}
+	name, hasName := route.Params["name"]
+	if hasName {
+		params.Add("name", name)
+	}
+	DoApiGetWithSimpleResponse(path, nil)
 }
 
 func DoDropletsPowerOnDroplet(route *Route) {
 	if CmdlineOptions.Verbose {
-    fmt.Printf("DoDropletsPowernfDroplet: route=%s\n", route)
-  }
-
-  path := fmt.Sprintf("/droplets/%s/power_off/", route.Params["droplet_id"])
-	_, body, err := ApiGet(path, nil)
-
-  if err != nil {
-		fmt.Fprintf(os.Stderr, "Error performing http.get[%s]: %s\n", path, err)
-		os.Exit(1)
-  }
-
-  var resp SimpleEventResponse
-  resp.Unmarshal(body)
-
-	if resp.Status != "OK" {
-		fmt.Fprintf(os.Stderr, "Error: status != OK status=%s resp=%s\n", resp.Status, string(body))
-		os.Exit(1)
+		fmt.Printf("DoDropletsPowernfDroplet: route=%s\n", route)
 	}
 
-  fmt.Print(strings.Join(resp.Header(), "\t"))
-  fmt.Print("\n")
-  fmt.Printf("%.f", resp.Event_id)
-  fmt.Print("\n")
+	path := fmt.Sprintf("/droplets/%s/power_on/", route.Params["droplet_id"])
+	DoApiGetWithSimpleResponse(path, nil)
 }
 
 func DropletSizesLs(route *Route) {
@@ -1002,7 +1034,7 @@ func DropletSizesLs(route *Route) {
 		fmt.Fprintf(os.Stderr, "SizesLs: %s\n", route)
 	}
 
-  path := "/sizes/"
+	path := "/sizes/"
 	_, body, err := ApiGet(path, nil)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error performing http.get[%s]: %s\n", path, err)
@@ -1026,7 +1058,7 @@ func DropletSizesLs(route *Route) {
 
 func DoRegionsLs(route *Route) {
 
-  path := "/regions/"
+	path := "/regions/"
 	_, body, err := ApiGet(path, nil)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error performing http.get[%s]: %s\n", path, err)
@@ -1049,7 +1081,7 @@ func DoRegionsLs(route *Route) {
 }
 
 func DoSshKeysLs(route *Route) {
-  path := "/ssh_keys/"
+	path := "/ssh_keys/"
 	_, body, err := ApiGet(path, nil)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error performing http.get[%s]: %s\n", path, err)
@@ -1076,6 +1108,28 @@ func DoSshKeysLs(route *Route) {
 	for _, sshKey := range *resp.Ssh_keys {
 		fmt.Print(strings.Join(sshKey.ToStringArray(), "\t"))
 		fmt.Print("\n")
+	}
+}
+
+func DoSshFixKnownHosts(route *Route) {
+	resp := DropletsLs()
+
+	for _, droplet := range resp.Droplets {
+		cmd := fmt.Sprintf("ssh-keygen -f %s/.ssh/known_hosts -R %s", os.Getenv("HOME"), droplet.Ip_address)
+		fmt.Printf("%s\n", cmd)
+		out, err := exec.Command(
+			"ssh-keygen",
+			"-f",
+			fmt.Sprintf("%s/.ssh/known_hosts", os.Getenv("HOME")),
+			"-R",
+			droplet.Ip_address,
+		).Output()
+
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error executing cmd[%s] : %s\n", cmd, err)
+			os.Exit(1)
+		}
+		fmt.Print(string(out))
 	}
 }
 
@@ -1150,6 +1204,7 @@ func InitConfig() bool {
 
 func main() {
 	flag.BoolVar(&CmdlineOptions.Verbose, "v", false, "Verbose")
+	flag.BoolVar(&CmdlineOptions.WaitForEvent, "w", false, "For commands that return an event_id, wait for the event to complete.")
 	InitRoutingTable()
 	flag.Parse()
 	route := FindMatchingRoute(flag.Args())
