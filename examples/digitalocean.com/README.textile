@@ -6,12 +6,16 @@ Documentation: both a basic manual and help text for the application (scrape som
 
 Factor the HTTP Api into a re-useable library, separate the command line interface and formatting of results into a separate module.  The command line interface deals with configuration, input and output.  The light-weight api abstracts the HTTP interface.
 
+Support json output in addition to tab delimited output.  This would be useful in conjunction with tools like "jq":http://stedolan.github.io/jq/.
+
 h5. API Support
 
 * Droplets
 ** [DONE] Show All Active Droplets
 ** [DONE] New Droplet
-** [DONE] Show Droplet
+** [DONE] Show Droplet (sans backups and snapshots)
+** [*TODO*] Show Droplet: Backups
+** [*TODO*] Show Droplet :Snapshots
 ** [*TODO*] Reboot Droplet
 ** [*TODO*] Power Cycle Droplet
 ** [*TODO*] Shut Down Droplet

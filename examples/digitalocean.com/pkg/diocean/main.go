@@ -96,6 +96,72 @@ func (self *ActiveDropletsResponse) Unmarshal(content []byte) {
 	}
 }
 
+type DropletShowResponse struct {
+  Status string
+  Droplet ShowDropletInfo
+}
+
+func (self *DropletShowResponse) Header() []string {
+	return []string{
+		"id",
+		"image_id",
+		"name",
+		"region_id",
+		"size_id",
+		"backups_active",
+    "backups",
+		"snapshots",
+		"ip_address",
+		"private_ip_address",
+		"locked",
+		"status",
+	}
+}
+
+func (self *DropletShowResponse) Unmarshal(content []byte) {
+	json.Unmarshal(content, self)
+
+  // if self.Droplet.backups == nil {
+  //   self.Droplet.backups = make([]???)
+  // }
+
+  // if self.Droplet.snapshots == nil {
+  //   self.Droplet.snapshots = make([]???)
+  // }
+}
+
+type ShowDropletInfo struct {
+	Id                 float64
+	Image_id           float64
+	Name               string
+	Region_id          float64
+	Size_id            float64
+	Backups_active     bool
+	Backups            []interface{}
+	Snapshots          []interface{}
+	Ip_address         string
+	Private_ip_address string
+	Locked             bool
+	Status             string
+}
+
+func (self *ShowDropletInfo) ToStringArray() []string {
+	return []string{
+		fmt.Sprintf("%.f", self.Id),
+		fmt.Sprintf("%.f", self.Image_id),
+		self.Name,
+		fmt.Sprintf("%.f", self.Region_id),
+		fmt.Sprintf("%.f", self.Size_id),
+		fmt.Sprintf("%t", self.Backups_active),
+		fmt.Sprintf("%d", self.Backups),
+		fmt.Sprintf("%d", self.Snapshots),
+		self.Ip_address,
+		self.Private_ip_address,
+		fmt.Sprintf("%t", self.Locked),
+		self.Status,
+	}
+}
+
 type DropletInfo struct {
 	Id               float64
 	Name             string
@@ -726,47 +792,19 @@ func DoDropletsLsDroplet(route *Route) {
 		fmt.Fprintf(os.Stderr, "DoDropletsLsDroplet %s\n", route)
 	}
   path := fmt.Sprintf("/droplets/%s", route.Params["dropletId"])
-	_, content, err := ApiGetParsed(path)
+	_, body, err := ApiGet(path, nil)
 
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error performing http.get[%s]: %s\n", path, err)
 		os.Exit(1)
 	}
 
-  // TODO
-	header := []string{
-		"droplet.id",
-		"droplet.name",
-		"droplet.image_id",
-		"droplet.size_id",
-		"droplet.region_id",
-		"droplet.backups_active",
-		"droplet.backups",
-		"droplet.snapshots",
-		"droplet.ip_address",
-		"droplet.private_ip_address",
-		"droplet.locked",
-		"droplet.status",
-	}
+  var resp DropletShowResponse
+  resp.Unmarshal(body)
 
-	fmt.Printf("%s\n", strings.Join(header, "\t"))
-	item := content["droplet"].(map[string]interface{})
-	fmt.Print(strings.Join([]string{
-		fmt.Sprintf("%.f", item["id"]),
-		item["name"].(string),
-		fmt.Sprintf("%.f", item["image_id"]),
-		fmt.Sprintf("%.f", item["size_id"]),
-		fmt.Sprintf("%.f", item["region_id"]),
-		item["backups_active"].(string),
-		// TODO: join these on a comma or something
-		item["backups"].(string),
-		// TODO: join these on a comma or something
-		item["snapshots"].(string),
-		item["ip_address"].(string),
-		item["private_ip_address"].(string),
-		item["locked"].(string),
-		item["status"].(string),
-	}, "\t"))
+	fmt.Print(strings.Join(resp.Header(), "\t"))
+	fmt.Print("\n")
+	fmt.Print(strings.Join(resp.Droplet.ToStringArray(), "\t"))
 	fmt.Print("\n")
 }
 
