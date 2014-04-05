@@ -463,6 +463,48 @@ func InitRoutingTable() {
 	})
 
 	RoutingTable = append(RoutingTable, &Route{
+		Pattern: []string{"droplets", "power-cycle", ":droplet_id"},
+		Params:  make(map[string]string),
+		Handler: DoDropletsPowerCycleDroplet,
+	})
+
+	RoutingTable = append(RoutingTable, &Route{
+		Pattern: []string{"droplets", "shut-down", ":droplet_id"},
+		Params:  make(map[string]string),
+		Handler: DoDropletsShutDownDroplet,
+	})
+
+	RoutingTable = append(RoutingTable, &Route{
+		Pattern: []string{"droplets", "shutdown", ":droplet_id"},
+		Params:  make(map[string]string),
+		Handler: DoDropletsShutDownDroplet,
+	})
+
+	RoutingTable = append(RoutingTable, &Route{
+		Pattern: []string{"droplets", "power-off", ":droplet_id"},
+		Params:  make(map[string]string),
+		Handler: DoDropletsPowerOffDroplet,
+	})
+
+	RoutingTable = append(RoutingTable, &Route{
+		Pattern: []string{"droplets", "poweroff", ":droplet_id"},
+		Params:  make(map[string]string),
+		Handler: DoDropletsPowerOffDroplet,
+	})
+
+	RoutingTable = append(RoutingTable, &Route{
+		Pattern: []string{"droplets", "power-on", ":droplet_id"},
+		Params:  make(map[string]string),
+		Handler: DoDropletsPowerOnDroplet,
+	})
+
+	RoutingTable = append(RoutingTable, &Route{
+		Pattern: []string{"droplets", "poweron", ":droplet_id"},
+		Params:  make(map[string]string),
+		Handler: DoDropletsPowerOnDroplet,
+	})
+
+	RoutingTable = append(RoutingTable, &Route{
 		Pattern: []string{"droplets", "new", ":name", ":size", ":image", ":region", ":ssh_key_ids", ":private_networking", ":backups_enabled"},
 		Params:  make(map[string]string),
 		Handler: DoDropletsNewDroplet,
@@ -826,6 +868,114 @@ func DoDropletsRebootDroplet(route *Route) {
   }
 
   path := fmt.Sprintf("/droplets/%s/reboot/", route.Params["droplet_id"])
+	_, body, err := ApiGet(path, nil)
+
+  if err != nil {
+		fmt.Fprintf(os.Stderr, "Error performing http.get[%s]: %s\n", path, err)
+		os.Exit(1)
+  }
+
+  var resp SimpleEventResponse
+  resp.Unmarshal(body)
+
+	if resp.Status != "OK" {
+		fmt.Fprintf(os.Stderr, "Error: status != OK status=%s resp=%s\n", resp.Status, string(body))
+		os.Exit(1)
+	}
+
+  fmt.Print(strings.Join(resp.Header(), "\t"))
+  fmt.Print("\n")
+  fmt.Printf("%.f", resp.Event_id)
+  fmt.Print("\n")
+}
+
+func DoDropletsPowerCycleDroplet(route *Route) {
+	if CmdlineOptions.Verbose {
+    fmt.Printf("DoDropletsPowerCycleDroplet: route=%s\n", route)
+  }
+
+  path := fmt.Sprintf("/droplets/%s/power_cycle/", route.Params["droplet_id"])
+	_, body, err := ApiGet(path, nil)
+
+  if err != nil {
+		fmt.Fprintf(os.Stderr, "Error performing http.get[%s]: %s\n", path, err)
+		os.Exit(1)
+  }
+
+  var resp SimpleEventResponse
+  resp.Unmarshal(body)
+
+	if resp.Status != "OK" {
+		fmt.Fprintf(os.Stderr, "Error: status != OK status=%s resp=%s\n", resp.Status, string(body))
+		os.Exit(1)
+	}
+
+  fmt.Print(strings.Join(resp.Header(), "\t"))
+  fmt.Print("\n")
+  fmt.Printf("%.f", resp.Event_id)
+  fmt.Print("\n")
+}
+
+func DoDropletsShutDownDroplet(route *Route) {
+	if CmdlineOptions.Verbose {
+    fmt.Printf("DoDropletsShutDownDroplet: route=%s\n", route)
+  }
+
+  path := fmt.Sprintf("/droplets/%s/shutdown/", route.Params["droplet_id"])
+	_, body, err := ApiGet(path, nil)
+
+  if err != nil {
+		fmt.Fprintf(os.Stderr, "Error performing http.get[%s]: %s\n", path, err)
+		os.Exit(1)
+  }
+
+  var resp SimpleEventResponse
+  resp.Unmarshal(body)
+
+	if resp.Status != "OK" {
+		fmt.Fprintf(os.Stderr, "Error: status != OK status=%s resp=%s\n", resp.Status, string(body))
+		os.Exit(1)
+	}
+
+  fmt.Print(strings.Join(resp.Header(), "\t"))
+  fmt.Print("\n")
+  fmt.Printf("%.f", resp.Event_id)
+  fmt.Print("\n")
+}
+
+func DoDropletsPowerOffDroplet(route *Route) {
+	if CmdlineOptions.Verbose {
+    fmt.Printf("DoDropletsPowerOffDroplet: route=%s\n", route)
+  }
+
+  path := fmt.Sprintf("/droplets/%s/power_on/", route.Params["droplet_id"])
+	_, body, err := ApiGet(path, nil)
+
+  if err != nil {
+		fmt.Fprintf(os.Stderr, "Error performing http.get[%s]: %s\n", path, err)
+		os.Exit(1)
+  }
+
+  var resp SimpleEventResponse
+  resp.Unmarshal(body)
+
+	if resp.Status != "OK" {
+		fmt.Fprintf(os.Stderr, "Error: status != OK status=%s resp=%s\n", resp.Status, string(body))
+		os.Exit(1)
+	}
+
+  fmt.Print(strings.Join(resp.Header(), "\t"))
+  fmt.Print("\n")
+  fmt.Printf("%.f", resp.Event_id)
+  fmt.Print("\n")
+}
+
+func DoDropletsPowerOnDroplet(route *Route) {
+	if CmdlineOptions.Verbose {
+    fmt.Printf("DoDropletsPowernfDroplet: route=%s\n", route)
+  }
+
+  path := fmt.Sprintf("/droplets/%s/power_off/", route.Params["droplet_id"])
 	_, body, err := ApiGet(path, nil)
 
   if err != nil {

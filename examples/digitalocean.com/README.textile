@@ -17,10 +17,10 @@ h5. API Support
 ** [*TODO*] Show Droplet: Backups
 ** [*TODO*] Show Droplet: Snapshots
 ** [DONE] Reboot Droplet
-** [*TODO*] Power Cycle Droplet
-** [*TODO*] Shut Down Droplet
-** [*TODO*] Power Off
-** [*TODO*] Power On
+** [DONE] Power Cycle Droplet
+** [DONE] Shut Down Droplet
+** [DONE] Power Off
+** [DONE] Power On
 ** [*TODO*] Reset Root Password
 ** [*TODO*] Resize Droplet
 ** [*TODO*] Take a Snapshot
