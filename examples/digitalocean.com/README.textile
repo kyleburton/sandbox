@@ -10,6 +10,8 @@ Support json output in addition to tab delimited output.  This would be useful i
 
 h5. API Support
 
+* Support a -wait flag for all operations that return an event_id
+
 * Droplets
 ** [DONE] Show All Active Droplets
 ** [DONE] New Droplet

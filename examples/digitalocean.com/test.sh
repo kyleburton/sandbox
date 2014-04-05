@@ -1,7 +1,18 @@
 #!/usr/bin/env bash
 set -eux
 VERBOSE=""
-go run pkg/diocean/main.go $VERBOSE droplets new test1 512mb ubuntu-13-10-x64 nyc2 20848 false false 2>&1 | tee new.output
+
+# go run pkg/diocean/main.go regions ls
+# id      name    slug
+# 3       San Francisco 1 sfo1
+# 4       New York 2      nyc2
+# 5       Amsterdam 2     ams2
+# 6       Singapore 1     sgp1
+
+#REGION=nyc2
+REGION=sfo1
+
+go run pkg/diocean/main.go $VERBOSE droplets new test1 512mb ubuntu-13-10-x64 $REGION 20848 false false 2>&1 | tee new.output
 
 # id      name    image_id        size_id event_id
 # 1413427 test1   1505699 66      20770146
