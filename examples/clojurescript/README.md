@@ -1,1 +1,1 @@
-(Om)[https://github.com/swannodette/om]
+[Om](https://github.com/swannodette/om)
