@@ -1,0 +1,71 @@
+The idea for this talk sprang out of a discussion I had with Kevin Mcallister about my having played around with it and how much I was enjoying it.
+
+The what of what I was enjoying was:
+
+* fast edit, compile, run cycle
+* nice set of standard libraries
+* it runs fast
+* comes with a built in unit testing framework
+* comes with built-in coverage analysis and benchmarking
+* easy to get started with, even easier if someone shows you the how
+* one standard coding convention, and a tool to enforce it
+
+I wanted to play around with Docker and wanted to do so cheaply.  I liked what
+Digital Ocean was offering so as a 'get my hands dirty with go' sample project,
+I decided to write a small command line client for the Digital Ocean API.
+
+My initial goals for the client were:
+
+* learn more Go
+* use Go's unit testing
+* use Go's coverage analysis
+* expirement with using well defined types (structs) for the API responses
+* make a tool that would be useful in automating provisioning at Digital Ocean
+* use Go's embedded documentation tool
+
+Nice to haves:
+
+* smart command line completion
+* abstraction for command line argument handling (not flags, there's a lib for that)
+
+Future Work:
+
+* support an interactive shell
+
+
+Step 0: WTF is Go?
+
+  A language started at Google (2009) by none other than:
+
+    Robert Griesemer
+    Rob Pike     (yes, that Rob Pike: Unix, Plan9, Inferno, Limbo, UTF-8, and...Daivd Letterman)
+    Ken Thompson (yes, that Ken Thompson: Unix, C, Plan9, UTF-8)
+
+I could tell you more, but really I want you to get started with it.  I want to show you how you can
+do the following things:
+
+  read a file
+  write a file
+  parse a JSON file
+  create JSON
+  make an HTTP request
+  shell out to another program
+  connect to a database
+
+Step 1: how to google Go
+
+  googling for 'golang <<my term>>' instead of 'go <<my term>>'
+  can save you a lot of grief.
+
+Step 2: installing go
+
+You can try out go right on the web: 
+
+  http://golang.org/
+
+Download for OSX, Linux, Windows, ...:
+
+  http://golang.org/doc/install
+
+Step 3: Setup
+  
