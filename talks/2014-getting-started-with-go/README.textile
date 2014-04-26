@@ -1,13 +1,13 @@
-The idea for this talk sprang out of a discussion I had with Kevin Mcallister about my having played around with it and how much I was enjoying it.
+The idea for this talk sprang out of a discussion I had with Kevin Mcallister about my having played around with it and how much fun I was having learning go.
 
-The what of what I was enjoying was:
+The what of what I am enjoying is:
 
 * fast edit, compile, run cycle
 * nice set of standard libraries
 * it runs fast
 * comes with a built in unit testing framework
 * comes with built-in coverage analysis and benchmarking
-* easy to get started with, even easier if someone shows you the how
+* easy to get started with, even easier if someone walks you through the how
 * one standard coding convention, and a tool to enforce it
 
 I wanted to play around with Docker and wanted to do so cheaply.  I liked what
