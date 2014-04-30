@@ -7,6 +7,7 @@ IMAGE_NAME=ubuntu-13-10-x64
 SSH_KEY_ID=$(diocean ssh-keys ls  | cut -f1 | head -n 2 | tail -n 1)
 PRIVATE_NETWORKING=false
 BACKUPS_ENABLED=false
+UNAME=kyle
 
 droplet_exists () {
   diocean droplets ls | grep -q "	$1	"
@@ -31,15 +32,15 @@ CMD="${1:-all}"
 case "$CMD" in
   bootstrap-root)
     rsync -avz . root@$DROPLET_IP_ADDRESS:droplet-init/
-    ssh root@$DROPLET_IP_ADDRESS "cd droplet-init; bash self-bootstrap.sh"
+    ssh root@$DROPLET_IP_ADDRESS "cd droplet-init; bash self-bootstrap.sh $UNAME"
     ;;
   bootstrap-self)
-    rsync -avz . self@$DROPLET_IP_ADDRESS:droplet-init/
-    ssh self@$DROPLET_IP_ADDRESS "cd droplet-init; bash local-bootstrap.sh"
-    echo "RUN: ssh self@$DROPLET_IP_ADDRESS"
+    rsync -avz . $UNAME@$DROPLET_IP_ADDRESS:droplet-init/
+    ssh $UNAME@$DROPLET_IP_ADDRESS "cd droplet-init; bash local-bootstrap.sh"
+    echo "RUN: ssh $UNAME@$DROPLET_IP_ADDRESS"
     ;;
   reset)
-    ssh root@$DROPLET_IP_ADDRESS "userdel self; rm -rf /home/self; rm -rf droplet-init"
+    ssh root@$DROPLET_IP_ADDRESS "userdel $UNAME; rm -rf /home/$UNAME; rm -rf droplet-init"
     ;;
   all)
     bash $0 bootstrap-root
