@@ -68,4 +68,167 @@ Download for OSX, Linux, Windows, ...:
   http://golang.org/doc/install
 
 Step 3: Setup
+
+   * set GOROOT to your installation of Go,
+     add $GOROOT/bin to your $PATH
+
+   * set GOPATH to a directory, this will hold all the Go code you download and
+     all the Go code you write.
   
+  Don't fight it, just use $GOPATH.  Your life will be better if you follow
+  this convention.
+  
+
+Go The language
+
+  * Static, Compiled
+  * Fast enough to 'go run' w/o worrying about the compliation
+  * Uppercase: public
+  * lowercase: private
+  * comments /* // and */
+
+Go Lang: Variables and built in Types
+  Explicitly sized types int, int64, float64
+  Enum types const ( c0 = itoa)
+  Type goes on the right
+  Built in maps and arrays
+  make()
+  The error type
+  nil and pointers
+
+    var foo int64
+  or
+    foo := 42
+
+    make([]int, 10, 100)
+
+  slices
+  channels
+
+Go Lang: Packages
+
+  import
+    an unreferenced import is a compile error!
+    same with unused variables
+      _ = foo
+      import _ "foo"
+  the init() function
+
+Go Lang: Imports
+
+Go Lang: Control Structures
+
+  * If/else
+     if err := file.Chmod(0644); err != nil {
+       panic(err)
+     }
+  * for and range
+    Sure you _can_ write:
+
+      for i := 0; i < len(elements); i++ {
+      }
+
+    range is idiomatic:
+
+      for idx, elt := range elements {
+      }
+
+    if you don't care about the index, ignore it:
+
+      for _, elt := range elements {
+      }
+
+    and also works on maps:
+
+      for currency, rate := range exchangeRates {
+      }
+
+  * switch
+
+    actually an if/else cascade, not a jump table, no fall-through
+
+Go Lang: Functions
+
+  Basic function signatures
+    Functions can return multiple values
+    You have to accept them all when calling a function
+      Underscore lets you say "I don't care"
+  You can name the return parameters(!)
+    If you do you can omit the return statement(!)
+
+Go Lang: Types, Structs
+
+  Aliases
+  Structual types
+  Interfaces
+    Duck Typing
+
+  Pointers, allocation via literal structs
+
+     new(MyType)
+
+     &MyType {
+     }
+
+  the 'zero value' convention
+
+Go Lang: Defer, Go Routines, Channels
+
+
+Go Lang: Funcitons on structures
+
+  implement 'toString' for your struct
+
+Go Lang: Conversions
+
+Go Lang: Warts
+
+  * No Generics
+
+    No generic map/fold/filter (reduce)/sort
+
+    eg: get the keys from a map, sorry you'll be Type-ing it:
+
+    var currencies []string
+    for k, _ := range exchangeRates {
+      currencies = append(currencies, k)
+    }
+
+  * You can be typeless, but it's a PITA 
+
+    switch t := t.(type) {
+      default:
+        ...
+      case bool:
+        ...
+      case int:
+        ...
+      case *bool:
+        ...
+      ...
+    }
+
+Go Lang: Documenting your code
+
+Go Lang: Common Packages
+
+  * strings
+  * io
+  * io/util
+  * fmt
+  * flag
+  * encoding.json
+  * encoding.csv
+
+Go Lang: Unit Testing
+  * Unit Tests
+  * Converage Analysis
+  * Profiling and Benchmarking
+
+Go Lang: recover() from panic()
+
+Go Lang: Debugging
+
+References:
+
+  * http://golang.org/doc/effective_go.html
