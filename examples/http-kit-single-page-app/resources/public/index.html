@@ -21,7 +21,7 @@
   <h1>Enter Your Name</h1>
   <div>
     <input name="name"></input>
-    <button>Click</button>
+    <button data-elt-id="submit">Click</button>
   </div>
 
   <br />
@@ -29,6 +29,12 @@
   <h3 data-elt-id="content-area">
     This will be replaced.
   </h3>
+
+  <pre style="display:none" data-elt-id="metrics">
+  </pre>
+
+  <br />
+    <button data-elt-id="show-metrics">Show Metrics</button>
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
@@ -78,8 +84,21 @@
  };
 
  self.init = function () {
-   $('button').on('click', self.buttonClicked);
+   $('button[data-elt-id="submit"]').on('click', self.buttonClicked);
+   $('button[data-elt-id="show-metrics"]').on('click', self.viewMetrics);
    self.getDoSomething({});
+ };
+
+ self.viewMetrics = function (evt) {
+   evt && evt.preventDefault();
+   $('[data-elt-id="metrics"]').show();
+   $.ajax({
+     url:     '/metrics',
+     type:    'GET',
+     success: function (data) {
+       $('[data-elt-id="metrics"]').html(JSON.stringify(data, null, 2));
+     }
+   });
  };
 
 }(window, jQuery));
