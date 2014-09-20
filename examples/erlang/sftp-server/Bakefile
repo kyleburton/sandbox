@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+bake_task build-release "Build a release"
+function build-release () {
+  test -d rel || mkdir rel
+  pushd rel >/dev/null
+  rebar generate
+  popd >/dev/null
+}
+
+bake_task run "Run the application"
+function run () {
+  build-release
+}

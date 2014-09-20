@@ -1,2 +1,5 @@
 ebin/
 .rebar/
+deps/
+log/
+rel/
