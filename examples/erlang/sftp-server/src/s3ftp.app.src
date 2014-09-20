@@ -1,0 +1,12 @@
+{application, s3ftp,
+ [
+  {description, ""},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {mod, { s3ftp_app, []}},
+  {env, []}
+ ]}.

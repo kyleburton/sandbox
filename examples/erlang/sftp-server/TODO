@@ -1,0 +1,13 @@
+Use Erlang's SFTP daemon with AWS S3 as a backing store.
+
+My use-case is:
+
+  * a client drops a file off on our sftp server 
+  * we want to auto-process the file, which involves:
+    * seeing that it arrived
+    * placing it in shared storage so other systmes can access it (s3)
+
+What I'd like this SFTP daemon to do:
+
+* Store/Pull sftp credentials from a bucket/path
+* 
