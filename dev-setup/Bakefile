@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+#set -x
+bake_push_libdir $(bake_bakefile_dir)/src/sh
+bake_require erlang
+
+function add_path () {
+  if [ -z "$1" ]; then
+    echo "Sorry, you must pass a path to add_path!"   
+    exit 1
+  fi
+
+  echo "$1" >> .path.dirs
+  sort -u .path.dirs > .path.dirs.new
+  mv -f .path.dirs.new .path.dirs
+  P="$(echo $(sort -u .path.dirs) | tr ' ' :)"
+  echo "PATH=\$PATH:$P" > env.sh
+}
+
+bake_task install-all "Install all the goodies."
+function install-all () {
+  erlang-install-all
+}
