@@ -1,0 +1,13 @@
+def system! cmd
+  unless system cmd
+    raise "Error executing command=#{cmd}"
+  end
+end
+
+desc "Pull down RxJS"
+task :install do
+  target_file = "resources/public/js/libs/rx.all.js"
+  if !File.exists? target_file
+  system! "curl -o #{target_file} http://cdnjs.cloudflare.com/ajax/libs/rxjs/2.2.28/rx.all.js"
+  end
+end
