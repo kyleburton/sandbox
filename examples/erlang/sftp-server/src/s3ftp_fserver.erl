@@ -29,8 +29,19 @@ get_cwd(State) ->
     {{ok, Path}, State}.
 
 is_dir(AbsPath, State) ->
-    lager:info("s3ftp_fserver:is_dir(~p,~p): not_supported", [AbsPath, State]),
-    {true, State}.
+    User = "kburton",
+    S3Path = lists:concat(["s3ftp/", User, "/dropoff", AbsPath]),
+    lager:info("s3ftp_fserver:is_dir(~p,~p): S3Path=~s", [AbsPath, State, S3Path]),
+    try
+      % NB: get_object_metadata throws
+      _ = erlcloud_s3:get_object_metadata("rn-dev-sandbox", S3Path),
+      lager:info("s3ftp_fserver:is_dir: got metadata, not a dir", []),
+      {false, State}
+    catch
+      error:Reason ->
+        lager:info("s3ftp_fserver:is_dir: exception getting metadata, _is_ a dir: ~p", [Reason]),
+        {true, State}
+    end.
 
 list_dir(AbsPath, State) -> 
     lager:info("s3ftp_fserver:list_dir(~p,~p): trying s3...", [AbsPath, State]),
@@ -87,8 +98,13 @@ read_link_info(Path, State) ->
     {{ok, #file_info{size=ContentLength, type=regular}}, State}.
      
 read_file_info(Path, State) ->
-    lager:info("s3ftp_fserver:read_file_info(~p,~p): not_supported", [Path, State]),
-    {{error, not_supported}, State}.
+    lager:info("s3ftp_fserver:read_file_info(~p,~p): returning file_info record (size)", [Path, State]),
+    User = "kburton",
+    S3Path = lists:concat(["s3ftp/", User, "/dropoff", Path]),
+    Resp = erlcloud_s3:get_object_metadata("rn-dev-sandbox", S3Path),
+    ContentLengthStr = proplists:get_value(content_length,Resp),
+    {ContentLength, _Rest} = string:to_integer(ContentLengthStr),
+    {{ok, #file_info{size=ContentLength, type=regular}}, State}.
 
 rename(Path, Path2, State) ->
     lager:info("s3ftp_fserver:rename(~p,~p,~p): not_supported", [Path, Path2, State]),
