@@ -35,6 +35,8 @@ init([]) ->
     R2 = ssh:daemon(8889, [
                       {system_dir, "/tmp/ssh_daemon"},
                       {user_dir, "/tmp/otptest_user/.ssh"},
+                      {negotiation_timeout, 30}, % 30 seconds
+                      {max_sessions, 2},         % maximum of 2 simultaneous connections/sessions
                       {shell, {?MODULE, no_shell, []}},
                       % {ssh_cli, no_cli},
                       {auth_methods, "publickey"},
