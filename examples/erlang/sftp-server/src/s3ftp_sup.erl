@@ -36,10 +36,19 @@ init([]) ->
                       {system_dir, "/tmp/ssh_daemon"},
                       {user_dir, "/tmp/otptest_user/.ssh"},
                       {shell, {?MODULE, no_shell, []}},
+                      % {ssh_cli, no_cli},
+                      {auth_methods, "publickey"},
+                      % TODO: explore key_cb for using s3 as where the keys are stored
+                      % {key_cb, my_key_handling_module}
                       {subsystems, [ssh_sftpd:subsystem_spec([
                                                               %{cwd, "/tmp/sftp/example"}
                                                               {file_handler, s3ftp_fserver}
                                                              ])]}
+                      % failfun: a callback you can supply for when
+                      % authentication fails (rate limiting? fail2ban /
+                      % denyhosts?)
+                      % connectfun: cb for when a user auths successfully
+                      % disconnectfun: cb for when a user disconnects
                      ]),
     lager:info("init: started ssh:daemon, R2=~p", [R2]),
     % SubsystemSpec = ssh_sftpd:subsystem_spec([{cwd,"/tmp"},{root,"/tmp"}]),

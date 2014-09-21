@@ -12,3 +12,21 @@ bake_task run "Run the application"
 function run () {
   build-release
 }
+
+bake_task init-test-keys "Initialize ssh key configuration for testing the daemon"
+function init-test-keys () {
+  test -d /tmp/otptest_user/.ssh           || mkdir -p /tmp/otptest_user/.ssh
+  test -f /tmp/otptest_user/.ssh/id_rsa    || ssh-keygen  -t rsa -f /tmp/otptest_user/.ssh/id_rsa
+  test -d /tmp/ssh_daemon                  || mkdir /tmp/ssh_daemon
+  test -f /tmp/ssh_daemon/ssh_host_rsa_key || ssh-keygen  -t rsa -f /tmp/ssh_daemon/ssh_host_rsa_key
+}
+
+bake_task sftp-connect "Establish an sftp connection"
+function sftp-connect () {
+  sftp -oPort=8889 -oIdentityFile=/tmp/otptest_user/.ssh/id_rsa localhost
+}
+
+bake_task ssh-connect "Establish an ssh connection"
+function ssh-connect () {
+  ssh -oPort=8889 -oIdentityFile=/tmp/otptest_user/.ssh/id_rsa localhost
+}
