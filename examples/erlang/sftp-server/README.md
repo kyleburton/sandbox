@@ -36,6 +36,7 @@ Goals:
 * TODO: implement key auth using files from the s3 bucket
 * TODO: externalize configuration of app: aw3 api credentials, key prefix
 * TODO: script startup / running of app
+* TODO: configurable listen port number
 * TODO: ability to shut down the server
 * TODO: ability to restart the server
 * TODO: follow OTP conventions for application / server / supervision
