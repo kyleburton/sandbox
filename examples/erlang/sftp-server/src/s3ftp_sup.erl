@@ -32,6 +32,10 @@ init([]) ->
     lager:info("init: started crypto, R1=~p", [R1]),
     R3 = ssh:start(),
     lager:info("init: started ssh, R3=~p", [R3]),
+    R4 = ssl:start(),
+    lager:info("init: started ssl, R4=~p", [R4]),
+    R5 = erlcloud:start(),
+    lager:info("init: started erlcloud, R5=~p", [R5]),
     R2 = ssh:daemon(8889, [
                       {system_dir, "/tmp/ssh_daemon"},
                       {user_dir, "/tmp/otptest_user/.ssh"},
