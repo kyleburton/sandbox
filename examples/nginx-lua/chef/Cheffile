@@ -6,6 +6,9 @@ site 'http://community.opscode.com/api/v1'
 cookbook "packages", 
          :git  => "https://github.com/kyleburton/chef-cookbooks.git",
          :path => "packages"
+cookbook "openresty-nginx", 
+         :git  => "https://github.com/kyleburton/chef-cookbooks.git",
+         :path => "openresty-nginx"
 cookbook "bash_profile", 
          :git  => "https://github.com/kyleburton/chef-cookbooks.git",
          :path => "bash_profile"

@@ -92,9 +92,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     #chef.add_role "web"
   
     chef.json = {
-      'packages' => %w[git screen tmux emacs24 emacs24-el],
+      'packages' => %w[git screen tmux emacs24 emacs24-el vim],
       'run_list' => [
-        "recipe[packages]"
+        "recipe[packages]",
+        "recipe[openresty-nginx]",
+        "recipe[bash_profile]"
       ],
     }
   end

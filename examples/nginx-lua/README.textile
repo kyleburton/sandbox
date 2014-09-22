@@ -5,3 +5,9 @@ The easiest way to install Nginx with the required modules is to use the "OpenRE
 
 
 
+
+Use Case #1 : API Rate Limiting
+
+Use Case #2 : Eliminating Configuration in your Application Layer
+
+
