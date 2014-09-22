@@ -18,6 +18,24 @@
   </head>
   <body>
 
+  <h1>Enter Two Numbers</h1>
+  <div>
+    <input name="num1"></input>
+  </div>
+
+  <div>
+    <input name="num2"></input>
+  </div>
+
+  <div>
+    <button data-elt-id="submit">Sum</button>
+  </div>
+
+  <div data-elt-id="answer">
+    Replace this with the answer.
+  </div>
+
+<!--
   <h1>Enter Your Name</h1>
   <div>
     <input name="name"></input>
@@ -38,6 +56,7 @@
 
   <br />
     <button data-elt-id="show-metrics">Show Metrics</button>
+  -->
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <!--
@@ -66,6 +85,7 @@
  };
 
  self.postDoSomething = function (data, cb) {
+   debugger;
    $.ajax({
      url:     '/api/v1/do-something',
      data:    data,
@@ -77,15 +97,17 @@
 
  self.dataReturned = function (data) {
    // $('[data-elt-id="content-area"]').html(JSON.stringify(data));
-   $('[data-elt-id="content-area"]').html("Hello, " + data.name);
-   $('[data-elt-id="time-container"]').html(data.time);
-   $('[data-elt-id="time-ms-container"]').html(data.time_ms + " / " + data.time_nano);
+   //$('[data-elt-id="content-area"]').html("Hello, " + data.name);
+   //$('[data-elt-id="time-container"]').html(data.time);
+   //$('[data-elt-id="time-ms-container"]').html(data.time_ms + " / " + data.time_nano);
+   $('[data-elt-id="answer"]').html(data.answer);
  };
 
  self.buttonClicked = function (evt) {
    evt.preventDefault();
-   self.postDoSomething({
-     name: $('input[name="name"]').val()
+   self.getDoSomething({
+     num1: parseInt($('input[name="num1"]').val()),
+     num2: parseInt($('input[name="num2"]').val())
    });
  };
 
