@@ -1,0 +1,12 @@
+{application, exml_cdata,
+ [
+  {description, ""},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {mod, { exml_cdata_app, []}},
+  {env, []}
+ ]}.

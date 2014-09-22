@@ -1,0 +1,26 @@
+SITE
+  remote: http://community.opscode.com/api/v1
+  specs:
+    apt (2.4.0)
+
+GIT
+  remote: https://github.com/kyleburton/chef-cookbooks.git
+  path: bash_profile
+  ref: master
+  sha: 3bf3f085117edb225e3590b428449b67037e5961
+  specs:
+    bash_profile (0.1.0)
+
+GIT
+  remote: https://github.com/kyleburton/chef-cookbooks.git
+  path: packages
+  ref: master
+  sha: 3bf3f085117edb225e3590b428449b67037e5961
+  specs:
+    packages (0.1.0)
+      apt (>= 0.0.0)
+
+DEPENDENCIES
+  bash_profile (>= 0)
+  packages (>= 0)
+

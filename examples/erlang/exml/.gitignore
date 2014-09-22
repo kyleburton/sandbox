@@ -1,1 +1,5 @@
 software
+.rebar
+deps
+ebin
+.eunit

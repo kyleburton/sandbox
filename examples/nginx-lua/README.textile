@@ -1,0 +1,7 @@
+
+h1. Nginx with Lua extensions.
+
+The easiest way to install Nginx with the required modules is to use the "OpenRESTY Bundle":http://openresty.org/ (http://openresty.org/) distribution.
+
+
+
