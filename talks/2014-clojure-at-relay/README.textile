@@ -1,11 +1,101 @@
+Clojure at Relay.
 
+* Why I chose Clojure
+* Our Architecture
+* Our SDLC
+* Deployment
+* Things we shouldn't, but do
 
-I chose Clojure because _I_ would be productive in it.  I also saw a way out of it if I couldn't recruit enough devs: we're on the JVM, so we can transition to plain Java (or Scala) a module, or service, at a time.
+:: Why I chose Clojure
 
-TDD is a great improvement from not doing TDD, as you end up with a regression suite for your components when you're done.  You also get to isolate components as you develop them.  This allows you to focus on smaller parts of your stack, but it doesn't address higher level interactions, eg: integration testing.
+Choosing a bleeding edge programming language is an irresponsible descision.  I
+made that irresponsible descision.  
 
-Clojure (the Lisp lineage) encourages interactive development.  I don't mean 'interactive' in the sense that IDE means it.  What I mean is this: when we develop our software, we launch our full stack and then connect to it.  Database connection pools, message queue topology and consumers, HTTP servers, everything, the whole enchilada.
+I chose Clojure because _I_ would be productive in it.  I also saw a way out of
+it if I couldn't recruit enough devs: we're on the JVM, so we can transition to
+plain Java (or Scala) a module, or service, at a time.  That was my escape
+hatch, so far I haven't had to open it and I don't see us needing to.
 
-DDD (Debugging Driven Development)
+So, why do I like Clojure?  It's not that it's FP (though I like that), it's
+not that it was designed for concurrency (though I like that), it's not macros
+(though I _really_ like that :)...lets go back to younger Kyle:
 
-Each of our developers runs our full stack.  We have 3 core services.  Each developer runs those services, they run the message queue, and the database.
+When I started writing software I didn't even know what a unit test was.  When
+I read about TDD it changed me, it fundamentally changed how I thought about
+writing software.
+
+TDD is a vast improvement from not doing TDD.  It is now arguable that writing
+tests for your code is part of being professional.  You end up with a
+regression suite for your libraries when you're done!  You get to isolate
+components as you develop them, making it easier to focus and make decisions
+about class designs and function signatures.  TDD allows you to focus on
+smaller parts of your stack, it doesn't address higher level interactions.  It
+doesn't address integration.  Sure, I mocked out services, I used a fresh
+database initialized just for my tests, but that was just pretending.  
+
+Wow, that is certainly an uncomfortable statement.  I was just pretending.
+
+Clojure (actually the Lisp lineage) encourages interactive development.  
+
+I don't mean 'interactive' in the sense that "Interactive Development
+Environment" means it.  What I mean is: when we develop software at Relay, we
+launch our full stack.  Then we connect to and work on it.  
+
+Database connection pools, message queue topology and consumers, HTTP servers,
+everything, the whole enchilada is up and running before we write a line of
+code.  We write tests certainly, but we value integration tests over unit
+tests.  We value our developers touching the actual application over
+fabricating artificial function calls.
+
+I've heard this informally called "Debugging Driven Development".  If you
+google for this you'll find articles on "Debugger Driven Development", which is
+not what I mean.
+
+Lets say we're going to develop a new feature in our Single Page Web App.  Once
+the requirements have been written, UI treatments have been mocked up, design
+and architcture are done and we have an estimate series of tasks, What's the
+process?
+
+You can start writing unit tests for your libraries...or you can open your web
+browser and let the user story guide as much of the development process as
+possible.
+
+Just starting out? Creating your login screen?  Great, open your browser and go
+to '/login'.  Oh, you get a 404?  Great, then your next step is to make that
+page.  For us that's a new view.  The next steps in the user story are to enter
+an email address, password and click the login button.  Ok, there are no form
+elements, so let's create them.  Clicking on the button has no effect?  Great,
+lets add a click handler and make an XHR.  The XHR is returning a 404?  Ok,
+that means the next step is to add a route to the http server.  Lets sketch out
+a skeleton that returns a '400' aka Bad Request, since we don't know how to
+handle it yet.  
+
+Here comes a bit of magick: in addition to returning a 400, lets also capture
+the request into a static variable.  Remember, since we're working with the 
+live stack, this static var continues to exist even though we've clicked the 
+login button and the XHR has returned to the front-end.
+
+We can now strt to inspect the request, pull out the email address and password
+and then call out to the database to see if it matches a valid user account.
+
+We're not just writing this code, we're running it.  Line by line as we're
+writing it.  Once we've massaged it into doing what we want, we've got a 
+running request handler, so lets go back to the browser and click login again.
+
+Great, look at that, the request now returns 200 instead of 400.  Looks like
+our next step is for the front-end to display a different view...
+
+At every step of this process we're interacting with the platform just like the
+user would.  By the time we've written the code we've run it.  We've run it in
+the stack where it's supposed to run.  Nothing was mocked out.
+
+This is why I love Clojure.
+
+:: Our Architecture
+
+:: Our SDLC
+
+:: Deployment
+
+:: Things we shouldn't, but do
+
