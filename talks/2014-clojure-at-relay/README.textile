@@ -53,7 +53,7 @@ not what I mean.
 
 Lets say we're going to develop a new feature in our Single Page Web App.  Once
 the requirements have been written, UI treatments have been mocked up, design
-and architcture are done and we have an estimate series of tasks, What's the
+and architcture are done and we have an estimated series of tasks, What's the
 process?
 
 You can start writing unit tests for your libraries...or you can open your web
@@ -65,18 +65,20 @@ to '/login'.  Oh, you get a 404?  Great, then your next step is to make that
 page.  For us that's a new view.  The next steps in the user story are to enter
 an email address, password and click the login button.  Ok, there are no form
 elements, so let's create them.  Clicking on the button has no effect?  Great,
-lets add a click handler and make an XHR.  The XHR is returning a 404?  Ok,
-that means the next step is to add a route to the http server.  Lets sketch out
-a skeleton that returns a '400' aka Bad Request, since we don't know how to
-handle it yet.  
+lets add a click handler and make an HTTP request.  The request is returning a
+404?  Ok, that means the next step is to add a route to the http server.  Lets
+sketch out a skeleton HTTP handler that returns a '400' aka Bad Request, since
+we don't know how to handle it yet.  Click the button again, do we get a 400?
+Great!
 
 Here comes a bit of magick: in addition to returning a 400, lets also capture
-the request into a static variable.  Remember, since we're working with the 
-live stack, this static var continues to exist even though we've clicked the 
-login button and the XHR has returned to the front-end.
+the request into a static variable.  Remember, since we're working with the
+live stack, this static var continues to exist even though we've clicked the
+login button and the HTTP request has returned to the front-end.
 
-We can now strt to inspect the request, pull out the email address and password
-and then call out to the database to see if it matches a valid user account.
+We can now inspect and manipulate the request, pull out the email address and
+password and then call out to the database to see if it matches a valid user
+account.
 
 We're not just writing this code, we're running it.  Line by line as we're
 writing it.  Once we've massaged it into doing what we want, we've got a 
@@ -85,9 +87,10 @@ running request handler, so lets go back to the browser and click login again.
 Great, look at that, the request now returns 200 instead of 400.  Looks like
 our next step is for the front-end to display a different view...
 
-At every step of this process we're interacting with the platform just like the
-user would.  By the time we've written the code we've run it.  We've run it in
-the stack where it's supposed to run.  Nothing was mocked out.
+At every step of this process we're interacting with the platform exactly as
+the user would.  By the time we've written code we've run it (which is the sole
+reason many unit tests exist).  We've run it in the stack where it's supposed
+to run.  Nothing was mocked out.
 
 This is why I love Clojure.
 
@@ -98,4 +101,6 @@ This is why I love Clojure.
 :: Deployment
 
 :: Things we shouldn't, but do
+
+
 
