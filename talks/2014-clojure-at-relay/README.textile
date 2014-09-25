@@ -1,1 +1,11 @@
 
+
+I chose Clojure because _I_ would be productive in it.  I also saw a way out of it if I couldn't recruit enough devs: we're on the JVM, so we can transition to plain Java (or Scala) a module, or service, at a time.
+
+TDD is a great improvement from not doing TDD, as you end up with a regression suite for your components when you're done.  You also get to isolate components as you develop them.  This allows you to focus on smaller parts of your stack, but it doesn't address higher level interactions, eg: integration testing.
+
+Clojure (the Lisp lineage) encourages interactive development.  I don't mean 'interactive' in the sense that IDE means it.  What I mean is this: when we develop our software, we launch our full stack and then connect to it.  Database connection pools, message queue topology and consumers, HTTP servers, everything, the whole enchilada.
+
+DDD (Debugging Driven Development)
+
+Each of our developers runs our full stack.  We have 3 core services.  Each developer runs those services, they run the message queue, and the database.
