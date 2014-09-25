@@ -3,6 +3,14 @@
 bake_push_libdir $(bake_bakefile_dir)/src/sh
 bake_require erlang
 
+bake_task write-env-sh "Create the env.sh file"
+function write-env-sh () {
+  sort -u .path.dirs > .path.dirs.new
+  mv -f .path.dirs.new .path.dirs
+  P="$(echo $(sort -u .path.dirs) | tr ' ' :)"
+  echo "PATH=$P:\$PATH" > env.sh
+}
+
 function add_path () {
   if [ -z "$1" ]; then
     echo "Sorry, you must pass a path to add_path!"   
@@ -10,10 +18,7 @@ function add_path () {
   fi
 
   echo "$1" >> .path.dirs
-  sort -u .path.dirs > .path.dirs.new
-  mv -f .path.dirs.new .path.dirs
-  P="$(echo $(sort -u .path.dirs) | tr ' ' :)"
-  echo "PATH=\$PATH:$P" > env.sh
+  write-env-sh
 }
 
 bake_task install-all "Install all the goodies."

@@ -13,8 +13,9 @@ function erlang-install-erlang () {
   local VER=$(echo $OTP_DNAME | tr _ \\n | tail -n +3)
   test -f Makefile || ./configure --prefix=$SDIR/erlang_$VER
   test -f ./bin/erl || make
-  make install
+  test -f $SDIR/erlang_$VER/bin/erl || make install
   popd >/dev/null
+  add_path "$SDIR/erlang_$VER/bin"
 }
 
 bake_task erlang-install-rebar "Install Basho's rebar build tool"
