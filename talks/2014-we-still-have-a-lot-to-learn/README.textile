@@ -1,0 +1,53 @@
+We still have a lot to learn
+  - Why it's worth your time to understand the core principals of these weird, esoteric languages.
+
+Some of the first professional programming I did was in C.  
+
+Bless those companies for letting me write code. :)
+
+One day I was at the book store looking at an entire bookshelf dedicated to
+O'Reilly books and my career changed when I picked up my first O'Reilly title:
+Programming Perl.  O'Reilly had a 100% signal to noise ratio in those days...
+this is a sign I'm getting old...things really were better back then ;)
+
+Not that Perl is the best engineered language you'll run across but that book,
+and the language, did two things to me:  first, the book was actually
+entertaining to read, unlike every single book on C I had ever flipped a page
+of;  second, the language had syntax for dynamic arrays and maps!
+
+How could this be?  You didn't have to write code to allocate storage, initialze it
+and then call library functions to put, get or delete items?  
+
+It could do things in one expression that would take me several lines of C.
+
+This isn't about lines of code.  It's about abundance.  Because those data
+structures were un-natural to use in C, I almost never thought to use them
+right off the bat.  It had to be worth using the use them.
+
+In Perl, they were abundant, so much so, that the were easy to use even when it
+was inappropriate.  Wait, what am I saying?  That sounds like abuse.  What it
+turns out to be is freedom to choose whether to waste CPU cycles and RAM or to
+waste the hours and minutes of my time.
+
+You can guess which one I usually choose.
+
+For many tasks, I could write up a solution and run it in Perl in less time
+than it would take me to think through what I would have to do in C.
+
+Wow, this non-mainstream language changed the way I wrote software in the
+_other_ languages I worked with.  For me, that was profound.
+
+I wanted more!
+
+That was over 15 years ago.  In that time I've looked at some more languages
+and tried to understand what they solve well.  Now I'd like to share some of
+what I found.  and how these languages have influenced 
+
+* Common Lisp: Conditions and Restarts
+* Clojure: Interactive Development, no barriers to abstraction
+* Erlang: Static Single Assignment, Distributed Computing, 'Let it Crash'
+* Haskell: You have no choice: you _have_ to think about your data domain
+* Go: write and run in less time than it takes to think in other languages
+
+
+
