@@ -1,0 +1,5 @@
+Om is a Clojurescript Wrapper around Facebooks React.js
+
+It brings Clojure's idea of persistent (immutable) data structures and STM to
+the front end and asks the heretical question: "So what would happen if we used
+a singleton global variable?"

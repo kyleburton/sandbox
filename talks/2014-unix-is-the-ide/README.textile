@@ -1,0 +1,130 @@
+Unix is the IDE: Facilitating Full Stack Development by abandoning traditional IDEs
+
+Who has a good story about debugging and resolving issues in production?
+
+Those techniques you use in production, explaning SQL queries, peeking at your
+message queue, injecting additional logging statements, capturing data so you
+can reproduce issues...do you use them when you develop your systems?
+
+Do each of your devs run your full stack when they write code?  Only for
+integration tests or for all development?
+
+We've tried to optimize our environment to faciliate running the full stack and
+making it as easy as possible for developers to span the layers and services.
+To make it easier to move fluidly between them as they can.  To make it as easy
+as possible to compose a workspace suited to the task at hand and then throw it
+away as soon as we're done with it.
+
+What do we use to do this?  To be honest, it's mostly terminals :)
+
+Oh, don't look at me like that.  I hope what you're thinking is not what I mean :)
+
+Lets talk about complexity.
+
+We all want O(1) algorithms in our software.
+
+Do we have that in our IDE?  You are probably thinking: "What does he even mean
+by that?"  I would be :)
+
+
+We have 3 core and 2 anciallary services in our stack.  We have 3 databases, a
+front-end single page app in its own project, our CDN repository with
+JavaScript libraries and static assets, and we have our DevOps repository.
+
+When we're implementing a 'feature' it may span several of these components and
+require changes across multiple projects and serivces in order to get to 'done
+done'.
+
+I want...no, I need to be able to jump between the user profile database, the
+front-end web site, the core web service and the front-end source code.  Oh,
+and I want to see the JVM log files and show me a live updating view of what's
+in Redis.  Hrm, run that integration test again...
+
+How do we jump across all of these in O(1)?  Standard Conventions.  And throwing away
+a lot of the traditional GUI.
+
+We use Ubuntu Linux with a Simple window manager: Openbox.  We Rip out all of
+Gnome and remove just about anything you can click on.  
+
+Then we configure 10, yep ten, desktops.  We use a small set of keyboard
+short-cuts: 
+
+* C-F12   Launch a fresh terminal
+* C-HOME  Maximize an app / Unmaximize an app
+* C-F11   Launch the browser
+* Alt-#   Jump to a desktop by number (1-9, 0=10)
+
+Each desktop has its own purpose:
+
+ 1 - Administration
+ 2 - Browser and Web Front-End
+ 3 - User Profile Service
+ 4 - Unassigned
+ 5 - Data Services, Schema Migrations
+ 6 - Data Warehouse / Analytics
+ 7 - DevOps
+ 8 - Customer Portal Service and Front-end
+ 9 - Integration Tests
+10 - Web services
+
+These were assigned organically, there is little meaning to the specific
+assignemnts.  The take away is that we can jump between any of them with a
+single keystroke.
+
+On each of these desktops we typically run a single terminal.  Oh yeah, a
+single terminal.  In that terminal we run a screen multiplexor.  We use GNU
+screen, TMUX would be a good choice too.  We use GNU screen because it's what
+I'm familiar with and I'm afraid of change.
+
+The screen sessions have standard conventions too:
+
+Terminal 0: Editor, typically Emacs, or Vim - yes we use both
+Terminal 1: scripts, compilation, grep, second editor if necessary
+Terminal 2: tagging, build and deployment
+Terminal 3: the live JVM, the running service
+Terminal 4: top, process monitoring
+Terminal 5: auto-build processes if any
+Terminal 6: Database Console
+Terminal 7 and above: unassigned
+
+I can now jump between looking at the JVM console output, running a SQL query
+and writing code for a single service with a keystroke.
+
+It takes a bit of getting used to, but this matrix lets our developers move
+fluidly across our entire stack without having to think.
+
+If you stand behind one of our pairing stations and watch a pair operating our
+'IDE' it kind of just looks like flickering terminals.
+
+What they're actually doing is navigating our full stack mapped to a two
+dimensional set of desktops and virtual terminals by jumping directly between
+parts of the stack.
+
+
+This is our _standard_ setup.  It's the same on all the workstations.  It's
+available for all our devs to use on their laptops and at home - we encourage
+them to.  
+
+We are a team.  We use the same tools.  
+
+There are some drawbacks to this: new developers joining the team are facing a
+strange, alien environment; you have to reconsider your personal choices, tools
+and customizations - that's hard for developers to do.  It's hard for me when
+the team comes up with improvements and I have to learn them :)
+
+There are some huge advantages to this: if you drink the kool-aid and use it on
+your laptop, you learn it quickly.  There are no debates about indentation
+style, we use the same configuration, there are no debates about shell aliases,
+no one spends time rocking out their PS1.  No one blows a few hours trying to
+get some new plugin configured in their Editor / IDE.  
+
+Here's the big one though: any one of our developers can sit down next to any
+other developer to look at an issue or help out, or share a technique, and be
+immediately productive.  This lowers the frtiction for collaboration.
+Collaboration leads to more productivity and happier developers.
+
+
+:: Composing, Temporary, Task Specific UIs ::
+
+
+
