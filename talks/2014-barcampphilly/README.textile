@@ -1,0 +1,227 @@
+* My Journey: shell scripts -> make -> rake -> shell scripts (but better)
+  * Shell Scripts -> Make
+    * Lets wrap up all these reduntant commands
+    * Resination: Ok, that's what make is for
+    * Win!        There's so much room for auto-dependency re-compilation!
+    * FML:        Oh My God the whitespace, shell escaping, and special variables
+  * Make -> Rake
+    * Win!        a full programming language, "So much fun"
+    * FML         ok, I'll use Bundler
+    * FML         oh, different ruby versions on different boxes, ok rvm?
+    * FML         Oh My God the dependency management is killing me!
+  * Rake -> shell scripts
+    * How I re-arrived at shell scripts
+      * shell scripts tend to be monolithic, ok lets use functions
+      * still found myself changing the code to call the right function
+      * ok, set up a case statement off of $1
+      * lots of small shell scripts?
+        * bad: pathing issues for them calling each other
+        * bad: hard to see what's available to you
+        * bad: shell history is a mess
+        * bad: inconsistent use of set -eux
+        * bad: slow: re-use through additional fork/exec (don't worry about this one)
+      * ...hey wait a minute that's a pattern: Bake!
+    * "That's it", bake only does 2 core things
+      * you could simulate the same thing with a case statemet at the bottom of your file
+      * module pattern / requires to encourage factoring and re-use
+        * done't necessarily belong on $PATH
+    * Standard Kit, self contained
+      * single script, pretty simple install and use
+      * use the standard unix kit (cut, grep, awk, sed, perl, ...)
+      * declaring a task is one more line than writing a bash function, one more
+* What else does it do?
+  * command line compltion
+  * asking for help
+* Best Practices / Howto
+  * make tasks idempotent
+  * templating, "here docs" are good enough in 99% of cases
+  * use dotfiles to track progress
+  * externalize configuraiton as variables and source it
+  * running things remotely (mina lead the way)
+  * if you need to, abadon bake and use the tool that fits your needs
+
+
+
+
+h1. It's not you Ruby, it's me.
+
+Ruby is a great language.  Rails is a wonderful framework, it changed how I
+think about CRUD web apps.
+
+Chef is an amazing tool.  I use it and will continue to use it.  There's an
+immense amount of value there.
+
+Ruby, we used to be sympatico.  Rake was a solution to a problem.  It helped
+make build and automation tooling easier and you won my heart away from Make.
+It was great while it lasted wasn't it?
+
+Then you changed some gems.  Ok, so we talked through it and we brought bundler
+into our house.  That worked for a while.  Then you changed again, we talked
+about this.  Backward compatibility is hard, but the relationship doesn't work
+if things that used to work stop working.
+
+We stopped doing fun stuff together, we were spending all of our time managing
+versions, dependencies, and Gemfiles.  We just weren't getting anywhere.
+
+You suggested RVM, but to be honest that's just pileing more baggage on top
+of our already strained relationship.
+
+We've also gotten a bit sluggish havent' we?  When all I do is ask rake what
+tasks are in the Rakefile, you pause for long enough that everyone notices.
+
+This is it.  I'm leaving.  
+
+Actually I've already left.  I've gone back to bash...
+
+Bash might not be the sharpest pencil in the box, but it's never betrayed me.
+
+
+When I became dissatisfied with Rake, I started looking back at pure bash.
+
+I still have some problems with pure bash scripts:
+
+* tend to not be idempotent
+  or it's inconvienient to make them so
+* tend to be monolithic
+  functions and other scripts are great, but there's no clear
+  convention for keeping bash scripts well factored. 
+  Rake has tasks and functions which are great conventions.
+  and you can factor code into and require modules
+* remote execution, when done over ssh tends to be slow, error
+  prone and hard to debug
+* you would think there's no solution to templating (i.e. no equivalent 
+  to ERB)
+
+Could I address these issues with pure bash?
+
+* idempotency
+* monolithic / modules
+* remote execution
+* templating
+* speed / interactivity
+
+I think we can.
+
+Introducing Bake!
+
+Bake is a pure bash implementation of a make-like tool.
+
+There are no dependencies.
+
+You curl or wget a single file, make it executalbe and that's it.
+
+You write a Bakefile.
+
+  This is a shell script, you fill it with functions.
+  If you want to expose one as a task, you just write 'bake_task fn_name' 
+  If you want to refactor your functions into modules, go right ahead
+   then pull them in with:
+
+     bake_require lib/ssh_tasks.sh
+     bake_require lib/build_tasks.sh
+     bake_require lib/db_tasks.sh
+
+So, how did I do with my issues list?
+
+Idempotency: 
+
+  I haven't addressed this one yet.
+  I make my tasks idempotent by using bash's test utility
+     to look for the existence of the target file, or
+     compare file modification times.
+  This is ok, but less than ideal.
+  I give bake one out of five stars on this one.
+
+Modules:
+
+  bake_require and bake_push_libdir are pretty easy.
+  Since there's no 'main' part of any of the scripts
+  you are very much encouraged to make lots of small
+  functions.
+
+  Still, there are no namespaces in bash, so it's not
+  perfect.
+
+  Four out of five stars on this one.
+
+* templating
+
+  Bash has a solution to this: 'here documents'
+  Here docs and shell redirection are surprisingly workable as a templating 
+  system.  You can even loop by appending '>>' to the file.  Header, loop,
+  footer.
+
+  Three and a half stars out of five.  Here docs are not turning complete
+  but I don't need turning complete templates three nine's of the time.
+
+* remote execution
+
+  Ruby's mina tooling is a great approach here.  You tell it
+  what you'd like to do, it spools those commands up and
+  then creates a single shell script, moves it to the remote
+  machine and runs it.
+
+  It turns out this is a pretty easy appraoch to take with 
+  bash shell scripts as well.
+   
+  Then just scp the file up and remotely run it.  Then if you feel like it,
+  remove it from the remote box.  This avoids all kinds of shell escaping
+  issues that I ran into with something like Capistrano.
+  
+  Debugging is easier: If you don't remove these small scripts immediately
+  after execution, you get the added benefit that the shell script itself is
+  still there.  You can ssh to the box and run it yourself to figure out what's
+  going wrong.  
+
+  This is a much better experience than I've had with tools like Capistrano
+  and Chef when shelling out to run things.
+
+  Five out of five stars.
+
+* speed / interactivity
+
+  So far I'm happy with how interactive my Bakefiles are compared to my
+  Rakefiles.  I wouldn't do things in bake that require real programming,
+  like runing a webscraper or complex data manipulation work.  I'd still
+  write a program in a _real_ language to do those kinds of tasks.
+
+  Compared to my experiences with Rake, its pleasnt.
+
+  4 out of 5 stars.
+
+Best Practices
+
+* Namespace your functions, match the file name
+
+Yes, bash doesn't have namespaces.  Use a prefix.
+
+     lib/ssh_tasks.sh
+       ssh_run_script
+
+     lib/build_tasks.sh
+       build_clean
+       build_all
+
+     lib/db_tasks.sh
+       db_show_pending
+       db_migrate
+       db_shell
+
+* Use the unix utilities
+
+  grep, cut, sort, uniq, awk, sed, perl [gasp]
+
+  Use Ruby when you need the full language
+
+* make tasks idempotent
+
+   touch dotfiles to track progress
+
+* Externalize configuraiton as variables and source it
+
+
+Conclusion
+
+I'm having fun again.
+
+
