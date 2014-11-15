@@ -1,0 +1,7 @@
+{
+  "name": "clojurescript-node-sandbox",
+  "version": "1.0.0",
+  "dependencies": {
+    "line-reader": "latest"
+  }
+}
