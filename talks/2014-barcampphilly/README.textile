@@ -51,27 +51,30 @@ think about CRUD web apps.
 Chef is an amazing tool.  I use it and will continue to use it.  There's an
 immense amount of value there.
 
-Ruby, we used to be sympatico.  Rake was a solution to a problem.  It helped
-make build and automation tooling easier and you won my heart away from Make.
-It was great while it lasted wasn't it?
+
+Ruby, we used to be sympatico.  We built websites in a weekend.  
+
+Rake was a solution to a problem.  It helped make build and automation tooling
+easier, fun even, and you won my heart away from Make.  Let's not bring up
+Maven, that was a dysfunctional time.  It was great while it lasted wasn't it?
 
 Then you changed some gems.  Ok, so we talked through it and we brought bundler
-into our house.  That worked for a while.  Then you changed again, we talked
-about this.  Backward compatibility is hard, but the relationship doesn't work
-if things that used to work stop working.
+into our house.  That worked...for a while.  Then you changed again.  We talked
+about this...backward compatibility is hard, I know.  The relationship just
+doesn't work if things that worked yesterday don't work today.
 
 We stopped doing fun stuff together, we were spending all of our time managing
 versions, dependencies, and Gemfiles.  We just weren't getting anywhere.
 
-You suggested RVM, but to be honest that's just pileing more baggage on top
-of our already strained relationship.
+We went to meet with RVM, but lets be honest: that's just heaping more baggage
+on top of our already strained relationship.
 
-We've also gotten a bit sluggish havent' we?  When all I do is ask rake what
-tasks are in the Rakefile, you pause for long enough that everyone notices.
+We've also gotten a bit sluggish haven't we?  When all I do is ask rake what
+tasks are in the Rakefile, you pause for long enough that /everyone/ notices.
 
-This is it.  I'm leaving.  
+This is it.  I'm leaving.
 
-Actually I've already left.  I've gone back to bash...
+Actually...I've already left.  I've gone back to bash.
 
 Bash might not be the sharpest pencil in the box, but it's never betrayed me.
 

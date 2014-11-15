@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+set -eu
+
+bake_require lib/ssh_tasks.sh
+bake_require lib/build_tasks.sh
+bake_require lib/db_tasks.sh
+
+bake_task remote_top "Run top on a remote host ($LOGNAME localhost)"
+function remote_top () {
+  local user="${1:-$LOGNAME}"
+  local host="${2:-localhost}"
+  local sname=lib/scripts/run-top.sh
+  cat <<END > $sname
+top
+END
+
+  ssh_run_remote_script $user $host $sname
+}
+
+
+bake_task remote_disk_usage "Check disk usage ($LOGNAME localhost)"
+function remote_disk_usage () {
+  local user="${1:-$LOGNAME}"
+  local host="${2:-localhost}"
+  local sname="lib/scripts/check-usage.sh"
+  cat <<END > $sname
+echo "Disk usage on: \$(hostname)"
+df -h
+
+echo "Home Directory Disk Usage (top 5):"
+sudo du -sk /home/* | sort -n | head -n 5
+END
+
+  ssh_run_remote_script $user $host $sname
+}
+

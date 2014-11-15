@@ -1,0 +1,44 @@
+require 'colorize'
+require 'digest/md5'
+require 'digest/sha1'
+require 'erb'
+require 'fileutils'
+require 'find'
+require 'json'
+require 'net/https'
+require 'net/smtp'
+require 'uri'
+require 'yaml'
+
+def run_remote name, user, host, commands
+  File.open("#{name}.sh", "w") do |f|
+    commands.each do |cmd|
+      f.write "#{cmd}\n"
+    end
+  end
+
+  cmd = %Q[scp "#{name}.sh" #{user}@#{host}:]
+  puts cmd
+  system cmd
+  system %Q[ssh -t #{user}@#{host} "bash #{name}.sh"]
+end
+
+namespace :kbot do
+  desc "Watch the system load"
+  task :watch_load do
+    system "watch -d -n 1 uptime"
+  end
+
+  desc "Watch the system load"
+  task :watch_load_remote, :host do |t,args|
+    run_remote :watch_load, "kyle", args[:host], ["watch -d -n 1 uptime"]
+  end
+
+  desc "Run top remotely."
+  task :remote_top, :host do |t,args|
+    run_remote :remote_top, "kyle", args[:host], ["top"]
+  end
+end
+
+
+task :default, :do_something_already_will_you
