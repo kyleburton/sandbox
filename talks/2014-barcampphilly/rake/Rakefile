@@ -9,6 +9,7 @@ require 'net/https'
 require 'net/smtp'
 require 'uri'
 require 'yaml'
+require 'pg'
 
 def run_remote name, user, host, commands
   File.open("#{name}.sh", "w") do |f|
