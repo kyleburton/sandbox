@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+bake_require src/sh/dev
+
+bake_task emacs "Run the local emacs configuration"
+function emacs () {
+  emacs -nw -q -l .emacs "$@"
+}
+
+
+bake_task install
+function install () {
+  test -d software || mkdir software
+  install_cider
+  install_ac_cider
+  install_lein
+  install_go
+}
