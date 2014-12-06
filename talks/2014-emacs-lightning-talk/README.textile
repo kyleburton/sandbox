@@ -1,0 +1,24 @@
+h1. Overview
+
+At a Clojadelphia meeting, a few people asked me to give a lightning talk on
+how I use Emacs.
+
+What I want to get across is that Emacs is extensible and that you can extend
+it to improve your productivity.  It is designed very much in the lisp spirit
+of "build the language up toward your program", where you can "build the IDE up
+toward your application".
+
+
+
+h2. Running the code
+
+Download "bake":https://github.com/kyleburton/bake/
+
+h1. Slides
+
+
+   If you're _using_ Emacs, you're doing it wrong
+
+or
+
+   You shouldn't be _using_ Emacs
