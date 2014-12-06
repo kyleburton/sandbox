@@ -1,4 +1,4 @@
-h1. Overview
+# Overview
 
 At a Clojadelphia meeting, a few people asked me to give a lightning talk on
 how I use Emacs.
@@ -10,15 +10,21 @@ toward your application".
 
 
 
-h2. Running the code
+# Running the code
 
-Download "bake":https://github.com/kyleburton/bake/
-
-h1. Slides
+Download [bake](https://github.com/kyleburton/bake/)
 
 
-   If you're _using_ Emacs, you're doing it wrong
+    $ test -d $HOME/bin || mkdir $HOME/bin
+    $ curl https://raw.githubusercontent.com/kyleburton/bake/master/bake > $HOME/bin/bake
+    $ chmod 755 $HOME/bin/bake
+
+
+# Slides
+
+
+<quote>If you're _using_ Emacs, you're doing it wrong</quote>
 
 or
 
-   You shouldn't be _using_ Emacs
+<quote>You shouldn't be _using_ Emacs</quote>
