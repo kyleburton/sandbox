@@ -2,8 +2,8 @@
 
 bake_require src/sh/dev
 
-bake_task emacs "Run the local emacs configuration"
-function emacs () {
+bake_task lmacs "Run the local emacs configuration"
+function lmacs () {
   emacs -nw -q -l .emacs "$@"
 }
 
