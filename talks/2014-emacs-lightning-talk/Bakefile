@@ -13,5 +13,11 @@ function install () {
   install_cider
   install_ac_cider
   install_lein
+  install_lein_kinematic_app_template
   install_go
+}
+
+bake_task gen-web-service 
+function gen-web-service () {
+    lein new kinematic-app web-service
 }

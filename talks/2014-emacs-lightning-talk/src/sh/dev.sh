@@ -55,3 +55,14 @@ END
 }
 
 
+
+
+bake_task install_lein_kinematic_app_template
+function install_lein_kinematic_app_template () {
+  GIT_URL="https://github.com/kyleburton/sandbox.git"
+  pushd software
+  test -f sandbox || git clone "$GIT_URL"
+  cd sandbox/leiningen/templates/kinematic-app-template
+  lein install
+  popd
+}
