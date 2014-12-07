@@ -5,7 +5,7 @@
 (loop for package in '(clojure-mode dash pkg-info paredit ido auto-complete
 				    align-cljlet rainbow-mode rainbow-delimiters
 				    highlight-parentheses color-theme
-				    clojure-snippets)
+				    clojure-snippets markdown-mode)
       do
       (unless (package-installed-p package)
 	(package-install package)))
