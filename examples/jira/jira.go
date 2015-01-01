@@ -35,50 +35,28 @@ func FileExists(fname string) bool {
 	return true
 }
 
-func LoadConfiguration() {
-	if !FileExists(CommandLineOptions.ConfigFile) {
-		msg := fmt.Sprintf("Error: configuration file (%s) does not exist!", CommandLineOptions.ConfigFile)
-		fmt.Fprintf(os.Stderr, "%s\n", msg)
-		fmt.Fprintf(os.Stderr, "Please create the file with the following properties:\n\n")
-		fmt.Fprintf(os.Stderr, SampleConfigurationFile)
-		fmt.Fprintf(os.Stderr, "\n\n")
-		panic(msg)
-	}
-	fmt.Printf("Loading Conifguration: %s\n", CommandLineOptions.ConfigFile)
-}
-
-func CmdListIssue(route *argvrouter.Route) {
-	var issueId = route.Params["id"]
-	fmt.Fprintf(os.Stderr, "ListIssueCmd: id=%s\n", issueId)
-}
-
-func CmdShowConfig(route *argvrouter.Route) {
-	fmt.Fprintf(os.Stderr, "CmdShowConfig\n")
-}
-
-func BuildRoutingTable() {
-	argvrouter.AddRoute(&argvrouter.Route{
-		Pattern: []string{"ls", "issue", ":id"},
-		Handler: CmdListIssue,
-	})
-
-	argvrouter.AddRoute(&argvrouter.Route{
-		Pattern: []string{"show", "config"},
-		Handler: CmdShowConfig,
-	})
-}
-
-func init() {
-	BuildRoutingTable()
-}
-
 func CmdShowHelp(route *argvrouter.Route) {
 	fmt.Fprintf(os.Stdout, "\n")
 
 	for _, route := range argvrouter.RoutingTable {
 		fmt.Fprintf(os.Stdout, "\t%s\n", strings.Join(route.Pattern, " "))
 	}
+
 	fmt.Fprintf(os.Stdout, "\n")
+}
+
+func BuildRoutingTable() {
+	argvrouter.AddRoute(&argvrouter.Route{Pattern: []string{"issue", "ls", ":id"}, Handler: CmdListIssue})
+	argvrouter.AddRoute(&argvrouter.Route{Pattern: []string{"i", "ls", ":id"}, Handler: CmdListIssue})
+
+	argvrouter.AddRoute(&argvrouter.Route{Pattern: []string{"issues", "search", "*"}, Handler: CmdSearchIssues})
+	argvrouter.AddRoute(&argvrouter.Route{Pattern: []string{"i", "search", "*"}, Handler: CmdSearchIssues})
+	argvrouter.AddRoute(&argvrouter.Route{Pattern: []string{"i", "s", "*"}, Handler: CmdSearchIssues})
+
+	argvrouter.AddRoute(&argvrouter.Route{Pattern: []string{"show", "config"}, Handler: CmdShowConfig})
+}
+
+func init() {
 }
 
 func main() {
@@ -87,12 +65,12 @@ func main() {
 
 	flag.Parse()
 
-	LoadConfiguration()
-
 	if len(flag.Args()) == 0 {
 		CmdShowHelp(nil)
 		os.Exit(1)
 	}
+
+	BuildRoutingTable()
 
 	route := argvrouter.FindMatchingRoute(flag.Args())
 
@@ -101,6 +79,8 @@ func main() {
 		os.Exit(1)
 	}
 
+	LoadConfiguration()
+	InitApi()
 	route.Handler(route)
 	os.Exit(0)
 }
