@@ -3,8 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"golang.org/x/crypto/ssh/terminal"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -16,8 +18,16 @@ var Client *http.Client
 
 type JiraResponse map[string]interface{}
 
+var Blue = color.New(color.FgBlue).SprintfFunc()
+var Cyan = color.New(color.FgCyan).SprintfFunc()
+
 func init() {
 	Client = &http.Client{}
+
+	if !terminal.IsTerminal(int(os.Stdout.Fd())) {
+		Blue = fmt.Sprintf
+		Cyan = fmt.Sprintf
+	}
 }
 
 func MakeUrl(path []string, params *url.Values) string {
@@ -91,7 +101,8 @@ func (self JiraResponse) PrintIssueSearchResults() {
 	}
 
 	issues := self["issues"].([]interface{})
-	fmt.Fprintf(os.Stdout, "Got Back %d issues\n", len(issues))
+	//fmt.Fprintf(os.Stderr, "Got Back %d issues\n", len(issues))
+	fmt.Fprintf(os.Stdout, "%s\n", strings.Join([]string{"id", "name", "summary", "status"}, "\t"))
 	for _, issue := range issues {
 		item := issue.(map[string]interface{})
 		//fmt.Fprintf(os.Stdout, "  item.keys=%s\n", strings.Join(GetKeys(item), ","))
@@ -101,7 +112,7 @@ func (self JiraResponse) PrintIssueSearchResults() {
 		// status -> name
 		fmt.Fprintf(os.Stdout, "%s\n", strings.Join(
 			[]string{
-				item["key"].(string),
+				Cyan(item["key"].(string)),
 				assignee["name"].(string),
 				fields["summary"].(string),
 				GetPath(fields, "status", "name"),
