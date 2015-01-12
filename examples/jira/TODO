@@ -1,0 +1,25 @@
+* TODO [commands/search]: support formatters:
+
+    jira search -f brief 'assignee=kburton and sprint in openSprints ()'
+    jira search -f extended 'assignee=kburton and sprint in openSprints ()'
+
+  brief is the default and shows: id, name/asignee, summary, status
+  extended shows: id, name/asignee, summary, status, url
+
+* TODO [commands/view]: jira view :issue-id
+
+  support formatters:
+
+    jira view -f brief :issue-id
+    jira view -f json :issue-id
+
+  which one should be the default?  brief should be more human readable than the entire JSON document
+
+* TODO editing an issue
+  
+  * TODO [commands/put]: jira put :issue-id < issue.json
+
+* TODO creating an issue
+
+* TODO how should this tool handle/lookup/translate customfields?
+

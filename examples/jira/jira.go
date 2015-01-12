@@ -58,6 +58,15 @@ func init() {
 	}
 
 	JiraCmd.AddCommand(searchCmd)
+
+	var viewCmd = &cobra.Command{
+		Use:   "view",
+		Short: "View an issue's details",
+		Long:  `View an issue's details`,
+		Run:   JiraViewItem,
+	}
+
+	JiraCmd.AddCommand(viewCmd)
 }
 
 func ShowConfig() {

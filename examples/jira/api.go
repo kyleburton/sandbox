@@ -89,9 +89,14 @@ func GetPath(m map[string]interface{}, path ...string) string {
 	return m[path[len(path)-1]].(string)
 }
 
+func (self JiraResponse) ToPrettyJson() (string, error) {
+	body, err := json.MarshalIndent(self, "", "  ")
+	return string(body), err
+}
+
 func (self JiraResponse) PrintIssueSearchResults() {
 	if Verbose {
-		body, err := json.MarshalIndent(self, "", "  ")
+		body, err := self.ToPrettyJson()
 
 		if err != nil {
 			panic(err)
@@ -135,4 +140,26 @@ func JiraSearch(cmd *cobra.Command, args []string) {
 	results := ApiGet([]string{"search"}, params)
 
 	results.PrintIssueSearchResults()
+}
+
+func JiraViewItem(cmd *cobra.Command, args []string) {
+	if len(args) != 1 {
+		fmt.Fprintf(os.Stderr, "Error: you must supply an issue id.\n")
+		os.Exit(1)
+	}
+
+	params := &url.Values{}
+	//params.Add("fields", "")
+	//params.Add("expand", "")
+
+	results := ApiGet([]string{"issue", args[0]}, params)
+
+	body, err := results.ToPrettyJson()
+
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Fprintf(os.Stdout, string(body))
+
 }
