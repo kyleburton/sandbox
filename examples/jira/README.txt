@@ -29,3 +29,7 @@ Create an iusse:
 Examples:
 
     go build && ./jira search 'assignee=kburton and sprint in openSprints ()' 2>&1 | less
+
+References
+
+* https://developer.atlassian.com/display/JIRADEV/JIRA+REST+API+Example+-+Edit+issues
