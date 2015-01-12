@@ -1,86 +1,103 @@
 package main
 
+/*
+  For configuration:          github.com/spf13/viper
+	For the cmdline arg/router: github.com/spf13/cobra
+
+*/
 import (
-	"flag"
 	"fmt"
-	"github.com/kyleburton/argv-router"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"os"
-	"strings"
+	_ "strings"
 )
 
-type CommandLineOptionsStruct struct {
-	ConfigFile string
+var JiraCmd = &cobra.Command{
+	Use:   "jira",
+	Short: "Jira is a command line tool for interacting with Jira",
+	Long: `Jira implements a command line interface to Jira for searching, 
+creating, and modifying cards.
+	`,
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Printf("...show help here...\n")
+	},
 }
 
-var CommandLineOptions CommandLineOptionsStruct = CommandLineOptionsStruct{}
-var SampleConfigurationFile string = `
-{
-  "jira": {
-    "host": 	      "your-jira-instance.com",
-    "port": 	      null,
-    "api_root":    "rest",
-    "api_name":    "api",
-    "api_version": "2",
-    "user":        "your-name",
-    "pass":        "y0urp4$$w0rD"
-  }
-}
-`
-
-func FileExists(fname string) bool {
-	_, err := os.Stat(fname)
-	if os.IsNotExist(err) {
-		return false
-	}
-	return true
-}
-
-func CmdShowHelp(route *argvrouter.Route) {
-	fmt.Fprintf(os.Stdout, "\n")
-
-	for _, route := range argvrouter.RoutingTable {
-		fmt.Fprintf(os.Stdout, "\t%s\n", strings.Join(route.Pattern, " "))
-	}
-
-	fmt.Fprintf(os.Stdout, "\n")
-}
-
-func BuildRoutingTable() {
-	argvrouter.AddRoute(&argvrouter.Route{Pattern: []string{"issue", "ls", ":id"}, Handler: CmdListIssue})
-	argvrouter.AddRoute(&argvrouter.Route{Pattern: []string{"i", "ls", ":id"}, Handler: CmdListIssue})
-
-	argvrouter.AddRoute(&argvrouter.Route{Pattern: []string{"issues", "search", "*"}, Handler: CmdSearchIssues})
-	argvrouter.AddRoute(&argvrouter.Route{Pattern: []string{"i", "search", "*"}, Handler: CmdSearchIssues})
-	argvrouter.AddRoute(&argvrouter.Route{Pattern: []string{"i", "s", "*"}, Handler: CmdSearchIssues})
-
-	argvrouter.AddRoute(&argvrouter.Route{Pattern: []string{"show", "config"}, Handler: CmdShowConfig})
-}
+var Verbose bool = false
+var Version string = "2"
 
 func init() {
+	viper.SetConfigName(".krb.jira")
+	viper.SetDefault("scheme", "https")
+	viper.SetDefault("port", "443")
+	viper.SetDefault("user", os.Getenv("LOGNAME"))
+	viper.SetDefault("url_root", "/rest/api/2")
+	viper.SetDefault("version", "2")
+	viper.AddConfigPath(".")
+	viper.AddConfigPath("$HOME")
+
+	var listCmd = &cobra.Command{
+		Use:   "list",
+		Short: "List issues",
+		Long:  `List issues`,
+		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Println("List Issues using the api...")
+		},
+	}
+
+	JiraCmd.PersistentFlags().BoolVarP(&Verbose, "verbose", "v", Verbose, "Be verbose")
+	JiraCmd.PersistentFlags().StringVar(&Version, "version", Version, "Set the api version")
+
+	JiraCmd.AddCommand(listCmd)
+
+	var searchCmd = &cobra.Command{
+		Use:   "search",
+		Short: "Search Issues",
+		Long:  `Search issues using the Jira Query Language`,
+		Run:   JiraSearch,
+	}
+
+	JiraCmd.AddCommand(searchCmd)
+}
+
+func ShowConfig() {
+	fmt.Printf("Configuration\n")
+	fmt.Printf("  verbose=%v\n", viper.GetBool("verbose"))
+	fmt.Printf("  scheme=%s\n", viper.GetString("scheme"))
+	fmt.Printf("  host=%s\n", viper.GetString("host"))
+	fmt.Printf("  user=%s\n", viper.GetString("user"))
+	fmt.Printf("  pass=%s\n", viper.GetString("pass"))
+	fmt.Printf("  port=%s\n", viper.GetString("port"))
 }
 
 func main() {
-	defaultConfigPath := os.Getenv("HOME") + "/.krb.jira.json"
-	flag.StringVar(&CommandLineOptions.ConfigFile, "conf", defaultConfigPath, "Specify an alternate configuration file.")
+	viper.ReadInConfig()
 
-	flag.Parse()
+	/*
+		var verbose bool = false
+		var showConfig bool = false
+		var host string = viper.GetString("host")
+		var user string = viper.GetString("user")
+	*/
 
-	if len(flag.Args()) == 0 {
-		CmdShowHelp(nil)
-		os.Exit(1)
-	}
+	//flag.BoolVar(&showConfig, "show-config", showConfig, "Show configuration")
+	//flag.BoolVar(&verbose, "verbose", verbose, "Be verbose.")
+	//flag.StringVar(&host, "host", viper.GetString("host"), "Set the hostname.")
+	//flag.StringVar(&user, "user", viper.GetString("user"), "Set the Jira user.")
 
-	BuildRoutingTable()
+	//flag.Parse()
 
-	route := argvrouter.FindMatchingRoute(flag.Args())
+	/*
+		viper.Set("verbose", verbose)
+		viper.Set("host", host)
+		viper.Set("user", user)
+	*/
 
-	if nil == route {
-		fmt.Fprintf(os.Stderr, "Error: unrecognized command: %s\n", strings.Join(flag.Args(), " "))
-		os.Exit(1)
-	}
+	//	if showConfig {
+	//		ShowConfig()
+	//		os.Exit(0)
+	//	}
 
-	LoadConfiguration()
-	InitApi()
-	route.Handler(route)
-	os.Exit(0)
+	JiraCmd.Execute()
 }

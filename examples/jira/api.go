@@ -3,7 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/kyleburton/argv-router"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -13,22 +14,24 @@ import (
 
 var Client *http.Client
 
-func InitApi() {
+type JiraResponse map[string]interface{}
+
+func init() {
 	Client = &http.Client{}
 }
 
-func (self ConfigType) MakeUrl(path []string, params *url.Values) string {
+func MakeUrl(path []string, params *url.Values) string {
 	if nil == params {
 		params = &url.Values{}
 	}
 	parts := append([]string{
-		fmt.Sprintf("%s://%s:%s/rest/api/%s", Config["scheme"], Config["host"], Config["port"], Config["version"])}, path...)
+		fmt.Sprintf("%s://%s:%s/rest/api/%s", viper.GetString("scheme"), viper.GetString("host"), viper.GetString("port"), Version)}, path...)
 	return strings.Join(parts, "/") + "?" + params.Encode()
 }
 
-func (self ConfigType) ApiGet(path []string, params *url.Values) map[string]interface{} {
-	url := Config.MakeUrl(path, params)
-	fmt.Fprintf(os.Stderr, "ApiGet url=%s\n", url)
+func ApiGet(path []string, params *url.Values) JiraResponse {
+	url := MakeUrl(path, params)
+	//fmt.Fprintf(os.Stderr, "ApiGet url=%s\n", url)
 
 	req, err := http.NewRequest("GET", url, nil)
 
@@ -37,7 +40,7 @@ func (self ConfigType) ApiGet(path []string, params *url.Values) map[string]inte
 		os.Exit(1)
 	}
 
-	req.SetBasicAuth(Config["user"], Config["pass"])
+	req.SetBasicAuth(viper.GetString("user"), viper.GetString("pass"))
 
 	resp, err := Client.Do(req)
 
@@ -49,7 +52,7 @@ func (self ConfigType) ApiGet(path []string, params *url.Values) map[string]inte
 		os.Exit(1)
 	}
 
-	fmt.Fprintf(os.Stderr, "Response: %v\n", resp)
+	//fmt.Fprintf(os.Stderr, "Response: %v\n", resp)
 
 	var results map[string]interface{}
 
@@ -57,29 +60,68 @@ func (self ConfigType) ApiGet(path []string, params *url.Values) map[string]inte
 	return results
 }
 
+type StringToInterfaceMap map[string]interface{}
+
+func GetKeys(self map[string]interface{}) []string {
+	var keys []string
+	keys = make([]string, 0)
+	for k, _ := range self {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
+func GetPath(m map[string]interface{}, path ...string) string {
+	for ii := 0; ii < len(path)-1; ii++ {
+		p := path[ii]
+		m = m[p].(map[string]interface{})
+	}
+	return m[path[len(path)-1]].(string)
+}
+
+func (self JiraResponse) PrintIssueSearchResults() {
+	if Verbose {
+		body, err := json.MarshalIndent(self, "", "  ")
+
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Fprintf(os.Stdout, string(body))
+	}
+
+	issues := self["issues"].([]interface{})
+	fmt.Fprintf(os.Stdout, "Got Back %d issues\n", len(issues))
+	for _, issue := range issues {
+		item := issue.(map[string]interface{})
+		//fmt.Fprintf(os.Stdout, "  item.keys=%s\n", strings.Join(GetKeys(item), ","))
+		fields := item["fields"].(map[string]interface{})
+		//fmt.Fprintf(os.Stdout, "  fields.keys=%s\n", strings.Join(GetKeys(fields), ","))
+		assignee := fields["assignee"].(map[string]interface{})
+		// status -> name
+		fmt.Fprintf(os.Stdout, "%s\n", strings.Join(
+			[]string{
+				item["key"].(string),
+				assignee["name"].(string),
+				fields["summary"].(string),
+				GetPath(fields, "status", "name"),
+			}, "\t"))
+	}
+}
+
 // https://docs.atlassian.com/jira/REST/6.3.12/#d2e3662
-func CmdSearchIssues(route *argvrouter.Route) {
-	fmt.Fprintf(os.Stderr, "SearchIssues: terms=%v\n", route.Args)
+// https://confluence.atlassian.com/display/JIRA/Advanced+Searching
+func JiraSearch(cmd *cobra.Command, args []string) {
+	//fmt.Fprintf(os.Stderr, "SearchIssues: terms=%v\n", args)
 	params := &url.Values{}
-	params.Add("jql", strings.Join(route.Args, " "))
+	params.Add("jql", strings.Join(args, " "))
 	params.Add("startAt", "0")
 	params.Add("maxResults", "25")
 	params.Add("validateQuery", "true")
 	//params.Add("fields", "")
 	//params.Add("expand", "")
 
-	results := Config.ApiGet([]string{"search"}, params)
+	results := ApiGet([]string{"search"}, params)
 
-	body, err := json.MarshalIndent(results, "", "  ")
-
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Fprintf(os.Stdout, string(body))
-}
-
-func CmdListIssue(route *argvrouter.Route) {
-	var issueId = route.Params["id"]
-	fmt.Fprintf(os.Stderr, "ListIssueCmd: id=%s\n", issueId)
+	results.PrintIssueSearchResults()
 }
