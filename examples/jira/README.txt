@@ -1,3 +1,11 @@
+Getting Started:
+
+  go get
+  go build
+  ./jira search 'assignee=--my-name-- and sprint in openSprints ()' 2>&1 | less
+
+
+
 What do we want to be able to do:
 
   * list issue statuses (what's in the ENUM?)

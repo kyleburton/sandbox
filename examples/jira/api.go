@@ -41,7 +41,9 @@ func MakeUrl(path []string, params *url.Values) string {
 
 func ApiGet(path []string, params *url.Values) JiraResponse {
 	url := MakeUrl(path, params)
-	//fmt.Fprintf(os.Stderr, "ApiGet url=%s\n", url)
+  if Verbose {
+	  fmt.Fprintf(os.Stderr, "ApiGet url=%s\n", url)
+  }
 
 	req, err := http.NewRequest("GET", url, nil)
 
@@ -50,6 +52,9 @@ func ApiGet(path []string, params *url.Values) JiraResponse {
 		os.Exit(1)
 	}
 
+  if Verbose {
+    fmt.Fprintf(os.Stderr, "Using auth: user=%s pass=%s\n", viper.GetString("user"), viper.GetString("pass"))
+  }
 	req.SetBasicAuth(viper.GetString("user"), viper.GetString("pass"))
 
 	resp, err := Client.Do(req)
@@ -62,7 +67,9 @@ func ApiGet(path []string, params *url.Values) JiraResponse {
 		os.Exit(1)
 	}
 
-	//fmt.Fprintf(os.Stderr, "Response: %v\n", resp)
+  if Verbose {
+	  fmt.Fprintf(os.Stderr, "Response: %v\n", resp)
+  }
 
 	var results map[string]interface{}
 
@@ -102,7 +109,9 @@ func (self JiraResponse) PrintIssueSearchResults() {
 			panic(err)
 		}
 
+		fmt.Fprintf(os.Stdout, "BODY>>\n")
 		fmt.Fprintf(os.Stdout, string(body))
+		fmt.Fprintf(os.Stdout, "<<BODY\n")
 	}
 
 	issues := self["issues"].([]interface{})
