@@ -1,0 +1,110 @@
+#!/usr/bin/env bash
+set -Eeu
+
+bake_task make_repo
+function make_repo () {
+  test -d repo || mkdir repo
+  cd repo
+  test -f .git/config || git init
+  bake_cd
+  cp files/repo/.git/config repo/.git/config
+}
+
+
+bake_task checkout_working_dirs
+function checkout_working_dirs () {
+  test -d working || mkdir working
+  cd working
+  test -d repo.a || git clone ../repo repo.a
+  test -d repo.b || git clone ../repo repo.b
+  bake_cd
+}
+
+bake_task clean
+function clean () {
+  bake_cd
+  test -d ./repo    && rm -rf ./repo
+  test -d ./working && rm -rf ./working
+}
+
+bake_task inspect
+function inspect () {
+  echo "******************** When you're done looking around, type exit"
+  bash
+}
+
+bake_task run_test
+function run_test () {
+  clean
+  make_repo
+  checkout_working_dirs
+
+  # initialize the repository
+  bake_cd working/repo.a
+  echo "repo.a.1 $(date)" > file1.txt
+  git add file1.txt
+  git commit -m 'first commit: repo.a.1/master'
+  git push origin master
+
+  # make a branch, make a change on the branch and push it
+  bake_cd working/repo.a
+  git checkout -b branch1
+  echo "repo.a.2 $(date)" > file1.txt
+  git add file1.txt
+  git commit -m 'repo.a.2/branch1'
+  git push origin branch1
+
+  # make a second repo, checkout branch1, make a change on it
+  bake_cd working/repo.b
+  git fetch
+  git pull --rebase origin master
+  git checkout -b branch1 origin/branch1
+  git pull --rebase origin branch1
+  echo "repo.b.1 $(date)" > file1.txt
+  git add file1.txt
+  git commit -m 'repo.b.1/branch1'
+
+  # back to repo.a, make a change on master and push it
+  bake_cd working/repo.a
+  git checkout master
+  echo "repo.a.3 $(date)" > file1.txt
+  git add file1.txt
+  git commit -m 'repo.a.3/master'
+  git push origin master
+
+  # at this point we have the following:
+  #   */origin/master has a change that is not in branch1
+  #   repo.a/branch1 is the same as origin/branch1
+  #   repo.b/branch1 is ahead of origin/branch1
+  
+  #inspect
+
+  bake_cd working/repo.a
+  git checkout branch1
+  git pull --rebase origin branch1
+  git rebase master || echo "OK, fixing the conflict..."
+  echo "repo.a.4 $(date)" > file1.txt
+  git add file1.txt
+  git rebase --continue
+  #inspect
+  git push --force origin branch1 
+
+  git co master
+  echo "HISTORY of repo.a/master"
+  git log --oneline
+
+  git co branch1
+  echo "HISTORY of repo.a/branch1"
+  git log --oneline
+
+  bake_cd working/repo.b
+  git pull --rebase origin branch1 || echo "OK, fixing the conflict..."
+  echo "repo.b.2 $(date)" > file1.txt
+  git add file1.txt
+  git rebase --continue
+  git push origin branch1
+
+  echo "HISTORY of repo.b/branch1"
+  git log --oneline
+}
+

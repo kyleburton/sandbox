@@ -1,0 +1,9 @@
+h2. Controlled Git expirements
+
+h3. Rebasing a shared branch
+
+* repo shared location to push/pull from
+* repo.a working directory 1
+* repo.b working directory 2
+
+
