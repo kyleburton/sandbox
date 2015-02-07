@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+set -eu
+
+#
+# References
+# * https://docs.atlassian.com/jira/REST/latest/
+# * https://developer.atlassian.com/display/JIRADEV/JIRA+REST+API+Version+2+Tutorial
+# * https://developer.atlassian.com/display/JIRADEV/JIRA+REST+API+Example+-+Basic+Authentication
+#
+#
+
+CONF_FILE="$HOME/.krb.jira.conf"
+
+KRB_JIRA_API_ROOT="rest"
+KRB_JIRA_API_NAME="api"
+KRB_JIRA_API_VERSION="2"
+
+function jira_init () {
+  if [ ! -e "$CONF_FILE" ]; then
+    echo ""
+    echo "YOU MUST CREATE: $CONF_FILE"
+    echo "export KRB_JIRA_HOST=jira.atlassian.com"
+    echo "export KRB_JIRA_PORT="
+    echo "export KRB_JIRA_USER=**user**"
+    echo "export KRB_JIRA_PASS=**pass**"
+    echo ""
+  else
+    source "$CONF_FILE"
+  fi
+}
+
+function jira_url () {
+  echo "https://$KRB_JIRA_HOST/$KRB_JIRA_API_ROOT/$KRB_JIRA_API_NAME/$KRB_JIRA_API_VERSION/$@"
+}
+
+function jira_get () {
+  local url="$(jira_url $1)"
+  curl -D- -u $KRB_JIRA_USER:$KRB_JIRA_PASS -X GET -H "Content-Type: application/json" $url
+}
+
+bake_task view_issue
+function view_issue () {
+  local issue_id="$1"
+  set -x
+  jira_get "issue/$issue_id"
+}
+
+
+jira_init

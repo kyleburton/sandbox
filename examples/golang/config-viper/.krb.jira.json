@@ -1,0 +1,9 @@
+{"host":   "my-jira-instance.hostname.com",
+ "port":   443,
+ "scheme": "https",
+ "user":   "i-am-the-username",
+ "pass":   "10110000", 
+ "apiInfo": {
+   "version": "2",
+   "prefix":  "/jira/api/rest/v2"
+ }}

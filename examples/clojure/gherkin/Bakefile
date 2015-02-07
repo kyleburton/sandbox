@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+bake_task run "Run the JVM/repl"
+function run () {
+  echo "starting web services"
+  cd silent-auction-services && lein run with-profile +dev
+}
+
