@@ -1,0 +1,75 @@
+  http://tech.forter.com/comparing-message-queue-architectures-on-aws/
+
+Spike: install and configure RabbitMQ with the priority queue plugin:
+
+  https://github.com/rabbitmq/rabbitmq-priority-queue
+
+    NB: the following caveat is concerning:
+
+     "It is similarly dangerous to enable the plugin if you have declared
+      durable queues with an x-max-priority argument without it. I have no idea why
+      you'd do that, since you wouldn't get priority queues, but it would also lead
+      to broker crashes on startup."
+
+  https://www.rabbitmq.com/consumer-priority.html
+
+As a starting point, look at the localized RabbitMQ testing environment that teporingo set up:
+
+   https://github.com/kyleburton/teporingo
+     https://github.com/kyleburton/teporingo/blob/master/lib/tasks/teporingo/rabbit.rb
+
+TODO: bootstrap local install of rabbitmq into ./software
+      NB: test with version 3.1.2 and 3.4.4 (current), make this configurable...
+      NB: test with java sdk versions starting at 3.0.2 through 3.4.4
+TODO: build/install priority queue plugin
+TODO: configure exchange/queue with 10 priority levels
+TODO: bootstrap local install of redis
+TODO: implement consumer to queue that logs stats to redis showing the message type and priority to a local redis
+TODO: implement web based visualization of redis data set - graph message types and priority by time
+TODO: test1: one consumer, no prefetch, no chance of failure (nack)
+   reset/clear out the redis database
+   1 consumer thread, prefetch=1
+   one time:
+     publish 1k messages priority=1
+     publish 1k messages priority=10
+
+TODO: test2: one consumer, no prefetch, 25% chance of failure (nack)
+   reset/clear out the redis database
+   1 consumer thread, prefetch=1
+   one time:
+     publish 1k messages priority=1
+     publish 1k messages priority=10
+
+TODO: test3: one consumer, prefetch=10, no chance of failure (nack)
+   reset/clear out the redis database
+   1 consumer thread, prefetch=1
+   one time:
+     publish 1k messages priority=1
+     publish 1k messages priority=10
+
+TODO: test4: one consumer, prefetch=10, 25% chance of failure (nack)
+   reset/clear out the redis database
+   1 consumer thread, prefetch=1
+   one time:
+     publish 1k messages priority=1
+     publish 1k messages priority=10
+
+TODO: test5: 10 consumers, prefetch=1, no chance of failure (nack)
+   reset/clear out the redis database
+   10 consumer threads, prefetch=1
+   one time:
+     publish 1k messages priority=1
+     publish 1k messages priority=10
+
+TODO: test6: 10 consumers, prefetch=10, 25% chance of failure (nack)
+   reset/clear out the redis database
+   10 consumer threads, prefetch=10
+   one time:
+     publish 1k messages priority=1
+     publish 1k messages priority=10
+
+TODO: test7: 10 consumers, prefetch=10, no chance of failure (nack)
+   reset/clear out the redis database
+   10 consumer threads, prefetch=10
+   continuously publish messages: 25% priority=1, 25% priority=2, 25% priority=3, 25% priority=10
+
