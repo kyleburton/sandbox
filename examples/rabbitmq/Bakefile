@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+
+function ensure-download () {
+  local pkgurl="$1"
+  local pkgfile="${2:-$(basename $pkgurl)}"
+  #echo "pkgurl=$pkgurl"
+  #echo "pkgfile=$pkgfile"
+  test -f $pkgfile || curl $pkgurl > $pkgfile
+}
+
+function ensure-extracted () {
+  local pkgfile="$1"
+  pkgfile="$(basename $pkgfile)"
+
+  case $pkgfile in
+    *.tar.gz)
+      tar xzvf $pkgfile
+      ;;
+    *.zip)
+      unzip $pkgifle
+      ;;
+    *)
+      echo "Error: don't know how to unarchive: $pkgfile"
+      exit 1
+      ;;
+  esac
+}
+
+bake_task rabbitmq-install
+rabbitmq-install () {
+  bake_cd software
+  ensure-download  "$RABBITMQ_3_1_2_PACKAGE_URL"
+  ensure-extracted "$RABBITMQ_3_1_2_PACKAGE_URL"
+  ensure-download  "$RABBITMQ_3_4_4_PACKAGE_URL"
+  ensure-extracted "$RABBITMQ_3_4_4_PACKAGE_URL"
+}
+
+bake_task redis-install
+redis-install () {
+  ensure-download  "$REDIS_2_8_19_PACKAGE_URL"
+  ensure-extracted "$REDIS_2_8_19_PACKAGE_URL"
+}
+
+bake_task install
+function install () {
+  rabbitmq-install
+  redis-install
+}
+
+function init () {
+  bake_cd
+  source config/env.sh
+  test -d software || mkdir software
+}
+
+init
