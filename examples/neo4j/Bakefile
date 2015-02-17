@@ -67,8 +67,44 @@ function clj-run () {
   lein run
 }
 
+bake_task emacs-install 
+function emacs-install () {
+  # cider
+  bake_cd
+  cd software
+  if [ ! -d cider ]; then
+    git clone git@github.com:clojure-emacs/cider.git
+  fi
+
+  cd cider
+  git checkout master
+  git pull origin master
+  git checkout v0.7.0
+  # cider
+
+  # ac-cider
+  bake_cd
+  cd software
+  if [ ! -d ac-cider ]; then
+    git clone git@github.com:clojure-emacs/ac-cider.git
+  fi
+
+  cd ac-cider
+  git checkout master
+  git pull origin master
+  git checkout 0.2.0
+  bake_cd
+  # ac-cider
+}
+
+bake_task emacs 
+function emacs () {
+  emacs -nw -q -l .emacs "$@"
+}
+
 bake_task install
 function install () {
+  emacs-install
   neo4j-install
   cljs-init
   clj-init

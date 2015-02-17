@@ -14,6 +14,11 @@
     :neo4j {:host "localhost"
             :port 7474}}))
 
+(defn neo4j-url []
+  (format "http://%s:%s/db/data"
+          (-> config deref :neo4j :host)
+          (-> config deref :neo4j :port)))
+
 (defn init [config]
   :ok)
 
