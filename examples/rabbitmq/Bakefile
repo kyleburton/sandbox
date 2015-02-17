@@ -31,6 +31,14 @@ rabbitmq-install () {
   ensure-extracted "$RABBITMQ_3_1_2_PACKAGE_URL" "rabbitmq_server-3.1.2"
   ensure-download  "$RABBITMQ_3_4_4_PACKAGE_URL"
   ensure-extracted "$RABBITMQ_3_4_4_PACKAGE_URL" "rabbitmq_server-3.4.4"
+  bake_cd
+  ./software/rabbitmq_server-3.4.4/sbin/rabbitmq-plugins enable rabbitmq_management
+}
+
+bake_task rabbitmq-run
+function rabbitmq-run () {
+  local version="${1:-3.4.4}"
+  ./software/rabbitmq_server-$version/sbin/rabbitmq-server
 }
 
 function redis-dir () {
