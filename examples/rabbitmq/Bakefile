@@ -14,10 +14,8 @@ function ensure-extracted () {
 
   case $pkgfile in
     *.tar.gz)
-      tar xzvf $pkgfile
-      ;;
-    *.zip)
-      unzip $pkgifle
+      local pkgdir="${2:-$(basename $pkgfile .tar.gz)}"
+      test -d $pkgdir || tar xzvf $pkgfile
       ;;
     *)
       echo "Error: don't know how to unarchive: $pkgfile"
@@ -30,15 +28,24 @@ bake_task rabbitmq-install
 rabbitmq-install () {
   bake_cd software
   ensure-download  "$RABBITMQ_3_1_2_PACKAGE_URL"
-  ensure-extracted "$RABBITMQ_3_1_2_PACKAGE_URL"
+  ensure-extracted "$RABBITMQ_3_1_2_PACKAGE_URL" "rabbitmq_server-3.1.2"
   ensure-download  "$RABBITMQ_3_4_4_PACKAGE_URL"
-  ensure-extracted "$RABBITMQ_3_4_4_PACKAGE_URL"
+  ensure-extracted "$RABBITMQ_3_4_4_PACKAGE_URL" "rabbitmq_server-3.4.4"
+}
+
+function redis-dir () {
+  basename "$REDIS_2_8_19_PACKAGE_URL" .tar.gz
 }
 
 bake_task redis-install
 redis-install () {
   ensure-download  "$REDIS_2_8_19_PACKAGE_URL"
   ensure-extracted "$REDIS_2_8_19_PACKAGE_URL"
+  bake_cd
+  if [ ! -e ./software/$(redis-dir)/src/redis-server ]; then
+    bake_cd ./software/$(redis-dir)/
+    make
+  fi
 }
 
 bake_task install
