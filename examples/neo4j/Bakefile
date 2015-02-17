@@ -23,6 +23,12 @@ function neo4j-install () {
   test -d $pkgdir || tar xzvf $package
 }
 
+bake_task neo4j
+function neo4j () {
+  local action="${1:-info}"
+  ./software/$(neo4j-package-dir)/bin/neo4j "$action"
+}
+
 function init-config () {
   source config/env.sh
 }
