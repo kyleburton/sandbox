@@ -26,11 +26,26 @@ function neo4j-install () {
 bake_task neo4j
 function neo4j () {
   local action="${1:-info}"
-  ./software/$(neo4j-package-dir)/bin/neo4j "$action"
+  bake_cd ./software/$(neo4j-package-dir)
+  ./bin/neo4j "$action"
+}
+
+bake_task neo4j-browse
+function neo4j-browse () {
+  if [ "Darwin" = "$(uname)" ]; then
+    open "http://localhost:7474/"
+  else
+    gnome-open "http://localhost:7474/"
+  fi
 }
 
 function init-config () {
   source config/env.sh
+}
+
+bake_task clj-init
+function clj-init () {
+  test -d graph-services || lein new figwheel graph-services
 }
 
 init-config
