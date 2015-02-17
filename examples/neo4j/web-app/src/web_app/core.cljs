@@ -1,4 +1,4 @@
-(ns ^:figwheel-always graph-services.core
+(ns ^:figwheel-always web-app.core
     (:require))
 
 (enable-console-print!)

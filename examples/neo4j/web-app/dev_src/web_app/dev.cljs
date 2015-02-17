@@ -1,6 +1,6 @@
-(ns graph-services.dev
+(ns web-app.dev
     (:require
-     [graph-services.core]
+     [web-app.core]
      [figwheel.client :as fw]))
 
 (fw/start {

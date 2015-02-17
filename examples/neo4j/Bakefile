@@ -45,7 +45,33 @@ function init-config () {
 
 bake_task clj-init
 function clj-init () {
-  test -d graph-services || lein new figwheel graph-services
+  bake_cd
+  test -d graph-services || lein new graph-services
+}
+
+bake_task cljs-init
+function cljs-init () {
+  bake_cd
+  test -d web-app || lein new figwheel web-app
+}
+
+bake_task cljs-run
+function cljs-run () {
+  cd web-app
+  lein figwheel
+}
+
+bake_task clj-run
+function clj-run () {
+  cd graph-services
+  lein run
+}
+
+bake_task install
+function install () {
+  neo4j-install
+  cljs-init
+  clj-init
 }
 
 init-config
