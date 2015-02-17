@@ -38,9 +38,19 @@ rabbitmq-install () {
 bake_task rabbitmq-run
 function rabbitmq-run () {
   local version="${1:-3.4.4}"
+  echo ""
+  echo "  Press CTRL-C twice to stop rabbitmq"
+  echo ""
+  echo "  You can open http://localhost:15672/ to view the management console (guest/guest"
+  echo ""
+  echo ""
   ./software/rabbitmq_server-$version/sbin/rabbitmq-server
 }
 
+# function rabbitmq-gui () {
+#   open "http://localhost:15672/"
+# }
+ 
 function redis-dir () {
   basename "$REDIS_2_8_19_PACKAGE_URL" .tar.gz
 }
