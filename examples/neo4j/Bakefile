@@ -1,0 +1,30 @@
+#!/usr/bin/env bash 
+
+function cd_software_dir () {
+  bake_cd
+  test -d software || mkdir software
+  cd software
+}
+
+function neo4j-package-name () {
+  echo $NEO4J_PACKAGE_URL | cut -f2 -d=
+}
+
+function neo4j-package-dir () {
+  basename $(neo4j-package-name) -unix.tar.gz
+}
+
+bake_task neo4j-install
+function neo4j-install () {
+  cd_software_dir
+  local package="$(neo4j-package-name)"
+  test -f $package || curl $NEO4J_PACKAGE_URL > $package
+  local pkgdir="$(neo4j-package-dir)"
+  test -d $pkgdir || tar xzvf $package
+}
+
+function init-config () {
+  source config/env.sh
+}
+
+init-config
