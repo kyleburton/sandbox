@@ -9,8 +9,13 @@ worked together (when Tim gained experience working at tech start-ups).
 Some of the themes we want to roll up into a talk are:
 
 * Holistic Consistency
+   Make Dev and prod as similar as possible.
 * Convention over Configuration
+   Support configuration so you get loose coupling and late binding, but don't require it.
 * Unorthodox, but consistent, choices reduce effort of development deployment and debugging
+   Anatomy of a @-main@
+* Service Regstries are Complex and Cost Time
+   you will want etcd or zk at some point, make that possible but don't force it a-priori
 
 
 h3. Convention over Configuration
@@ -20,9 +25,15 @@ h3. Convention over Configuration
     to do any explicit configuration.  This same convention is followed in our CI, QA, UAT
     and production environments even though they are multi-system.
 
-h3. Anatomy of @-main@
+Configuration comes from "somewhere", for us that is JSON files.  That's behind an interface that treats it as a K/V store, so we can pretty easily replace that with someting shared (like a zk or etcd service).  Haven't done that yet, and that abstraction would still let us do dev against the JSON config while prod would be vs the config service.
 
-    
+Externalize configuration from the start.  Don't force a registry, use simple text files but eliminate complexity by choosing conventions.  
+
+Discuss specific examples here: DI concerns like database connections, serivce location (amqp, web services, etc).
+
+h3. Anatomy of a @-main@
+
+
 
 
 Stream of consciousness:
