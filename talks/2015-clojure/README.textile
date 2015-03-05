@@ -6,3 +6,25 @@ experiences before we worked together (in an Enterprise Shop), and after we
 worked together (when Tim gained experience working at tech start-ups).
 
 
+Some of the themes we want to roll up into a talk are:
+
+* Holistic Consistency
+* Convention over Configuration
+* Unorthodox, but consistent, choices reduce effort of development deployment and debugging
+
+
+h3. Convention over Configuration
+
+    We chose a model for the ports our services listen on, though we support configuration.
+    This allows us to run our full stack of services on a single system without having
+    to do any explicit configuration.  This same convention is followed in our CI, QA, UAT
+    and production environments even though they are multi-system.
+
+h3. Anatomy of @-main@
+
+    
+
+
+Stream of consciousness:
+
+tv: 'organize and build your services so that devs move fast and deployment is invisible
