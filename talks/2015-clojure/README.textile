@@ -129,3 +129,35 @@ I've found this to be a great tool for bootstraping indepence for our engineers.
 Stream of consciousness:
 
 tv: 'organize and build your services so that devs move fast and deployment is invisible
+
+tv: Is another theme here that late dep resolution isn't a thing? RE
+    no maven resolution in prod. (accomplished _not_ by uberjar but by
+    manual jar management)
+
+    This is a concern both for runtime deps and for build artifacts.
+        - Why have your ci process do a build when you can just check things
+          in?
+        - Why have your environmental config be embedded in the code at all?
+
+          I say this one because that's I think a common response. You
+          don't check build artifacts in because build artifacts are
+          environtment specific. They shouldn't be.
+
+    10:00 i have over and over again told people about checking in your build/dependency artifacts and the universal reaction is entirely negative
+    10:00 but you guys don't do that
+    10:00 is that somehow part of the system there?
+
+tv: Is another theme the timeout? Deploys at RJ take several minutes.
+    Not much more than at Relay, iirc. At Monetate they took hours and
+    hours. At Siemens they took weeks.
+
+tv: Thesis statement candidate: Consistency is the key to stability.
+
+    9:47 so, thesis: consistency is the key to stability
+    9:47 ?
+    9:47 is that the common thread in all of relay's structure?
+    9:48 consistence start up interface
+    9:48 consistent ports between environments
+    9:48 consistent tooling (shell based, pipeable, etc.)
+    9:48 ?
+    9:48 consistency is the key to ease?
