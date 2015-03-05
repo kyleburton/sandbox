@@ -12,11 +12,16 @@ Some of the themes we want to roll up into a talk are:
    Make Dev and prod as similar as possible.
 * Convention over Configuration
    Support configuration so you get loose coupling and late binding, but don't require it.
-* Unorthodox, but consistent, choices reduce effort of development deployment and debugging
+* Unorthodox, but consistent, choices reduce effort of development deployment and introspection
    Anatomy of a @-main@
 * Service Regstries are Complex and Cost Time
    you will want etcd or zk at some point, make that possible but don't force it a-priori
+* Clojure's Live Development is Valueable, our decisions should facilitate using it
 
+
+Considerations:
+
+Dynamic infrastucture, adaptive scaling, automatic service discovery and registration.
 
 h3. Convention over Configuration
 
@@ -31,9 +36,34 @@ Externalize configuration from the start.  Don't force a registry, use simple te
 
 Discuss specific examples here: DI concerns like database connections, serivce location (amqp, web services, etc).
 
+Port Assignments
+
+each service has 
+
+* an NRepl for control
+* a public web port (optionaly a public facing HTTP api)
+* a private web port (optionaly a internally facing HTTP api)
+
+NRepl (rather swank) ports are allocated in the 4000-4999 range by the team
+agreeing on a vlaue for the new (logical) service that doesn't conflict with
+our other services.  
+
+The public web port is in the 8000-8999 range.
+
+The prvate web port is the public port +1.
+
+For example, service A uses 4010, 8010 adn 8011.  Service B uses 4020, 8020 and 8021.  The serivces support these values being overriden via configuraiton but default to these values.  This means developers and ops engineers don't need to even consider configuration when attempting to run mulitple services on one system.
+
+Consideration: dynamic reconfiguration
+
 h3. Anatomy of a @-main@
 
 
+h3.  Unorthodox, but consistent, choices reduce effort of development deployment and introspection
+
+We support runing an NRepl in Dev, CI, QA and prod.  Our service's main starts the NREPL.  We run our services by executing the @-main@ in all these environments.  If your service starts successfully in dev it is very likeley to also start successfully in all other environments.
+
+This helps minimize the differences between debugging in dev and production.
 
 
 Stream of consciousness:
