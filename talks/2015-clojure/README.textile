@@ -17,11 +17,19 @@ Some of the themes we want to roll up into a talk are:
 * Service Regstries are Complex and Cost Time
    you will want etcd or zk at some point, make that possible but don't force it a-priori
 * Clojure's Live Development is Valueable, our decisions should facilitate using it
+* Communication in your team: ephemeral diagrams as a tool for model alignment
 
 
 Considerations:
 
+Where possible discuss the key trade offs or considerations that lead to my choices.
+
+
 Dynamic infrastucture, adaptive scaling, automatic service discovery and registration.
+
+h3. Holistic Considerations
+
+The same pattern applied to each service.  Nothing new to keep in mind when working on different services, they all have an NRepl, a public API and a private API.  To develop on each of them, you take the same steps, you clone and run the @-main@.
 
 h3. Convention over Configuration
 
@@ -54,10 +62,18 @@ The prvate web port is the public port +1.
 
 For example, service A uses 4010, 8010 adn 8011.  Service B uses 4020, 8020 and 8021.  The serivces support these values being overriden via configuraiton but default to these values.  This means developers and ops engineers don't need to even consider configuration when attempting to run mulitple services on one system.
 
+Default hostnames are 'localhost', this is very convienient for Dev, QA, CI.  It's still pulled from configuration though, so prod just fills the slots in with hostnames that point to load balancers or hostnames that map to Virtual IPs (EIPs) configured for HA/Fail-over.
+
 Consideration: dynamic reconfiguration
 
 h3. Anatomy of a @-main@
 
+* bootstrap configuration
+* launch NRepl
+* configure DI resources (db pools, http apis, other initialization)
+* start in-JVM services (Quartz, MQ thread pools)
+* start HTTP / RPC services
+* announce the service is up
 
 h3.  Unorthodox, but consistent, choices reduce effort of development deployment and introspection
 
