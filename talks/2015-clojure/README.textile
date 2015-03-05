@@ -1,0 +1,8 @@
+Tim Visher contacted me and asked me to share my experience building and
+deploying services with Clojure.
+
+Tim and I worked together at Relay Network, and Tim has been contrasting his
+experiences before we worked together (in an Enterprise Shop), and after we
+worked together (when Tim gained experience working at tech start-ups).
+
+
