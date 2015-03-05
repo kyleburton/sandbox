@@ -5,6 +5,10 @@ Tim and I worked together at Relay Network, and Tim has been contrasting his
 experiences before we worked together (in an Enterprise Shop), and after we
 worked together (when Tim gained experience working at tech start-ups).
 
+Working Titles
+
+   "Are you converging on an O(1) software process?"
+   "How we move Clojure from Development to Production"
 
 Some of the themes we want to roll up into a talk are:
 
@@ -80,6 +84,46 @@ h3.  Unorthodox, but consistent, choices reduce effort of development deployment
 We support runing an NRepl in Dev, CI, QA and prod.  Our service's main starts the NREPL.  We run our services by executing the @-main@ in all these environments.  If your service starts successfully in dev it is very likeley to also start successfully in all other environments.
 
 This helps minimize the differences between debugging in dev and production.
+
+h3. Communication in your team: ephemeral diagrams as a tool for model alignment
+
+This may seem out of place in this talk but I feel it's a key aspect of
+maintaining consistency.  Consistency is enforced through culture.  
+
+Most things in computing are abstract, they can't be seen.  I can't point at
+our infrastucture in AWS or at how our services interact with each other.  
+
+Humans are very spacially oriented in our thinking.  You're receiving
+information during this talk, which is very abstract, but you're listening to
+me and you're lookng at me...at least I hope you are..you might not be (point
+at someone) really looking at me, but spacially you're oriented in one
+direction.
+
+Spacial reference helps us communicate.
+
+We draw diagrams of our software, lots of them.  Typically on three by five
+cards, many times a day.  We sometimes draw several in a row, ripping up and
+crumpling the 3x5 cards up as we refine the diagrams.  
+
+We don't preserve these on purpose.  They are ephemeral.  They take seconds to
+draw or re-create, so there is little reluctance to making them.  If they're
+not quite right (and they often are not), ok, rip it up and make another.
+
+No one diagram can be right.  We draw these at a level of abstraction showing
+only the aspects necessary for the conversation at hand.  
+
+The fact that we practice these so often means our team (all 7 of us) each has
+a good understanding of our service interactions and how our environments are
+layed out.  Troubleshooting typically begins with two engineers drawing a diagram
+so they can start to bisect the problem space.
+
+This is a pretty easy thing to bootstrap in your team, and if you have 3x5
+cards availble in O(1) access you can do it with very little effort.
+
+I've found this to be a great tool for bootstraping indepence for our engineers.
+
+
+
 
 
 Stream of consciousness:
