@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+INSTAL_PATH=/cygdrive/c/Users/kyle/AppData/Roaming/.minecraft
+
+function isodate () {
+  date -u +"%Y-%m-%dT%H:%M:%SZ"
+}
+
+bake_task sync
+function sync () {
+  test -d data || mkdir data
+  cd data
+  rsync -avz $INSTAL_PATH/saves ./
+}
+
+bake_task backup
+function backup () {
+  local bname="${1:-backup}"
+  local logmsg="$(isodate): $bname"
+  sync
+  test -d .git || git init
+  git add .
+  git commit -m "$logmsg"
+}
+
+bake_task restore 
+function restore () {
+  cd data
+  rsync -avz ./saves $INSTAL_PATH/
+}
