@@ -18,10 +18,78 @@ Some of the themes we want to roll up into a talk are:
    Support configuration so you get loose coupling and late binding, but don't require it.
 * Unorthodox, but consistent, choices reduce effort of development deployment and introspection
    Anatomy of a @-main@
-* Service Regstries are Complex and Cost Time
+* Service Registries are Complex and Cost Time
    you will want etcd or zk at some point, make that possible but don't force it a-priori
-* Clojure's Live Development is Valueable, our decisions should facilitate using it
+* Clojure's Live Development is Valuable, our decisions should facilitate using it
 * Communication in your team: ephemeral diagrams as a tool for model alignment
+
+What are the key take-aways I want people to get out of the talk?
+
+* There are some unique things about Clojure (Lisps) that facilitate productivity
+  * The mythical 'REPL', but that's not exactly what I do (Philip Fominykh)
+* Consistency across your environments simplifies development and troubleshooting
+  * Run the REPL in the service
+  * Abstract away configuration early, but make it simple (json file from a known place)
+  * Conventions for Port Assignments
+    * lets you run the full stack on 1 box
+    * eliminates or reduces bespoke configuration when spinning up new environments
+      you don't have to stop and think "what port will I use" - which leads to both
+      configuring the current service, but the consumers too, which leads to thinking
+      "oh, I need a service registry service", (blech!)
+* My patterns for developing Clojure applications
+  * Productivity == Iteration
+    The faster you can make it to iterate the faster you'll build your applications.  
+    Anything that 
+  * make a main that runs the repl at a minimum
+  * step out of the path of complex configuration by just using clojure to start your 
+    web server, thread pools, resource pools and complex object graphs directly.
+    Why invent or use a complex XML or Json configuration document along with validation,
+    and semantics for how it's processed?  You'll just end up burning time extending it
+    as you run into new use-cases.  Why go through the effort of selecting, let alone
+    integrating a DI framework when you can just (load-file)
+  * command line / thick client apps
+  * web services
+
+What is productivity?
+  Iteration, iteration, iteration
+  not breaking your flow
+    Be allergic to the things that break your flow, develop a sensitivity to
+      having your time wasted.
+  O(1) access to what you need in the moment
+
+Anecdote: "Triggering my timeout" 
+
+  I was pairing with a developer who had recently joined my team.  To keep them
+  anonymous, we'll call her Mrs T.  Our task was to introduce a front-end web
+  build into our application.  Assemblage, concatenation and minification of our
+  front-end assets - html, javascript, and css.
+
+  Mrs T. had previously used an Ant based build tool, I think the name of the
+  project was html5-boilerplate.  So we did a short spike on getting it set up
+  for our project.  The first time we ran the tool it took like 20 or 30 seconds
+  for Ant (the JVM) to start up and begin assembling the assets.  
+
+  I became very visibly agitated at this.  My pair was a bit taken aback at my
+  reaction.  Mrs T. had come from an environment where they had taken an 8 hour
+  build down to 45 minutes for a large complex application, so a tool that took
+  90 seconds to run was very reasonable.  
+
+  My reaction was the opposite, to me anything that took more than a small
+  handful of seconds, especially something we would have to run repeatedly as
+  part of our development process (iterating on a task) was going to break our
+  flow and seriously impact our ability to iterate.  To me 90 seconds for
+  something we were going to have to do over and over was a deal breaker.
+
+  90s between me making a change and being able to run the code?  No way jose!
+
+HERE 
+
+Q: Should I talk about these topics?
+  * pairing in the talk?
+  * our workstation setup in the talk?
+  * our estimation and task breakdown process?
+  * talk about the importance of the shared model?  Continuously drawing diagrams to foster understanding?
+  * ubiquitous 3x5 cards and pens anywhere a developer (or pair) might be working?
 
 
 Considerations:
@@ -161,3 +229,8 @@ tv: Thesis statement candidate: Consistency is the key to stability.
     9:48 consistent tooling (shell based, pipeable, etc.)
     9:48 ?
     9:48 consistency is the key to ease?
+
+
+
+TODO: slide / graffle diagrams: show the interacting services on 1 box and distributed across a cluster, by using conventions for port assignments and configuration for hostnames (that defualt to localhost, which we can use a local nginx configuraiton to abstract if we really want to), the services can run on 1 box (full stack for devs) or across a cluster (prod, qa, uat)
+
