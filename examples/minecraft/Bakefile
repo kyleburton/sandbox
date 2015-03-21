@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 INSTAL_PATH=/cygdrive/c/Users/kyle/AppData/Roaming/.minecraft
 
+MINECRAFT_SERVER_JAR_URL="https://s3.amazonaws.com/Minecraft.Download/versions/1.8.3/minecraft_server.1.8.3.jar"
+
+BAKCUP_DIR="$HOME/local/minecraft"
+
 function isodate () {
   date -u +"%Y-%m-%dT%H:%M:%SZ"
 }
@@ -14,6 +18,13 @@ function sync () {
 
 bake_task backup
 function backup () {
+  bake_echo_red "Make sure the server is stopped first..."
+  echo -n "Press Enter: "
+  read FOO
+  test -d "$BAKCUP_DIR" || mkdir $BAKCUP_DIR
+  cd "$BAKCUP_DIR"
+  rsync "$(bake_bakefile_dir)" ./
+  bash
   local bname="${1:-backup}"
   local logmsg="$(isodate): $bname"
   sync
@@ -26,4 +37,24 @@ bake_task restore
 function restore () {
   cd data
   rsync -avz ./saves $INSTAL_PATH/
+}
+
+bake_task install
+function install () {
+  local jfile="$(basename $MINECRAFT_SERVER_JAR_URL)"
+  test -f  $jfile || wget $MINECRAFT_SERVER_JAR_URL
+}
+
+
+bake_task install_sun_jdk
+function install_sun_jdk () {
+  sudo apt-add-repository ppa:webupd8team/java
+  sudo apt-get update
+  sudo apt-get install oracle-java7-installer
+}
+
+bake_task run_server
+function run_server () {
+  jfile="$(basename $MINECRAFT_SERVER_JAR_URL)"
+  java -Xms512M -Xmx1024M -jar $jfile nogui
 }
