@@ -1,9 +1,29 @@
 #!/usr/bin/env bash
 INSTAL_PATH=/cygdrive/c/Users/kyle/AppData/Roaming/.minecraft
-
 MINECRAFT_SERVER_JAR_URL="https://s3.amazonaws.com/Minecraft.Download/versions/1.8.3/minecraft_server.1.8.3.jar"
-
 BAKCUP_DIR="$HOME/local/minecraft"
+LTPWMP_CODE="http://media.pragprog.com/titles/ahmine2/code/ahmine2-code.zip"
+CANARYMOD_LIB_JAR_URL="https://ci.visualillusionsent.net/job/CanaryLib/525/artifact/target/CanaryLib-1.2.0-shaded.jar"
+# NB: this one can't be automated w/wget?
+CANARYMOD_JAR_URL="http://canarymod.net/download/file/fid/361"
+
+bake_task download_ltpwmp
+function download_ltpwmp () {
+  local fname="$(basename $LTPWMP_CODE)"
+  wget --continue $LTPWMP_CODE
+  test -d ahmine2-code || mkdir ahmine2-code
+  cd ahmine2-code
+  test -d code || unzip ../$fname
+}
+
+bake_task download_canarymod_jar
+function download_canarymod_jar () {
+  # NB: this one can't be automated w/wget?
+  # local fname="$(basename $CANARYMOD_JAR_URL)"
+  # wget --continue $CANARYMOD_JAR_URL
+  local fname="$(basename $CANARYMOD_LIB_JAR_URL)"
+  wget --continue $CANARYMOD_LIB_JAR_URL
+}
 
 function isodate () {
   date -u +"%Y-%m-%dT%H:%M:%SZ"
@@ -57,4 +77,10 @@ bake_task run_server
 function run_server () {
   jfile="$(basename $MINECRAFT_SERVER_JAR_URL)"
   java -Xms512M -Xmx1024M -jar $jfile nogui
+}
+
+
+bake_task run_canarymod_server
+function run_canarymod_server () {
+  java -Xms1024M -Xmx1024M -jar CanaryMod-1.2.0.jar
 }

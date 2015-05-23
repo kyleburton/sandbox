@@ -1,1 +1,9 @@
-minecraft*.jar
+CanaryLib-*.*.*-shaded.jar
+CanaryMod-*.*.*.jar
+ahmine2-code.zip
+ahmine2-code/
+config/
+db/
+eula.txt
+logs/
+worlds/
