@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+bake_require github.com/kyleburton/bake-recipies/emacs/cider.sh
+
+
+bake_task run-emacs
+function run-emacs () {
+  emacs -nw -q -l .emacs "$@"
+}
