@@ -82,5 +82,10 @@ function run_server () {
 
 bake_task run_canarymod_server
 function run_canarymod_server () {
-  java -Xms1024M -Xmx1024M -jar CanaryMod-1.2.0.jar
+  set -x
+  # java -cp /Users/kburton/Desktop/server/lib/clojure-1.6.0.jar  -Xms1024M -Xmx1024M -jar CanaryMod.jar
+  CP="/Users/kburton/Desktop/server/lib/EZPlugin.jar"
+  CP="$CP:/Users/kburton/personal/projects/sandbox/examples/minecraft/ahmine2-code/code/CiderNrepl/test:/Users/kburton/personal/projects/sandbox/examples/minecraft/ahmine2-code/code/CiderNrepl/src:/Users/kburton/personal/projects/sandbox/examples/minecraft/ahmine2-code/code/CiderNrepl/dev-resources:/Users/kburton/personal/projects/sandbox/examples/minecraft/ahmine2-code/code/CiderNrepl/resources:/Users/kburton/personal/projects/sandbox/examples/minecraft/ahmine2-code/code/CiderNrepl/target/classes:/Users/kburton/.m2/repository/org/tcrawley/dynapath/0.2.3/dynapath-0.2.3.jar:/Users/kburton/.m2/repository/clojure-complete/clojure-complete/0.2.3/clojure-complete-0.2.3.jar:/Users/kburton/.m2/repository/CanaryMod/CanaryMod/1.0.0-kburton/CanaryMod-1.0.0-kburton.jar:/Users/kburton/.m2/repository/org/clojure/java.classpath/0.2.0/java.classpath-0.2.0.jar:/Users/kburton/.m2/repository/cider/cider-nrepl/0.7.0/cider-nrepl-0.7.0.jar:/Users/kburton/.m2/repository/compliment/compliment/0.1.3/compliment-0.1.3.jar:/Users/kburton/.m2/repository/slamhound/slamhound/1.5.0/slamhound-1.5.0.jar:/Users/kburton/.m2/repository/cljs-tooling/cljs-tooling/0.1.3/cljs-tooling-0.1.3.jar:/Users/kburton/.m2/repository/EZPlugin/EZPlugin/1.0.0-kburton/EZPlugin-1.0.0-kburton.jar:/Users/kburton/.m2/repository/org/clojure/tools.nrepl/0.2.6/tools.nrepl-0.2.6.jar:/Users/kburton/.m2/repository/org/clojure/tools.trace/0.7.8/tools.trace-0.7.8.jar:/Users/kburton/.m2/repository/org/clojure/tools.namespace/0.2.5/tools.namespace-0.2.5.jar:/Users/kburton/.m2/repository/org/clojure/clojure/1.6.0/clojure-1.6.0.jar"
+  java -cp $CP:CanaryMod.jar -Xms1024M -Xmx1024M net.canarymod.Main
+  #ava -verbose:class -Xms1024M -Xmx1024M -jar CanaryMod.jar
 }
