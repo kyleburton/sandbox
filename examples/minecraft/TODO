@@ -10,6 +10,9 @@ DONE[2015-05-28T12:20:22Z]: bake task: check CanaryMod eula
 DONE[2015-05-28T12:20:22Z]: CanaryMod: classpath for CanaryMod + "leiningen classpath"
 
 
+DONE[2015-05-28T12:20:22Z]: Backup the minecraft saves directory.
+DONE[2015-05-28T12:20:22Z]: Use git for versioning.
+DONE[2015-05-28T12:20:22Z]: Test restoration
 
 
 
