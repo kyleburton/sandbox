@@ -3,9 +3,8 @@ INSTAL_PATH=/cygdrive/c/Users/kyle/AppData/Roaming/.minecraft
 MINECRAFT_SERVER_JAR_URL="https://s3.amazonaws.com/Minecraft.Download/versions/1.8.3/minecraft_server.1.8.3.jar"
 BAKCUP_DIR="$HOME/local/minecraft"
 LTPWMP_CODE="http://media.pragprog.com/titles/ahmine2/code/ahmine2-code.zip"
-CANARYMOD_LIB_JAR_URL="https://ci.visualillusionsent.net/job/CanaryLib/525/artifact/target/CanaryLib-1.2.0-shaded.jar"
-# NB: this one can't be automated w/wget?
-CANARYMOD_JAR_URL="http://canarymod.net/download/file/fid/361"
+CANARYMOD_VERSION="1.2.0"
+CANARYMOD_JAR="CanaryMod-$CANARYMOD_VERSION.jar"
 
 bake_task download_ltpwmp
 function download_ltpwmp () {
@@ -18,11 +17,12 @@ function download_ltpwmp () {
 
 bake_task download_canarymod_jar
 function download_canarymod_jar () {
-  # NB: this one can't be automated w/wget?
-  # local fname="$(basename $CANARYMOD_JAR_URL)"
-  # wget --continue $CANARYMOD_JAR_URL
-  local fname="$(basename $CANARYMOD_LIB_JAR_URL)"
-  wget --continue $CANARYMOD_LIB_JAR_URL
+  set -x
+  if [ ! -f "$CANARYMOD_JAR" ]; then
+
+    local furl=$(curl "http://canarymod.net/releases" | perl -ne 'print "$1\n" if m|<a href="([^"]+)">CanaryMod-1.2.0.jar</a>|ms')
+    curl "http://canarymod.net$furl" > CanaryMod-$CANARYMOD_VERSION.jar
+  fi
 }
 
 function isodate () {
@@ -76,6 +76,10 @@ function install_sun_jdk () {
 bake_task run_server
 function run_server () {
   jfile="$(basename $MINECRAFT_SERVER_JAR_URL)"
+  if grep -q "eula=false" eula.txt; then
+    echo "Error: you have to accept the EULA, see the file eula.txt"
+    return 1
+  fi
   java -Xms512M -Xmx1024M -jar $jfile nogui
 }
 
