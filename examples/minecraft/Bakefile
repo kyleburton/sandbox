@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+
+bake_require github.com/kyleburton/bake-recipies/emacs/cider.sh
+
 INSTAL_PATH=/cygdrive/c/Users/kyle/AppData/Roaming/.minecraft
 MINECRAFT_SERVER_JAR_URL="https://s3.amazonaws.com/Minecraft.Download/versions/1.8.3/minecraft_server.1.8.3.jar"
 BAKCUP_DIR="$HOME/local/minecraft"

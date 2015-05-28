@@ -1,0 +1,8 @@
+DONE: set up bild scripting / automation (bake)
+DONE: new lein project: "lein new minerepl"
+DONE: bake task: download CanaryMod
+TODO: bake task: run CanaryMod
+TODO: bake task: check CanaryMod eula
+TODO: bake task: build Java based plugins
+TODO: CanaryMod: classpath for CanaryMod + "leiningen classpath"
+TODO: CanaryMod plugin: Run a Cider NREPL
