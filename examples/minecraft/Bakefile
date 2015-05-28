@@ -9,7 +9,7 @@ LTPWMP_CODE="http://media.pragprog.com/titles/ahmine2/code/ahmine2-code.zip"
 CANARYMOD_VERSION="1.2.0"
 CANARYMOD_JAR="CanaryMod-$CANARYMOD_VERSION.jar"
 
-bake_task download_ltpwmp
+bake_task download_ltpwmp "Download the 'Learn to Program with Minecraft Plugins' code"
 function download_ltpwmp () {
   local fname="$(basename $LTPWMP_CODE)"
   wget --continue $LTPWMP_CODE
@@ -18,7 +18,7 @@ function download_ltpwmp () {
   test -d code || unzip ../$fname
 }
 
-bake_task download_canarymod_jar
+bake_task download_canarymod_jar "Download CanaryMod $CANARYMOD_VERSION"
 function download_canarymod_jar () {
   set -x
   if [ ! -f "$CANARYMOD_JAR" ]; then
@@ -62,28 +62,28 @@ function restore () {
   rsync -avz ./saves $INSTAL_PATH/
 }
 
-bake_task install
-function install () {
+bake_task minecraft_install "Download the vanilla Minecraft Server JAR"
+function minecraft_install () {
   local jfile="$(basename $MINECRAFT_SERVER_JAR_URL)"
   test -f  $jfile || wget $MINECRAFT_SERVER_JAR_URL
 }
 
 
-bake_task install_sun_jdk
+bake_task install_sun_jdk "Install Oracle JDK"
 function install_sun_jdk () {
   sudo apt-add-repository ppa:webupd8team/java
   sudo apt-get update
   sudo apt-get install oracle-java7-installer
 }
 
-bake_task run_standard_server
+bake_task run_standard_server "Run vanilla Minecraft Server"
 function run_standard_server () {
   jfile="$(basename $MINECRAFT_SERVER_JAR_URL)"
   java -Xms512M -Xmx1024M -jar $jfile nogui
 }
 
 
-bake_task run_canarymod_server
+bake_task run_canarymod_server "Run CanaryMod with local plugins"
 function run_canarymod_server () {
   set -x
   if grep -q "eula=false" eula.txt; then
@@ -93,7 +93,7 @@ function run_canarymod_server () {
   java -cp "$(lein classpath)" -Xms1024M -Xmx1024M net.canarymod.Main
 }
 
-bake_task mvn_install_canarymod
+bake_task mvn_install_canarymod "Install CanaryMod into ~/.m2/repo"
 function mvn_install_canarymod () {
   mvn install:install-file -Dfile=$CANARYMOD_JAR -DgroupId=canarymod \
     -DartifactId=canarymod -Dversion=$CANARYMOD_VERSION -Dpackaging=jar
