@@ -1,4 +1,6 @@
-TODO: bake task: build Java based plugins
+TODO: bake task: install EZPlugin into local maven repository
+TODO: bake task: build Java based plugins, can this be done via lein?
+TODO: bake task: 'deploy' Java based plugins into ./plugins
 TODO: CanaryMod plugin: Run a Cider NREPL
 
 DONE[2015-05-28T12:20:22Z]: set up bild scripting / automation (bake)

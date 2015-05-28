@@ -98,3 +98,8 @@ function mvn_install_canarymod () {
   mvn install:install-file -Dfile=$CANARYMOD_JAR -DgroupId=canarymod \
     -DartifactId=canarymod -Dversion=$CANARYMOD_VERSION -Dpackaging=jar
 }
+
+# both of these need to be on the classpath when compiling plugins:
+# MODS="\$MCSERVER/CanaryMod.jar"
+# EZ="\$MCSERVER/lib/EZPlugin.jar"
+
