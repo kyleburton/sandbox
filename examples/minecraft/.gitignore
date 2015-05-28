@@ -16,3 +16,5 @@ pom.xml.asc
 *.class
 /.lein-*
 /.nrepl-port
+lang/
+usercache.json
