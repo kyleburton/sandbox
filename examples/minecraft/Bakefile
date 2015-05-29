@@ -122,13 +122,14 @@ function canarymod_build_plugin () {
   local javac_opts="$2"
   local javac_classpath="$3"
   local server_libdir="$4"
+  local ezplugin_jar="$(bake_bakefile_dir)/lib/EZPlugin.jar"
 
   test -d bin || mkdir bin
   test -d dist || mkdir dist
   rm -f bin/*/*.class || echo "removed classes"
   rm -f dist/*.jar || echo "removed jar"
   bake_echo_green "$plugin: compiling..."
-  javac $javac_opts -cp $javac_classpath src/*/*/*/*/*.java 
+  javac $javac_opts -cp $javac_classpath:$ezplugin_jar $(find src -name '*.java') 
   bake_echo_green "$plugin: compiled"
   bake_echo_green "$plugin: creating jar..."
   jar -cf "dist/$plugin.jar" *.inf -C bin . || exit 3
@@ -168,4 +169,14 @@ function ahmine2_build_plugin () {
   fi
 
   canarymod_build_plugin "$plugin" "$javac_opts" "$javac_classpath" "$server_libdir"
+}
+
+bake_task ahmine2_list_plugins
+function ahmine2_list_plugins () {
+  bake_cd $AHMINE2_DIR
+  bake_echo_green ""
+  for f in $(ls -1 .); do
+    bake_echo_green "  bake ahmine2_build_plugin $f"
+  done
+  bake_echo_green ""
 }
