@@ -117,6 +117,28 @@ function lein_classpath () {
   cat $cp_file
 }
 
+function canarymod_build_plugin () {
+  local plugin="$1"
+  local javac_opts="$2"
+  local javac_classpath="$3"
+  local server_libdir="$4"
+
+  test -d bin || mkdir bin
+  test -d dist || mkdir dist
+  rm -f bin/*/*.class || echo "removed classes"
+  rm -f dist/*.jar || echo "removed jar"
+  bake_echo_green "$plugin: compiling..."
+  javac $javac_opts -cp $javac_classpath src/*/*/*/*/*.java 
+  bake_echo_green "$plugin: compiled"
+  bake_echo_green "$plugin: creating jar..."
+  jar -cf "dist/$plugin.jar" *.inf -C bin . || exit 3
+  bake_echo_green "$plugin: jar created"
+  test -d $server_libdir || mkdir $server_libdir
+  cp "dist/$plugin.jar" "$server_libdir"
+  bake_echo_green $plugin: installed "dist/$plugin.jar" into "$server_libdir"
+  bake_echo_green $plugin: restart your server to load the plugin
+}
+
 bake_task ahmine2_build_plugin
 function ahmine2_build_plugin () {
   local plugin="$1"
@@ -124,10 +146,9 @@ function ahmine2_build_plugin () {
   local canarymod_jar="$(bake_bakefile_dir)/$CANARYMOD_JAR"
   local javac_classpath="$lein_classpath:$canarymod_jar"
   local javac_opts="-Xlint:deprecation -d bin -sourcepath src -g:lines,vars,source"
-  local server_libdir="$(bake_bakefile_dir)"
+  local server_libdir="$(bake_bakefile_dir)/lib"
 
   bake_cd
-  test -d lib || mkdir lib
   ahmine2_download
   bake_cd $AHMINE2_DIR
   if [ ! -d $plugin ]; then
@@ -146,18 +167,5 @@ function ahmine2_build_plugin () {
     return 1
   fi
 
-  # echo "javac_classpath=$javac_classpath"
-  test -d bin || mkdir bin
-  test -d dist || mkdir dist
-  rm -f bin/*/*.class || echo "removed classes"
-  rm -f dist/*.jar || echo "removed jar"
-  bake_echo_green "$plugin: compiling..."
-  javac $javac_opts -cp $javac_classpath src/*/*/*/*/*.java 
-  bake_echo_green "$plugin: compiled"
-  bake_echo_green "$plugin: creating jar..."
-  jar -cf "dist/$plugin.jar" *.inf -C bin . || exit 3
-  bake_echo_green "$plugin: jar created"
-  cp "dist/$plugin.jar" "$server_libdir"
-  bake_echo_green $plugin: installed "dist/$plugin.jar" into "$server_libdir"
-  bake_echo_green $plugin: restart your server to load the plugin
+  canarymod_build_plugin "$plugin" "$javac_opts" "$javac_classpath" "$server_libdir"
 }
