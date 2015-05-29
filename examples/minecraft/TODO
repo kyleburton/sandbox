@@ -1,3 +1,4 @@
+TODO: NB: you must build EZPlugin before building any other plugins...build this automatically
 TODO: bake task: install EZPlugin into local maven repository
 TODO: CanaryMod plugin: Run a Cider NREPL
 
