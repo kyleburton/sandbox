@@ -1,5 +1,6 @@
 TODO: NB: you must build EZPlugin before building any other plugins...build this automatically
 TODO: bake task: install EZPlugin into local maven repository
+TODO: ahmine2_build_plugin must install EZPlugin into ./lib, but other plugins into ./plugins
 TODO: CanaryMod plugin: Run a Cider NREPL
 
 DONE[2015-05-28T12:20:22Z]: set up bild scripting / automation (bake)
