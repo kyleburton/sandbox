@@ -5,18 +5,10 @@ bake_require github.com/kyleburton/bake-recipies/emacs/cider.sh
 INSTAL_PATH=/cygdrive/c/Users/kyle/AppData/Roaming/.minecraft
 MINECRAFT_SERVER_JAR_URL="https://s3.amazonaws.com/Minecraft.Download/versions/1.8.3/minecraft_server.1.8.3.jar"
 BAKCUP_DIR="$HOME/local/minecraft"
-LTPWMP_CODE="http://media.pragprog.com/titles/ahmine2/code/ahmine2-code.zip"
 CANARYMOD_VERSION="1.2.0"
 CANARYMOD_JAR="CanaryMod-$CANARYMOD_VERSION.jar"
-
-bake_task download_ltpwmp "Download the 'Learn to Program with Minecraft Plugins' code"
-function download_ltpwmp () {
-  local fname="$(basename $LTPWMP_CODE)"
-  wget --continue $LTPWMP_CODE
-  test -d ahmine2-code || mkdir ahmine2-code
-  cd ahmine2-code
-  test -d code || unzip ../$fname
-}
+AHMINE2_CODE="http://media.pragprog.com/titles/ahmine2/code/ahmine2-code.zip"
+AHMINE2_DIR="ahmine2-code/code"
 
 bake_task download_canarymod_jar "Download CanaryMod $CANARYMOD_VERSION"
 function download_canarymod_jar () {
@@ -103,3 +95,69 @@ function mvn_install_canarymod () {
 # MODS="\$MCSERVER/CanaryMod.jar"
 # EZ="\$MCSERVER/lib/EZPlugin.jar"
 
+bake_task ahmine2_download "Download the 'Learn to Program with Minecraft Plugins' code"
+function ahmine2_download () {
+  local fname="$(basename $AHMINE2_CODE)"
+  test -f $fname || wget --continue $AHMINE2_CODE
+  test -d ahmine2-code || mkdir ahmine2-code
+  cd ahmine2-code
+  test -d code || unzip ../$fname
+}
+
+function lein_classpath () {
+  local cp_file="$(bake_bakefile_dir)/.lein-classpath"
+  if [ ! -e $cp_file ]; then
+    lein classpath > $cp_file
+  fi
+
+  if [ project.clj -nt $cp_file ]; then
+    lein classpath > $cp_file
+  fi
+
+  cat $cp_file
+}
+
+bake_task ahmine2_build_plugin
+function ahmine2_build_plugin () {
+  local plugin="$1"
+  local lein_classpath="$(lein_classpath)"
+  local canarymod_jar="$(bake_bakefile_dir)/$CANARYMOD_JAR"
+  local javac_classpath="$lein_classpath:$canarymod_jar"
+  local javac_opts="-Xlint:deprecation -d bin -sourcepath src -g:lines,vars,source"
+  local server_libdir="$(bake_bakefile_dir)"
+
+  bake_cd
+  test -d lib || mkdir lib
+  ahmine2_download
+  bake_cd $AHMINE2_DIR
+  if [ ! -d $plugin ]; then
+    bake_echo_red "Error: plugin $plugin does not exist in $AHMINE2_DIR, try one of:"
+    bake_echo_red ""
+    for f in $(ls -1 .); do
+      bake_echo_red "  bake ahmine2_build_plugin $f"
+    done
+    bake_echo_red ""
+    return 1
+  fi
+  cd $plugin
+
+  if [ ! -e Canary.inf ]; then
+    bake_echo_red "Error: plugins need to have a Canary.inf!"
+    return 1
+  fi
+
+  # echo "javac_classpath=$javac_classpath"
+  test -d bin || mkdir bin
+  test -d dist || mkdir dist
+  rm -f bin/*/*.class || echo "removed classes"
+  rm -f dist/*.jar || echo "removed jar"
+  bake_echo_green "$plugin: compiling..."
+  javac $javac_opts -cp $javac_classpath src/*/*/*/*/*.java 
+  bake_echo_green "$plugin: compiled"
+  bake_echo_green "$plugin: creating jar..."
+  jar -cf "dist/$plugin.jar" *.inf -C bin . || exit 3
+  bake_echo_green "$plugin: jar created"
+  cp "dist/$plugin.jar" "$server_libdir"
+  bake_echo_green $plugin: installed "dist/$plugin.jar" into "$server_libdir"
+  bake_echo_green $plugin: restart your server to load the plugin
+}
