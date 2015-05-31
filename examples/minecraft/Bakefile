@@ -9,6 +9,8 @@ CANARYMOD_VERSION="1.2.0"
 CANARYMOD_JAR="CanaryMod-$CANARYMOD_VERSION.jar"
 AHMINE2_CODE="http://media.pragprog.com/titles/ahmine2/code/ahmine2-code.zip"
 AHMINE2_DIR="ahmine2-code/code"
+EZPLUGIN_JAR="$(bake_bakefile_dir)/lib/EZPlugin.jar"
+JAVAC_OPTS="-Xlint:deprecation -d bin -sourcepath src -g:lines,vars,source"
 
 bake_task download_canarymod_jar "Download CanaryMod $CANARYMOD_VERSION"
 function download_canarymod_jar () {
@@ -117,19 +119,52 @@ function lein_classpath () {
   cat $cp_file
 }
 
+function canarymod_jar () {
+  echo $(bake_bakefile_dir)/$CANARYMOD_JAR
+}
+
+function javac_classpath () {
+  echo "$(lein_classpath):$(canarymod_jar)"
+}
+
+function server_libdir () {
+  echo "$(bake_bakefile_dir)/lib"
+}
+
+function server_plugindir () {
+  echo "$(bake_bakefile_dir)/plugins"
+}
+
 function canarymod_build_plugin () {
   local plugin="$1"
   local javac_opts="$2"
   local javac_classpath="$3"
   local server_libdir="$4"
-  local ezplugin_jar="$(bake_bakefile_dir)/lib/EZPlugin.jar"
+  local plugin_dir="${5:-$AHMINE2_DIR}"
+
+  bake_cd $plugin_dir
+  if [ ! -d $plugin ]; then
+    bake_echo_red "Error: plugin $plugin does not exist in $plugin_dir, try one of:"
+    bake_echo_red ""
+    for f in $(ls -1 .); do
+      bake_echo_red "  bake ahmine2_build_plugin $f"
+    done
+    bake_echo_red ""
+    return 1
+  fi
+
+  cd $plugin
+  if [ ! -e Canary.inf ]; then
+    bake_echo_red "Error: plugins need to have a Canary.inf!"
+    return 1
+  fi
 
   test -d bin || mkdir bin
   test -d dist || mkdir dist
   rm -f bin/*/*.class || echo "removed classes"
   rm -f dist/*.jar || echo "removed jar"
   bake_echo_green "$plugin: compiling..."
-  javac $javac_opts -cp $javac_classpath:$ezplugin_jar $(find src -name '*.java') 
+  javac $javac_opts -cp $javac_classpath:$EZPLUGIN_JAR $(find src -name '*.java') 
   bake_echo_green "$plugin: compiled"
   bake_echo_green "$plugin: creating jar..."
   jar -cf "dist/$plugin.jar" *.inf -C bin . || exit 3
@@ -143,32 +178,11 @@ function canarymod_build_plugin () {
 bake_task ahmine2_build_plugin
 function ahmine2_build_plugin () {
   local plugin="$1"
-  local lein_classpath="$(lein_classpath)"
-  local canarymod_jar="$(bake_bakefile_dir)/$CANARYMOD_JAR"
-  local javac_classpath="$lein_classpath:$canarymod_jar"
-  local javac_opts="-Xlint:deprecation -d bin -sourcepath src -g:lines,vars,source"
-  local server_libdir="$(bake_bakefile_dir)/lib"
 
   bake_cd
   ahmine2_download
-  bake_cd $AHMINE2_DIR
-  if [ ! -d $plugin ]; then
-    bake_echo_red "Error: plugin $plugin does not exist in $AHMINE2_DIR, try one of:"
-    bake_echo_red ""
-    for f in $(ls -1 .); do
-      bake_echo_red "  bake ahmine2_build_plugin $f"
-    done
-    bake_echo_red ""
-    return 1
-  fi
-  cd $plugin
-
-  if [ ! -e Canary.inf ]; then
-    bake_echo_red "Error: plugins need to have a Canary.inf!"
-    return 1
-  fi
-
-  canarymod_build_plugin "$plugin" "$javac_opts" "$javac_classpath" "$server_libdir"
+  test -f $EZPLUGIN_JAR || canarymod_build_plugin "EZPlugin" "$JAVAC_OPTS" "$(javac_classpath)" "$(server_libdir)"
+  canarymod_build_plugin "$plugin" "$JAVAC_OPTS" "$(javac_classpath)" "$(server_plugindir)"
 }
 
 bake_task ahmine2_list_plugins
@@ -179,4 +193,11 @@ function ahmine2_list_plugins () {
     bake_echo_green "  bake ahmine2_build_plugin $f"
   done
   bake_echo_green ""
+}
+
+bake_task build_plugin
+function build_plugin () {
+  local plugin="$1"
+  test -f $EZPLUGIN_JAR || canarymod_build_plugin "EZPlugin" "$JAVAC_OPTS" "$(javac_classpath)" "$(server_libdir)"
+  canarymod_build_plugin "$plugin" "$JAVAC_OPTS" "$(javac_classpath)" "$(server_plugindir)" "."
 }

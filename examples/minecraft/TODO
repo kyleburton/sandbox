@@ -1,6 +1,4 @@
-TODO: NB: you must build EZPlugin before building any other plugins...build this automatically
 TODO: bake task: install EZPlugin into local maven repository
-TODO: ahmine2_build_plugin must install EZPlugin into ./lib, but other plugins into ./plugins
 TODO: CanaryMod plugin: Run a Cider NREPL
 
 DONE[2015-05-28T12:20:22Z]: set up bild scripting / automation (bake)
@@ -20,4 +18,6 @@ DONE[2015-05-28T12:20:22Z]: Test restoration
 
 DONE[2015-05-29T12:22:31Z]: bake task: build Java based plugins, can this be done via lein?
 DONE[2015-05-29T12:22:31Z]: bake task: 'deploy' Java based plugins into ./plugins
+DONE[2015-05-31T00:05:12Z]: NB: you must build EZPlugin before building any other plugins...build this automatically
+DONE[2015-05-31T00:05:12Z]: ahmine2_build_plugin must install EZPlugin into ./lib, but other plugins into ./plugins
 
