@@ -10,10 +10,19 @@ import net.canarymod.api.world.position.Location;
 import net.canarymod.api.world.blocks.BlockType;
 import com.pragprog.ahmine.ez.EZPlugin;
 
+import clojure.lang.Symbol;
+import clojure.lang.Var;
+import clojure.lang.RT;
+import clojure.java.api.Clojure;
+import clojure.lang.IFn;
+
 public class CiderRepl extends EZPlugin {
-  private static boolean isRunning = false;
+  public static boolean isRunning = false;
   private static Logman LOG = null;
-  private static int port = 4444;
+  public static int port = 4444;
+
+  public static Var REQUIRE = null;
+  public static Object nreplServer = null;
 
   public CiderRepl () {
     super();
@@ -36,14 +45,11 @@ public class CiderRepl extends EZPlugin {
             toolTip = "/cider [port=4444]")
   public void startCiderRepl(MessageReceiver caller, String[] parameters) {
     synchronized(CiderRepl.class) {
-      if (isRunning) {
-        LOG.info("CiderRepl.startCiderRepl: already running on port:" + port);
-        return;
-      }
 
       if (parameters.length > 1) {
         if ( "stop".equals(parameters[1]) && isRunning) {
           LOG.info("TODO: stop the server");
+          // isRunning = false;
           return;
         }
 
@@ -55,8 +61,27 @@ public class CiderRepl extends EZPlugin {
         }
       }
 
+      if (isRunning) {
+        LOG.info("CiderRepl.startCiderRepl: already running on port:" + port);
+        return;
+      }
+
       LOG.info("CiderRepl.startCiderRepl: ok, start repl on port=" + port);
+
+      IFn requireFn = Clojure.var("clojure.core", "require");
+      IFn keywordFn = Clojure.var("clojure.core", "keyword");
+      requireFn.invoke(Symbol.intern("clojure.tools.nrepl.server"));
+      requireFn.invoke(Symbol.intern("cider.nrepl"));
+      IFn startServerFn = Clojure.var("clojure.tools.nrepl.server", "start-server");
+      IFn ciderNreplHandlerFn = Clojure.var("cider.nrepl", "cider-nrepl-handler");
+      nreplServer = startServerFn.invoke(
+          keywordFn.invoke("port"),
+          port,
+          keywordFn.invoke("handler"),
+          ciderNreplHandlerFn
+      );
       isRunning = true;
+      LOG.info("CiderRepl.startCiderRepl: ok, started, server=" + nreplServer);
     }
 
   }
