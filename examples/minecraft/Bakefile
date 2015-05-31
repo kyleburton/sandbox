@@ -84,7 +84,7 @@ function run_canarymod_server () {
     echo "Error: you have to accept the EULA, see the file eula.txt"
     return 1
   fi
-  java -cp "$(lein classpath)" -Xms1024M -Xmx1024M net.canarymod.Main
+  java -cp "$CANARYMOD_JAR:$(lein classpath):plugins/*:lib/*" -Xms1024M -Xmx1024M net.canarymod.Main
 }
 
 bake_task mvn_install_canarymod "Install CanaryMod into ~/.m2/repo"

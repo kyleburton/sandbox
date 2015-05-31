@@ -14,5 +14,5 @@
                  [clj-time                               "0.8.0"]
                  [org.clojure/core.cache                 "0.6.4"]
                  [org.clojure/data.csv                   "0.1.2"]
-                 [canarymod/canarymod                    "1.2.0"]
+                 ;;[canarymod/canarymod                    "1.2.0"]
                  ])

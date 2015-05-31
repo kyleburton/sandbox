@@ -42,15 +42,21 @@ public class CiderRepl extends EZPlugin {
       }
 
       if (parameters.length > 1) {
+        if ( "stop".equals(parameters[1]) && isRunning) {
+          LOG.info("TODO: stop the server");
+          return;
+        }
+
         try {
           port = Integer.parseInt(parameters[1]);
         }
         catch (Exception ex) {
-          LOG.info("Error parsing port from parameter: '" + parameters[1] + "'");
+          LOG.info("Error parsing port from parameter: '" + parameters[1] + "', will fall back to default port=" + port);
         }
       }
 
       LOG.info("CiderRepl.startCiderRepl: ok, start repl on port=" + port);
+      isRunning = true;
     }
 
   }
