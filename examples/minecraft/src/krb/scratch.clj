@@ -4,7 +4,28 @@
    [net.canarymod.api CanaryServer]
    [net.canarymod.api.world.blocks BlockType]
    [net.canarymod.api.world.position Location]
+   [net.canarymod.api.entity EntityType]
    [com.pragprog.ahmine.ez EZPlugin]))
+
+(defmacro after [stime & body]
+  `(.run
+    (Thread.
+     (fn []
+       (Thread/sleep ~stime)
+       ((fn [] ~@body))))))
+
+(defn ->player [p]
+  (cond
+   (string? p)
+   (get-player p)
+
+   (isa? (class p) net.canarymod.api.entity.living.humanoid.CanaryPlayer)
+   p
+
+   :otherwise
+   (throw (RuntimeException. (format "Error: don't know how to convert %s into a player" p)))))
+
+
 
 (defn get-player-list []
   (->
@@ -25,9 +46,8 @@
 
 (defn player-location [name]
   (->
-   (get-player name)
+   (->player name)
    (.getLocation)))
-
 
 (defn cake-tower [name height & [block-type]]
   (let [block-type (or block-type (BlockType/Cake))]
@@ -92,17 +112,6 @@
 
 ;; build a "house"
 ;; dimensions: height, width, length
-
-(defn ->player [p]
-  (cond
-   (string? p)
-   (get-player p)
-
-   (isa? (class p) net.canarymod.api.entity.living.humanoid.CanaryPlayer)
-   p
-
-   :otherwise
-   (throw (RuntimeException. (format "Error: don't know how to convert %s into a player" p)))))
 
 (defn build-cube-around-player [player radius btype]
   (let [player (->player player)
@@ -184,7 +193,35 @@
   (doseq [mob (all-mobs)]
     (.teleportTo mob loc)))
 
+(defn spawn-cow [loc]
+  (let [world (.getWorld loc)]
+    (EZPlugin/spawnEntityLiving loc EntityType/COW)))
+
+(defn fling [player victim speed]
+  (EZPlugin/fling (->player player) victim speed))
+
+(defn mob-shooter [player n]
+  (let [loc (player-location player)]
+    (.setZ loc (+ 2 (.getZ loc)))
+    (doseq [mob (take n (all-mobs))]
+      (.teleportTo mob loc)
+      (fling player mob 3.0))))
+
+;; addSynchronousTask
+;; removeSynchronousTask
+
+
 (comment
+  (after
+   2000
+   (mob-shooter "kyle_burton" 5))
+
+  (let [loc (player-location "kyle_burton")]
+    (.setY  loc (+ 5 (.getY loc)))
+    (.setZ  loc (+ 5 (.getZ loc)))
+    (spawn-cow loc))
+
+  EZPlugin
 
   (.run
    (Thread.
@@ -197,21 +234,32 @@
    (Thread.
     #(let [loc (player-location "kyle_burton")]
        (Thread/sleep 2000)
-       (.setY loc (+ (.getY loc) 10))
+       #_(.setY loc (+ (.getY loc) 10))
+       (.setZ loc (+ (.getZ loc) 20))
        (bring-em-here! loc)
-       (light-em-up!))))
+       #_(light-em-up!))))
+
+  (light-em-up!)
+
+
+  (let [loc (player-location "kyle_burton")]
+    #_(Thread/sleep 2000)
+    (.setY loc (+ (.getY loc) 40))
+    (.setZ loc (+ (.getZ loc) 20))
+    (bring-em-here! loc)
+    #_(light-em-up!))
 
 
 
   (build-cube-around-player "kyle_burton" 10 BlockType/Air)
 
-  (build-cube-around-player "kyle_burton" 10 BlockType/OakPlanks)
+  (build-cube-around-player "kyle_burton" 4 BlockType/OakPlanks)
 
   (build-cube-around-player "kyle_burton" 2 BlockType/OakPlanks)
 
-  (build-cube-around-player "kyle_burton" 10 BlockType/Ice)
+  (build-cube-around-player "kyle_burton" 4 BlockType/Ice)
   (build-cube-around-player "kyle_burton" 10 BlockType/Water)
-  (build-cube-around-player "kyle_burton" 3 BlockType/Sponge)
+  (build-cube-around-player "kyle_burton" 4 BlockType/Sponge)
 
   (doseq [ii (range 20)]
     (build-cube-around-player "kyle_burton" ii BlockType/Air))
@@ -222,6 +270,8 @@
   (build-cube-around-player "kyle_burton" 10 BlockType/JunglePlanks)
   (build-cube-around-player "kyle_burton" 10 BlockType/DarkOakPlanks)
   (build-cube-around-player "kyle_burton" 10 BlockType/Podzol)
+
+  (build-cube-around-player "kyle_burton" 4 BlockType/CoalBlock)
 
   BlockType/SprucePlanks
   BlockType/BirchPlanks
