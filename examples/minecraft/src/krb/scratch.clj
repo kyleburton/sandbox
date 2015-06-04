@@ -5,7 +5,8 @@
    [net.canarymod.api.world.blocks BlockType]
    [net.canarymod.api.world.position Location]
    [net.canarymod.api.entity EntityType]
-   [com.pragprog.ahmine.ez EZPlugin]))
+   [com.pragprog.ahmine.ez EZPlugin]
+   #_[schema.core :as s]))
 
 (defmacro after [stime & body]
   `(.run
@@ -13,6 +14,13 @@
      (fn []
        (Thread/sleep ~stime)
        ((fn [] ~@body))))))
+
+(defn get-player [name]
+  (->
+   (net.canarymod.Canary/getServer)
+   (.getPlayer name)))
+
+
 
 (defn ->player [p]
   (cond
@@ -33,11 +41,6 @@
    (.getPlayerList)
    vec))
 
-
-(defn get-player [name]
-  (->
-   (net.canarymod.Canary/getServer)
-   (.getPlayer name)))
 
 (defn chat-player [name & chats]
   (let [player (get-player name)]
@@ -200,21 +203,108 @@
 (defn fling [player victim speed]
   (EZPlugin/fling (->player player) victim speed))
 
-(defn mob-shooter [player n]
-  (let [loc (player-location player)]
-    (.setZ loc (+ 2 (.getZ loc)))
-    (doseq [mob (take n (all-mobs))]
-      (.teleportTo mob loc)
-      (fling player mob 3.0))))
+(defn mob-shooter [player & [n]]
+  (.run
+   (Thread.
+    #(let [player-name "kyle_burton"
+           player      (->player player-name)
+           loc         (player-location player)
+           n           (or n Integer/MAX_VALUE)]
+       (Thread/sleep 2000)
+       (doseq [mob (take n (all-mobs))]
+         (Thread/sleep 50)
+         (.teleportTo mob loc)
+         (fling player mob 3.0))))))
 
 ;; addSynchronousTask
 ;; removeSynchronousTask
 
+(defn ->location [loc]
+  (cond
+   (or (vector? loc) (seq? loc))
+   (Location. (nth loc 0)
+              (nth loc 1)
+              (nth loc 2))
+   (map? loc)
+   (Location. (:x loc) (:y loc) (:z loc))
+   :else
+   loc))
+
+(defn loc->ground-height [loc]
+  (let [loc   (->location loc)
+        world (.getWorld loc)]
+    (.getHighestBlockAt world (.getY loc) (.getZ loc))))
+
+(defn loc-set-at-ground-height! [loc]
+  (.setY loc (loc->ground-height loc))
+  loc)
+
+(defn teleport-to-ground-height [player location]
+  (let [loc (->location location)]
+    (loc-set-at-ground-height! loc)
+    (.teleportTo (->player player) loc)))
+
+;; l2 must be a map for now
+;; TODO: allow l2 to be other kinds of locations (vector of offsets or map)
+(defn loc+ [l1 l2]
+  (let [l1 (->location l1)]
+    (Location.
+     (+ (.getX l1) (:x l2 0))
+     (+ (.getY l1) (:y l2 0))
+     (+ (.getZ l1) (:z l2 0)))))
+(defn loc->vec [l]
+  [(.getX l)
+   (.getY l)
+   (.getZ l)])
+
+(defn build-road-system [start-loc distance & [road-info]]
+  (let [start-loc (->
+                   start-loc
+                   ->location
+                   loc-set-at-ground-height!)
+        length    (or (:length road-info) distance)
+        pavement-type (or (:block-type road-info)
+                          BlockType/StoneSlab)
+        world (.getWorld start-loc)]
+    ;; build north/south
+    (doseq [xx (range -128 128)]
+      (let [l1 (loc+ start-loc {:x xx})
+            l2 (loc+ l1        {:z 1})]
+        (.println System/out (format "laying down pavement at %s and %s" (loc->vec l1) (loc->vec l2)))
+        (.setBlockAt world l1 pavement-type)
+        (.setBlockAt world l2 pavement-type)))
+    ;; build east/west
+    ))
 
 (comment
+  (build-road-system [0 0 0] 128)
+
+  (-> [0 0 0]
+      ->location
+      loc-set-at-ground-height!)
+
+  (teleport-to-ground-height "kyle_burton" [0 0 0])
+
+  (loc->ground-height (player-location "kyle_burton"))
+
+  net.minecraft.server.MinecraftServer
   (after
    2000
-   (mob-shooter "kyle_burton" 5))
+   (mob-shooter "kyle_burton"))
+
+  (->
+   "kyle_burton"
+   ->player
+   (.teleportTo (Location. 0 64 0)))
+
+  (->
+   "kyle_burton"
+   ->player
+   player-location
+   .getWorld
+   )
+
+
 
   (let [loc (player-location "kyle_burton")]
     (.setY  loc (+ 5 (.getY loc)))
@@ -234,10 +324,15 @@
    (Thread.
     #(let [loc (player-location "kyle_burton")]
        (Thread/sleep 2000)
-       #_(.setY loc (+ (.getY loc) 10))
-       (.setZ loc (+ (.getZ loc) 20))
-       (bring-em-here! loc)
+       (.setY loc (+ (.getY loc) 10))
+       (.setZ loc (+ (.getZ loc) 10))
+       (doseq [mob (all-mobs)]
+         (Thread/sleep 50)
+         (.teleportTo mob loc)
+         (.setFireTicks mob 600))
        #_(light-em-up!))))
+
+
 
   (light-em-up!)
 

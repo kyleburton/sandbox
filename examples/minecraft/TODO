@@ -1,3 +1,6 @@
+TODO: add core.async (play with channels for eventing)
+TODO: add prismatic schema for typedefs / api descriptions
+TODO: example: build a roadway!
 TODO: example: spawn particle
 TODO: example: listen for world actions (eg: leather being used)
 TODO: example: spawn passive mob (cow, sheep, etc)
