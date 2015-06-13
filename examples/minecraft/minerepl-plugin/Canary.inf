@@ -1,0 +1,4 @@
+main-class = com.github.kyleburton.minecraft.CiderRepl
+name = CiderRepl
+author = Kyle Burton <kyle.burton@gmail.com>
+version = 1.0

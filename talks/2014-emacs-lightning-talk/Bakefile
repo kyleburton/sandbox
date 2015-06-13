@@ -4,7 +4,7 @@ bake_require src/sh/dev
 
 bake_task lmacs "Run the local emacs configuration"
 function lmacs () {
-  emacs "$@" --no-init-file --load .emacs
+  emacs -nw "$@" --no-init-file --load .emacs
 }
 
 bake_task install

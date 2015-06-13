@@ -8,9 +8,16 @@
                  [org.clojure/clojurescript "0.0-2202"]
                  [com.facebook/react "0.11.1"]
                  [figwheel "0.1.4-SNAPSHOT"]
-                 [org.clojure/core.async "0.1.278.0-76b25b-alpha"]
+                 [org.clojure/core.async "0.1.278.0-76b25b-alpha"
+                  :exclusions [org.clojure/core.async
+                               ring/ring-core
+                               compojure]]
                  [sablono "0.2.21"]
-                 [om "0.7.1"]]
+                 [om      "0.7.3"]
+                 [jarohen/chord              "0.4.2"]
+                 [prismatic/schema           "0.3.1"]
+                 [secretary                  "1.2.0"]
+                 ]
   
   :plugins [[lein-cljsbuild "1.0.3"]
             [lein-figwheel "0.1.4-SNAPSHOT"]]

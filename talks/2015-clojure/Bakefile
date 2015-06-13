@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+IMPRESS_GIT_URL="https://github.com/bartaz/impress.js.git"
+
+function init () {
+  bake_cd 
+  test -d software || mkdir software
+}
+
+bake_task install_impress_js
+function install_impress_js () {
+  local impress_dir="$(basename $IMPRESS_GIT_URL .git)"
+  bake_cd software
+  test -d "$impress_dir" || git clone "$IMPRESS_GIT_URL"
+}
+
+
+bake_task install 
+function install () {
+  install_impress_js
+}
+
+
+init

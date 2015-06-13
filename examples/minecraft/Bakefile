@@ -1,9 +1,26 @@
 #!/usr/bin/env bash
+
+bake_require github.com/kyleburton/bake-recipies/emacs/cider.sh
+
 INSTAL_PATH=/cygdrive/c/Users/kyle/AppData/Roaming/.minecraft
-
 MINECRAFT_SERVER_JAR_URL="https://s3.amazonaws.com/Minecraft.Download/versions/1.8.3/minecraft_server.1.8.3.jar"
-
 BAKCUP_DIR="$HOME/local/minecraft"
+CANARYMOD_VERSION="1.2.0"
+CANARYMOD_JAR="CanaryMod-$CANARYMOD_VERSION.jar"
+AHMINE2_CODE="http://media.pragprog.com/titles/ahmine2/code/ahmine2-code.zip"
+AHMINE2_DIR="ahmine2-code/code"
+EZPLUGIN_JAR="$(bake_bakefile_dir)/lib/EZPlugin.jar"
+JAVAC_OPTS="-Xlint:deprecation -d bin -sourcepath src -g:lines,vars,source"
+
+bake_task download_canarymod_jar "Download CanaryMod $CANARYMOD_VERSION"
+function download_canarymod_jar () {
+  set -x
+  if [ ! -f "$CANARYMOD_JAR" ]; then
+
+    local furl=$(curl "http://canarymod.net/releases" | perl -ne 'print "$1\n" if m|<a href="([^"]+)">CanaryMod-1.2.0.jar</a>|ms')
+    curl "http://canarymod.net$furl" > CanaryMod-$CANARYMOD_VERSION.jar
+  fi
+}
 
 function isodate () {
   date -u +"%Y-%m-%dT%H:%M:%SZ"
@@ -39,27 +56,150 @@ function restore () {
   rsync -avz ./saves $INSTAL_PATH/
 }
 
-bake_task install
-function install () {
+bake_task minecraft_install "Download the vanilla Minecraft Server JAR"
+function minecraft_install () {
   local jfile="$(basename $MINECRAFT_SERVER_JAR_URL)"
   test -f  $jfile || wget $MINECRAFT_SERVER_JAR_URL
 }
 
 
-bake_task install_sun_jdk
+bake_task install_sun_jdk "Install Oracle JDK"
 function install_sun_jdk () {
   sudo apt-add-repository ppa:webupd8team/java
   sudo apt-get update
   sudo apt-get install oracle-java7-installer
 }
 
-bake_task run_server
-function run_server () {
-  #jvm_args="-Xmx3G -Xms3G -Xmn768m -XX:+DisableExplicitGC -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:+UseNUMA -XX:+CMSParallelRemarkEnabled -XX:MaxTenuringThreshold=15 -XX:MaxGCPauseMillis=30 -XX:GCPauseIntervalMillis=150 -XX:+UseAdaptiveGCBoundary -XX:-UseGCOverheadLimit -XX:+UseBiasedLocking -XX:SurvivorRatio=8 -XX:TargetSurvivorRatio=90 -XX:MaxTenuringThreshold=15 -Dfml.ignorePatchDiscrepancies=true -Dfml.ignoreInvalidMinecraftCertificates=true -XX:+UseFastAccessorMethods -XX:+UseCompressedOops -XX:+OptimizeStringConcat -XX:+AggressiveOpts -XX:ReservedCodeCacheSize=2048m -XX:+UseCodeCacheFlushing -XX:SoftRefLRUPolicyMSPerMB=10000 -XX:parallelGCThreads=10"
-  jvm_args="-Xmx3G -Xms3G -Xmn768m -XX:MaxGCPauseMillis=30 -XX:GCPauseIntervalMillis=150 -XX:+OptimizeStringConcat"
+bake_task run_standard_server "Run vanilla Minecraft Server"
+function run_standard_server () {
   jfile="$(basename $MINECRAFT_SERVER_JAR_URL)"
-  # java -Xms512M -Xmx1024M -jar $jfile nogui
+  jvm_args="-Xmx3G -Xms3G -Xmn768m -XX:MaxGCPauseMillis=30 -XX:GCPauseIntervalMillis=150 -XX:+OptimizeStringConcat"
   set -x
   java $jvm_args -jar $jfile nogui
 }
 
+
+bake_task run_canarymod_server "Run CanaryMod with local plugins"
+function run_canarymod_server () {
+  set -x
+  if grep -q "eula=false" eula.txt; then
+    echo "Error: you have to accept the EULA, see the file eula.txt"
+    return 1
+  fi
+  java -cp "$CANARYMOD_JAR:$(lein classpath):plugins/*:lib/*" -Xms1024M -Xmx1024M net.canarymod.Main
+}
+
+bake_task mvn_install_canarymod "Install CanaryMod into ~/.m2/repo"
+function mvn_install_canarymod () {
+  mvn install:install-file -Dfile=$CANARYMOD_JAR -DgroupId=canarymod \
+    -DartifactId=canarymod -Dversion=$CANARYMOD_VERSION -Dpackaging=jar
+}
+
+# both of these need to be on the classpath when compiling plugins:
+# MODS="\$MCSERVER/CanaryMod.jar"
+# EZ="\$MCSERVER/lib/EZPlugin.jar"
+
+bake_task ahmine2_download "Download the 'Learn to Program with Minecraft Plugins' code"
+function ahmine2_download () {
+  local fname="$(basename $AHMINE2_CODE)"
+  test -f $fname || wget --continue $AHMINE2_CODE
+  test -d ahmine2-code || mkdir ahmine2-code
+  cd ahmine2-code
+  test -d code || unzip ../$fname
+}
+
+function lein_classpath () {
+  local cp_file="$(bake_bakefile_dir)/.lein-classpath"
+  if [ ! -e $cp_file ]; then
+    lein classpath > $cp_file
+  fi
+
+  if [ project.clj -nt $cp_file ]; then
+    lein classpath > $cp_file
+  fi
+
+  cat $cp_file
+}
+
+function canarymod_jar () {
+  echo $(bake_bakefile_dir)/$CANARYMOD_JAR
+}
+
+function javac_classpath () {
+  echo "$(lein_classpath):$(canarymod_jar)"
+}
+
+function server_libdir () {
+  echo "$(bake_bakefile_dir)/lib"
+}
+
+function server_plugindir () {
+  echo "$(bake_bakefile_dir)/plugins"
+}
+
+function canarymod_build_plugin () {
+  local plugin="$1"
+  local javac_opts="$2"
+  local javac_classpath="$3"
+  local server_libdir="$4"
+  local plugin_dir="${5:-$AHMINE2_DIR}"
+
+  bake_cd $plugin_dir
+  if [ ! -d $plugin ]; then
+    bake_echo_red "Error: plugin $plugin does not exist in $plugin_dir, try one of:"
+    bake_echo_red ""
+    for f in $(ls -1 .); do
+      bake_echo_red "  bake ahmine2_build_plugin $f"
+    done
+    bake_echo_red ""
+    return 1
+  fi
+
+  cd $plugin
+  if [ ! -e Canary.inf ]; then
+    bake_echo_red "Error: plugins need to have a Canary.inf!"
+    return 1
+  fi
+
+  test -d bin || mkdir bin
+  test -d dist || mkdir dist
+  rm -f bin/*/*.class || echo "removed classes"
+  rm -f dist/*.jar || echo "removed jar"
+  bake_echo_green "$plugin: compiling..."
+  javac $javac_opts -cp $javac_classpath:$EZPLUGIN_JAR $(find src -name '*.java') 
+  bake_echo_green "$plugin: compiled"
+  bake_echo_green "$plugin: creating jar..."
+  jar -cf "dist/$plugin.jar" *.inf -C bin . || exit 3
+  bake_echo_green "$plugin: jar created"
+  test -d $server_libdir || mkdir $server_libdir
+  cp "dist/$plugin.jar" "$server_libdir"
+  bake_echo_green $plugin: installed "dist/$plugin.jar" into "$server_libdir"
+  bake_echo_green $plugin: restart your server to load the plugin
+}
+
+bake_task ahmine2_build_plugin
+function ahmine2_build_plugin () {
+  local plugin="$1"
+
+  bake_cd
+  ahmine2_download
+  test -f $EZPLUGIN_JAR || canarymod_build_plugin "EZPlugin" "$JAVAC_OPTS" "$(javac_classpath)" "$(server_libdir)"
+  canarymod_build_plugin "$plugin" "$JAVAC_OPTS" "$(javac_classpath)" "$(server_plugindir)"
+}
+
+bake_task ahmine2_list_plugins
+function ahmine2_list_plugins () {
+  bake_cd $AHMINE2_DIR
+  bake_echo_green ""
+  for f in $(ls -1 .); do
+    bake_echo_green "  bake ahmine2_build_plugin $f"
+  done
+  bake_echo_green ""
+}
+
+bake_task build_plugin
+function build_plugin () {
+  local plugin="$1"
+  test -f $EZPLUGIN_JAR || canarymod_build_plugin "EZPlugin" "$JAVAC_OPTS" "$(javac_classpath)" "$(server_libdir)"
+  canarymod_build_plugin "$plugin" "$JAVAC_OPTS" "$(javac_classpath)" "$(server_plugindir)" "."
+}

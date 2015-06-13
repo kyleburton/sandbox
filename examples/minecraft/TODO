@@ -1,0 +1,39 @@
+TODO: add core.async (play with channels for eventing)
+TODO: add prismatic schema for typedefs / api descriptions
+TODO: example: build a roadway!
+TODO: example: spawn particle
+TODO: example: listen for world actions (eg: leather being used)
+TODO: example: spawn passive mob (cow, sheep, etc)
+TODO: example: introduce a new server command w/o restarting the server
+TODO: example: build a house
+TODO: example: build a castle
+TODO: example: take object (building / construction) plans from an external file (csv or json?)
+TODO: example: save object (building / construction) plans to an external file (csv or json?)
+TODO: prefab: plans for mob farm
+TODO: prefab: plans for tree farm
+TODO: prefab: plans for fish farm
+TODO: prefab: plans for gold farm (nested nether portals)
+TODO: prefab: plans for iron golem farm
+
+DONE[2015-05-28T12:20:22Z]: set up bild scripting / automation (bake)
+DONE[2015-05-28T12:20:22Z]: new lein project: "lein new minerepl"
+DONE[2015-05-28T12:20:22Z]: bake task: install CanaryMod into local maven repository
+DONE[2015-05-28T12:20:22Z]: bake task: download CanaryMod
+DONE[2015-05-28T12:20:22Z]: bake task: run CanaryMod
+DONE[2015-05-28T12:20:22Z]: bake task: check CanaryMod eula
+DONE[2015-05-28T12:20:22Z]: CanaryMod: classpath for CanaryMod + "leiningen classpath"
+
+
+DONE[2015-05-28T12:20:22Z]: Backup the minecraft saves directory.
+DONE[2015-05-28T12:20:22Z]: Use git for versioning.
+DONE[2015-05-28T12:20:22Z]: Test restoration
+
+
+
+DONE[2015-05-29T12:22:31Z]: bake task: build Java based plugins, can this be done via lein?
+DONE[2015-05-29T12:22:31Z]: bake task: 'deploy' Java based plugins into ./plugins
+DONE[2015-05-31T00:05:12Z]: NB: you must build EZPlugin before building any other plugins...build this automatically
+DONE[2015-05-31T00:05:12Z]: ahmine2_build_plugin must install EZPlugin into ./lib, but other plugins into ./plugins
+
+DONE[2015-05-31T20:39:08Z]: bake task: install EZPlugin into local maven repository
+DONE[2015-05-31T20:39:08Z]: CanaryMod plugin: Run a Cider NREPL

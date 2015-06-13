@@ -1,4 +1,9 @@
+Install bake:
 
-DONE: Backup the minecraft saves directory.
-DONE: Use git for versioning.
-DONE: Test restoration
+  https://github.com/kyleburton/bake
+
+
+
+References
+
+* Learn to Program with Minecraft Plugins - Andy Hunt
