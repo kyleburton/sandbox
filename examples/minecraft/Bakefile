@@ -18,16 +18,16 @@ function sync () {
 
 bake_task backup
 function backup () {
+  set -exu
   bake_echo_red "Make sure the server is stopped first..."
   echo -n "Press Enter: "
   read FOO
   test -d "$BAKCUP_DIR" || mkdir $BAKCUP_DIR
   cd "$BAKCUP_DIR"
-  rsync "$(bake_bakefile_dir)" ./
-  bash
+  rsync -avz "$(bake_bakefile_dir)" ./
   local bname="${1:-backup}"
   local logmsg="$(isodate): $bname"
-  sync
+  # sync
   test -d .git || git init
   git add .
   git commit -m "$logmsg"
@@ -55,6 +55,11 @@ function install_sun_jdk () {
 
 bake_task run_server
 function run_server () {
+  #jvm_args="-Xmx3G -Xms3G -Xmn768m -XX:+DisableExplicitGC -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -XX:+UseNUMA -XX:+CMSParallelRemarkEnabled -XX:MaxTenuringThreshold=15 -XX:MaxGCPauseMillis=30 -XX:GCPauseIntervalMillis=150 -XX:+UseAdaptiveGCBoundary -XX:-UseGCOverheadLimit -XX:+UseBiasedLocking -XX:SurvivorRatio=8 -XX:TargetSurvivorRatio=90 -XX:MaxTenuringThreshold=15 -Dfml.ignorePatchDiscrepancies=true -Dfml.ignoreInvalidMinecraftCertificates=true -XX:+UseFastAccessorMethods -XX:+UseCompressedOops -XX:+OptimizeStringConcat -XX:+AggressiveOpts -XX:ReservedCodeCacheSize=2048m -XX:+UseCodeCacheFlushing -XX:SoftRefLRUPolicyMSPerMB=10000 -XX:parallelGCThreads=10"
+  jvm_args="-Xmx3G -Xms3G -Xmn768m -XX:MaxGCPauseMillis=30 -XX:GCPauseIntervalMillis=150 -XX:+OptimizeStringConcat"
   jfile="$(basename $MINECRAFT_SERVER_JAR_URL)"
-  java -Xms512M -Xmx1024M -jar $jfile nogui
+  # java -Xms512M -Xmx1024M -jar $jfile nogui
+  set -x
+  java $jvm_args -jar $jfile nogui
 }
+
