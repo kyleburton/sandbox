@@ -181,6 +181,15 @@
                    (- (.getZ loc) radius))]
           (.setBlockAt world loc btype))))))
 
+(defn all-creatures []
+  (->
+   (get-player-list)
+   first
+   .getLocation
+   .getWorld
+   .getEntityLivingList
+   vec))
+
 (defn all-mobs []
   (filter
    #(.isMob %)
@@ -196,9 +205,22 @@
   (doseq [mob (all-mobs)]
     (.setFireTicks mob 600)))
 
+
+(defn light-em-all-up! []
+  (doseq [creature (all-creatures)]
+    (.setFireTicks creature 600)))
+
+(defn light-em-all-up! []
+  (doseq [creature (all-creatures)]
+    (.setFireTicks creature 600)))
+
 (defn bring-em-here! [loc]
   (doseq [mob (all-mobs)]
     (.teleportTo mob loc)))
+
+(defn bring-em-all-here! [loc]
+  (doseq [creature (all-creatures)]
+    (.teleportTo creature loc)))
 
 (defn spawn-cow [loc]
   (let [world (.getWorld loc)]
@@ -220,6 +242,58 @@
          (.teleportTo mob loc)
          (fling player mob 3.0))))))
 
+(defn creature-shooter [player entity-type num]
+  (let [player      (->player player)
+        loc         (player-location player)]
+    (doseq [entity-type (take num (repeat entity-type))]
+      (Thread/sleep 50)
+      (let [thing (-> (Canary/factory)
+                      .getEntityFactory
+                      (.newEntity entity-type loc))]
+        (.spawn thing)
+        (.println System/out (format "creating entity: %s at %s" entity-type loc))
+        (fling player thing 3.0)))))
+
+(comment
+
+
+  (creature-shooter "kyle_burton" EntityType/DONKEY 5)
+  (creature-shooter "kyle_burton" EntityType/FARMER 5)
+  (creature-shooter "kyle_burton" EntityType/GIANTZOMBIE 5)
+  (creature-shooter "kyle_burton" EntityType/IRONGOLEM 5)
+  (creature-shooter "kyle_burton" EntityType/OCELOT 5)
+  (creature-shooter "kyle_burton" EntityType/COW 100)
+
+  (creature-shooter "kyle_burton" EntityType/MULE 5)
+  (creature-shooter "kyle_burton" EntityType/PRIEST 5)
+  (creature-shooter "kyle_burton" EntityType/SHEEP 5)
+  (creature-shooter "kyle_burton" EntityType/WOLF 12)
+
+  (do
+    (creature-shooter "kyle_burton" EntityType/SNOWMAN 12)
+    (creature-shooter "kyle_burton" EntityType/CREEPER 12))
+
+  (do
+    (creature-shooter "kyle_burton" EntityType/SNOWMAN 12)
+    (creature-shooter "kyle_burton" EntityType/IRONGOLEM 12))
+
+
+  (creature-shooter "kyle_burton" EntityType/ZOMBIE 12)
+  (creature-shooter "kyle_burton" EntityType/SNOWMAN 5)
+
+  (creature-shooter "kyle_burton" EntityType/ENDERMAN 5)
+
+  (light-em-all-up!)
+
+  ;; (creature-shooter "kyle_burton" EntityType/TNTPRIMED 2)
+  ;; (creature-shooter "kyle_burton" EntityType/LARGEFIREBALL 10)
+
+  (light-em-up!)
+
+  EntityType
+
+  )
+
 ;; addSynchronousTask
 ;; removeSynchronousTask
 
@@ -234,10 +308,23 @@
    :else
    loc))
 
+(defn ->location-tuple [loc]
+  (cond
+   (or (vector? loc) (seq? loc))
+   loc
+   (map? loc)
+   [(long (:x loc)) (long (:y loc)) (long (:z loc))]
+   :else
+   [(long (.getX loc)) (long (.getY loc)) (long (.getZ loc))]))
+
 (defn loc->ground-height [loc]
-  (let [loc   (->location loc)
-        world (.getWorld loc)]
-    (.getHighestBlockAt world (.getY loc) (.getZ loc))))
+  (let [loc    (->location loc)
+        world  (.getWorld loc)
+        height (.getHighestBlockAt world (.getY loc) (.getZ loc))]
+    ;; should we try not to place the user undeground?
+    (if (< height 30)
+      60
+      height)))
 
 (defn loc-set-at-ground-height! [loc]
   (.setY loc (loc->ground-height loc))
@@ -255,11 +342,13 @@
 ;; l2 must be a map for now
 ;; TODO: allow l2 to be other kinds of locations (vector of offsets or map)
 (defn loc+ [l1 l2]
-  (let [l1 (->location l1)]
+  (let [l1 (->location l1)
+        l2 (->location l2)]
     (Location.
-     (+ (.getX l1) (:x l2 0))
-     (+ (.getY l1) (:y l2 0))
-     (+ (.getZ l1) (:z l2 0)))))
+     (+ (.getX l1) (.getX l2))
+     (+ (.getY l1) (.getY l2))
+     (+ (.getZ l1) (.getZ l2)))))
+
 (defn loc->vec [l]
   [(.getX l)
    (.getY l)
@@ -314,11 +403,21 @@
     (teleport-to-ground-height name [0 0 0])))
 
 (comment
+  (->location-tuple (player-location "kyle_burton"))
+  ;; this is a flat area in the default generated world
+  (teleport-to "kyle_burton" [-119 82 -421])
+
   (teleport-to "kyle_burton" (loc+ (player-location "kyle_burton") [0 10 0]))
 
-  (player-location "kyle_burton")
-  (loc+ (player-location "kyle_burton") [0 10 0])
-  
+
+  (bring-em-all-here!
+   (loc+
+    (player-location "kyle_burton")
+    [20 5 0]))
+  (light-em-all-up!)
+
+  (light-em-up!)
+
 
   (front-and-center!)
 
@@ -335,7 +434,6 @@
 
   (loc->ground-height (player-location "kyle_burton"))
 
-  net.minecraft.server.MinecraftServer
   (after
    2000
    (mob-shooter "kyle_burton"))

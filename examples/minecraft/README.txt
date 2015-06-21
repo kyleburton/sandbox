@@ -22,6 +22,10 @@ Run the canarymod server:
 
     bake run_canarymod_server
 
+When that comes up, start cider:
+
+   /cider
+
 In a differetn termainl, run Emacs and connect to the running server:
 
     bake run_emacs src/krb/scratch.clj
