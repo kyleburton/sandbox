@@ -215,5 +215,10 @@ function init () {
 
 bake_task run_emacs
 function run_emacs () {
-  emacs -nw -q -l .emacs "$@"
+  if [ ! -e $HOME/.bake/packages/github.com/kyleburton/bake-recipies/files/emacs/.emacs ]; then
+    bake_echo_red "Error: can't find the local .emacs file"
+  fi
+
+  set -x
+  emacs -q -l $HOME/.bake/packages/github.com/kyleburton/bake-recipies/files/emacs/.emacs "$@"
 }

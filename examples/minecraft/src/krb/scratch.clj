@@ -20,7 +20,11 @@
    (net.canarymod.Canary/getServer)
    (.getPlayer name)))
 
-
+(defn player-names []
+  (->
+   (net.canarymod.Canary/getServer)
+   .getPlayerNameList
+   vec))
 
 (defn ->player [p]
   (cond
@@ -244,6 +248,10 @@
     (loc-set-at-ground-height! loc)
     (.teleportTo (->player player) loc)))
 
+(defn teleport-to [player loc]
+  (.teleportTo (->player player)
+               (->location loc)))
+
 ;; l2 must be a map for now
 ;; TODO: allow l2 to be other kinds of locations (vector of offsets or map)
 (defn loc+ [l1 l2]
@@ -269,24 +277,55 @@
         pavement-type (or (:block-type road-info)
                           BlockType/StoneSlab)
         world (.getWorld start-loc)]
+    
     ;; build north/south
-    (doseq [xx (range -128 128)]
+    (doseq [xx (range (* -1 length) length)]
       (let [l1 (loc+ start-loc {:x xx})
             l2 (loc+ l1        {:z 1})]
-        (.println System/out (format "laying down pavement at %s and %s" (loc->vec l1) (loc->vec l2)))
+        (.println System/out (format "laying down %s at %s and %s" pavement-type (loc->vec l1) (loc->vec l2)))
         (.setBlockAt world l1 pavement-type)
-        (.setBlockAt world (loc+ l1 {:y 1}) BlockType/Air)
-        (.setBlockAt world (loc+ l1 {:y 2}) BlockType/Air)
-        (.setBlockAt world (loc+ l1 {:y 3}) BlockType/Air)
+        #_(.setBlockAt world (loc+ l1 [0 1 0]) BlockType/Air)
+        #_(.setBlockAt world (loc+ l1 [0 2 0]) BlockType/Air)
+        #_(.setBlockAt world (loc+ l1 [0 3 0]) BlockType/Air)
+        
         (.setBlockAt world l2 pavement-type)
-        (.setBlockAt world (loc+ l2 {:y 1}) BlockType/Air)
-        (.setBlockAt world (loc+ l2 {:y 2}) BlockType/Air)
-        (.setBlockAt world (loc+ l2 {:y 3}) BlockType/Air)))
-    ;; TODO: build east/west
-    ))
+        #_(.setBlockAt world (loc+ l2 [0 1 0]) BlockType/Air)
+        #_(.setBlockAt world (loc+ l2 [0 2 0]) BlockType/Air)
+        #_(.setBlockAt world (loc+ l2 [0 3 0]) BlockType/Air)))
+
+    ;; build east/west
+    (doseq [zz (range (* -1 length) length)]
+      (let [l1 (loc+ start-loc {:z zz})
+            l2 (loc+ l1        {:x 1})]
+        (.println System/out (format "laying down %s at %s and %s" pavement-type (loc->vec l1) (loc->vec l2)))
+        (.setBlockAt world l1 pavement-type)
+        #_(.setBlockAt world (loc+ l1 [0 1 0]) BlockType/Air)
+        #_(.setBlockAt world (loc+ l1 [0 2 0]) BlockType/Air)
+        #_(.setBlockAt world (loc+ l1 [0 3 0]) BlockType/Air)
+        
+        (.setBlockAt world l2 pavement-type)
+        #_(.setBlockAt world (loc+ l2 [0 1 0]) BlockType/Air)
+        #_(.setBlockAt world (loc+ l2 [0 2 0]) BlockType/Air)
+        #_(.setBlockAt world (loc+ l2 [0 3 0]) BlockType/Air)))))
+
+
+(defn front-and-center! []
+  (doseq [name (player-names)]
+    (teleport-to-ground-height name [0 0 0])))
 
 (comment
-  (build-road-system [0 0 0] 128)
+  (teleport-to "kyle_burton" (loc+ (player-location "kyle_burton") [0 10 0]))
+
+  (player-location "kyle_burton")
+  (loc+ (player-location "kyle_burton") [0 10 0])
+  
+
+  (front-and-center!)
+
+  (build-road-system
+   (player-location "kyle_burton")
+   32
+   {:block-type BlockType/Stone})
 
   (-> [0 0 0]
       ->location
@@ -422,4 +461,10 @@
 
   net.canarymod.api.world.position.Location
 
-  net.canarymod.api.entity.living.humanoid.Player)
+  net.canarymod.api.entity.living.humanoid.Player
+
+
+  (net.canarymod.Canary/getServer)
+
+
+  )
