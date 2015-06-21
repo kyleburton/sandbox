@@ -203,3 +203,17 @@ function build_plugin () {
   test -f $EZPLUGIN_JAR || canarymod_build_plugin "EZPlugin" "$JAVAC_OPTS" "$(javac_classpath)" "$(server_libdir)"
   canarymod_build_plugin "$plugin" "$JAVAC_OPTS" "$(javac_classpath)" "$(server_plugindir)" "."
 }
+
+bake_task init 
+function init () {
+  download_canarymod_jar
+  ahmine2_download
+  build_plugin minerepl-plugin
+  emacs-install-cider
+  emacs-install-ac-cider
+}
+
+bake_task run_emacs
+function run_emacs () {
+  emacs -nw -q -l .emacs "$@"
+}
