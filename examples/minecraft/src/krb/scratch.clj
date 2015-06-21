@@ -257,6 +257,9 @@
    (.getY l)
    (.getZ l)])
 
+;; TODO: build east/west
+;; TODO: if called twice, don't keep layerying up half slabs
+;; TODO: every 10 blocks, place light posts (2 stacked fenceposts, and ... glowstone?)
 (defn build-road-system [start-loc distance & [road-info]]
   (let [start-loc (->
                    start-loc
@@ -272,8 +275,14 @@
             l2 (loc+ l1        {:z 1})]
         (.println System/out (format "laying down pavement at %s and %s" (loc->vec l1) (loc->vec l2)))
         (.setBlockAt world l1 pavement-type)
-        (.setBlockAt world l2 pavement-type)))
-    ;; build east/west
+        (.setBlockAt world (loc+ l1 {:y 1}) BlockType/Air)
+        (.setBlockAt world (loc+ l1 {:y 2}) BlockType/Air)
+        (.setBlockAt world (loc+ l1 {:y 3}) BlockType/Air)
+        (.setBlockAt world l2 pavement-type)
+        (.setBlockAt world (loc+ l2 {:y 1}) BlockType/Air)
+        (.setBlockAt world (loc+ l2 {:y 2}) BlockType/Air)
+        (.setBlockAt world (loc+ l2 {:y 3}) BlockType/Air)))
+    ;; TODO: build east/west
     ))
 
 (comment
@@ -301,8 +310,7 @@
    "kyle_burton"
    ->player
    player-location
-   .getWorld
-   )
+   .getWorld)
 
 
 
