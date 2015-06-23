@@ -1,10 +1,11 @@
+TODO: re-implement the Repl Class so we don't depend on EZPlugin / the prag-prog jar or code
+TODO: re-implement 'fling' so we don't depend on EZPlugin / the prag-prog jar or code
 TODO: spawn items
 TODO: spawn effects
 TODO: spawn a creature, give it an item
 TODO: setAttackTarget
 TODO: background tasks
 TODO: add server commands dynamically
-TODO: re-implement 'fling' so we don't depend on EZPlugin / the prag-prog jar
 TODO: cider plugin: support live eval
 TODO: add core.async (play with channels for eventing)
 TODO: add prismatic schema for typedefs / api descriptions
