@@ -5,6 +5,8 @@
    [net.canarymod.api.world.blocks BlockType]
    [net.canarymod.api.world.position Location]
    [net.canarymod.api.entity EntityType]
+   [net.canarymod.api.world.effects Particle]
+   [net.canarymod.api.entity.living.humanoid Player]
    [com.pragprog.ahmine.ez EZPlugin]
    #_[schema.core :as s]))
 
@@ -55,6 +57,27 @@
   (->
    (->player name)
    (.getLocation)))
+
+(defn ->location [thing]
+  (cond
+   (or (vector? thing) (seq? thing))
+   (Location. (nth thing 0)
+              (nth thing 1)
+              (nth thing 2))
+   
+   (map? thing)
+   (Location. (:x thing) (:y thing) (:z thing))
+   
+   (isa? (class thing) Player)
+   (.getLocation thing)
+
+   (string? thing)
+   (player-location thing)
+   
+   :else
+   thing))
+
+
 
 (defn cake-tower [name height & [block-type]]
   (let [block-type (or block-type (BlockType/Cake))]
@@ -254,20 +277,97 @@
         (.println System/out (format "creating entity: %s at %s" entity-type loc))
         (fling player thing 3.0)))))
 
+(defn spawn-particle [player particle-type]
+  (let [loc (->location player)]
+    (->
+     loc
+     .getWorld
+     (.spawnParticle (Particle. (.getX loc) (.getY loc) (.getZ loc) particle-type)))))
+
+(defn spawn-rider-and-steed [where steed-type rider-type]
+  (let [
+        loc    (->location where)
+        steed  (-> (Canary/factory)
+                   .getEntityFactory
+                   (.newEntity steed-type loc))
+        rider  (-> (Canary/factory)
+                   .getEntityFactory
+                   (.newEntity rider-type loc))]
+    (.spawn steed rider)))
+
 (comment
+  (loc+ "kyle_burton" [5 0 0])
+  (spawn-rider-and-steed
+   "kyle_burton"
+   EntityType/BAT
+   EntityType/SHEEP)
+  (spawn-rider-and-steed "kyle_burton" EntityType/BAT EntityType/IRONGOLEM)
+  (spawn-rider-and-steed "kyle_burton" EntityType/SHEEP EntityType/ZOMBIE)
+
+  (spawn-rider-and-steed "kyle_burton" EntityType/IRONGOLEM EntityType/ZOMBIE)
+
+  (spawn-rider-and-steed (loc+ "kyle_burton" [5 0 0]) EntityType/COW EntityType/CHICKEN)
+  (spawn-rider-and-steed (loc+ "kyle_burton" [5 0 0]) EntityType/CHICKEN EntityType/COW)
+  (spawn-rider-and-steed (loc+ "kyle_burton" [5 0 0]) EntityType/BAT EntityType/CHICKEN)
+  (spawn-rider-and-steed (loc+ "kyle_burton" [5 0 0]) EntityType/MOOSHROOM EntityType/PIG)
+
+  (bring-em-all-here! "kyle_burton")
+  
+  ;; getItemInHand
+  ;; setAttackTarget
+  ;; getHealth
+  ;; setHealth
+  ;; kill
+
+  (doseq [mob (all-mobs)]
+    (.kill mob))
+
+  (bring-em-here!
+   (->
+    "kyle_burton"
+    player-location
+    (loc+ [10 0 0])
+    loc-set-at-ground-height!))
+
+  (->
+   "kyle_burton"
+   player-location
+   (loc+ [10 5 0])
+   loc-set-at-ground-height!)
 
 
   (creature-shooter "kyle_burton" EntityType/DONKEY 5)
   (creature-shooter "kyle_burton" EntityType/FARMER 5)
-  (creature-shooter "kyle_burton" EntityType/GIANTZOMBIE 5)
+  (creature-shooter "kyle_burton" EntityType/ZOMBIE 5)
+  (creature-shooter "kyle_burton" EntityType/WITCH 3)
+  (creature-shooter "kyle_burton" EntityType/SPIDER 3)
+  (creature-shooter "kyle_burton" EntityType/SKELETON 3)
+  (creature-shooter "kyle_burton" EntityType/BLAZE 3)
+  (creature-shooter "kyle_burton" EntityType/CAVESPIDER 3)
+  (creature-shooter "kyle_burton" EntityType/CREEPER 3)
+  (creature-shooter "kyle_burton" EntityType/GHAST 1)
+  (creature-shooter "kyle_burton" EntityType/ENDERMAN 3)
+  ;; (creature-shooter "kyle_burton" EntityType/ENDERMITE 5)
+  (creature-shooter "kyle_burton" EntityType/SNOWMAN 3)
+  ;;(creature-shooter "kyle_burton" EntityType/MAGMACUBE 1)
+  (creature-shooter "kyle_burton" EntityType/PIGZOMBIE 1)
+  (creature-shooter "kyle_burton" EntityType/SILVERFISH 1)
+  (creature-shooter "kyle_burton" EntityType/SKELETONHORSE 1)
+  (creature-shooter "kyle_burton" EntityType/SLIME 1)
+  (creature-shooter "kyle_burton" EntityType/WITHER 1)
+  (creature-shooter "kyle_burton" EntityType/WITHERSKELETON 1)
+  (creature-shooter "kyle_burton" EntityType/ZOMBIEHORSE 1)
+  
   (creature-shooter "kyle_burton" EntityType/IRONGOLEM 5)
   (creature-shooter "kyle_burton" EntityType/OCELOT 5)
   (creature-shooter "kyle_burton" EntityType/COW 100)
 
+  (creature-shooter "kyle_burton" EntityType/GIANTZOMBIE 1)
+
   (creature-shooter "kyle_burton" EntityType/MULE 5)
   (creature-shooter "kyle_burton" EntityType/PRIEST 5)
   (creature-shooter "kyle_burton" EntityType/SHEEP 5)
-  (creature-shooter "kyle_burton" EntityType/WOLF 12)
+  (creature-shooter "kyle_burton" EntityType/WOLF 3)
 
   (do
     (creature-shooter "kyle_burton" EntityType/SNOWMAN 12)
@@ -297,25 +397,20 @@
 ;; addSynchronousTask
 ;; removeSynchronousTask
 
-(defn ->location [loc]
-  (cond
-   (or (vector? loc) (seq? loc))
-   (Location. (nth loc 0)
-              (nth loc 1)
-              (nth loc 2))
-   (map? loc)
-   (Location. (:x loc) (:y loc) (:z loc))
-   :else
-   loc))
-
-(defn ->location-tuple [loc]
+(defn ->loc-tuple [loc]
   (cond
    (or (vector? loc) (seq? loc))
    loc
+
    (map? loc)
-   [(long (:x loc)) (long (:y loc)) (long (:z loc))]
+   [(:x loc) (:y loc) (:z loc)]
+
+   (isa? (class loc) Location)
+   [(.getX loc) (.getY loc) (.getZ loc)]
+
    :else
-   [(long (.getX loc)) (long (.getY loc)) (long (.getZ loc))]))
+   (let [l (->location loc)]
+     [(.getX l) (.getY l) (.getZ l)])))
 
 (defn loc->ground-height [loc]
   (let [loc    (->location loc)
@@ -327,8 +422,9 @@
       height)))
 
 (defn loc-set-at-ground-height! [loc]
-  (.setY loc (loc->ground-height loc))
-  loc)
+  (doto
+      loc
+    (.setY (loc->ground-height loc))))
 
 (defn teleport-to-ground-height [player location]
   (let [loc (->location location)]
@@ -342,12 +438,12 @@
 ;; l2 must be a map for now
 ;; TODO: allow l2 to be other kinds of locations (vector of offsets or map)
 (defn loc+ [l1 l2]
-  (let [l1 (->location l1)
-        l2 (->location l2)]
+  (let [[x1 y1 z1] (->loc-tuple l1)
+        [x2 y2 z2] (->loc-tuple l2)]
     (Location.
-     (+ (.getX l1) (.getX l2))
-     (+ (.getY l1) (.getY l2))
-     (+ (.getZ l1) (.getZ l2)))))
+     (+ x1 x2)
+     (+ y1 y2)
+     (+ z1 z2))))
 
 (defn loc->vec [l]
   [(.getX l)
@@ -403,7 +499,6 @@
     (teleport-to-ground-height name [0 0 0])))
 
 (comment
-  (->location-tuple (player-location "kyle_burton"))
   ;; this is a flat area in the default generated world
   (teleport-to "kyle_burton" [-119 82 -421])
 
@@ -413,7 +508,7 @@
   (bring-em-all-here!
    (loc+
     (player-location "kyle_burton")
-    [20 5 0]))
+    [10 1 0]))
   (light-em-all-up!)
 
   (light-em-up!)
@@ -425,10 +520,6 @@
    (player-location "kyle_burton")
    32
    {:block-type BlockType/Stone})
-
-  (-> [0 0 0]
-      ->location
-      loc-set-at-ground-height!)
 
   (teleport-to-ground-height "kyle_burton" [0 0 0])
 

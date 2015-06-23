@@ -1,3 +1,4 @@
+TODO: cider plugin: support live eval
 TODO: add core.async (play with channels for eventing)
 TODO: add prismatic schema for typedefs / api descriptions
 TODO: example: build a roadway!
@@ -15,6 +16,7 @@ TODO: prefab: plans for fish farm
 TODO: prefab: plans for gold farm (nested nether portals)
 TODO: prefab: plans for iron golem farm
 
+DONE[2015-06-23T12:15:58Z]: spawn riders
 DONE[2015-05-28T12:20:22Z]: set up bild scripting / automation (bake)
 DONE[2015-05-28T12:20:22Z]: new lein project: "lein new minerepl"
 DONE[2015-05-28T12:20:22Z]: bake task: install CanaryMod into local maven repository
