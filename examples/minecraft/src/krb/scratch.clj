@@ -239,15 +239,11 @@
 
 (defn bring-em-here! [loc]
   (doseq [mob (all-mobs)]
-    (.teleportTo mob loc)))
+    (.teleportTo mob (->location loc))))
 
 (defn bring-em-all-here! [loc]
   (doseq [creature (all-creatures)]
-    (.teleportTo creature loc)))
-
-(defn spawn-cow [loc]
-  (let [world (.getWorld loc)]
-    (EZPlugin/spawnEntityLiving loc EntityType/COW)))
+    (.teleportTo creature (->location loc))))
 
 (defn fling [player victim speed]
   (EZPlugin/fling (->player player) victim speed))
@@ -310,8 +306,11 @@
   (spawn-rider-and-steed (loc+ "kyle_burton" [5 0 0]) EntityType/CHICKEN EntityType/COW)
   (spawn-rider-and-steed (loc+ "kyle_burton" [5 0 0]) EntityType/BAT EntityType/CHICKEN)
   (spawn-rider-and-steed (loc+ "kyle_burton" [5 0 0]) EntityType/MOOSHROOM EntityType/PIG)
+  (spawn-rider-and-steed (loc+ "kyle_burton" [5 0 0]) EntityType/ZOMBIE EntityType/SQUID)
 
-  (bring-em-all-here! "kyle_burton")
+  (bring-em-all-here! (loc+ "kyle_burton" [5 0 0]))
+
+  net.canarymod.api.entity.living.animal.CanarySheep
   
   ;; getItemInHand
   ;; setAttackTarget
@@ -541,11 +540,6 @@
    .getWorld)
 
 
-
-  (let [loc (player-location "kyle_burton")]
-    (.setY  loc (+ 5 (.getY loc)))
-    (.setZ  loc (+ 5 (.getZ loc)))
-    (spawn-cow loc))
 
   EZPlugin
 
