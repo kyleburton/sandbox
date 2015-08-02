@@ -37,7 +37,6 @@
     [0 1 0]]
    ])
 
-
 (defn transpose [matrix]
   (apply mapv vector matrix))
 
@@ -45,8 +44,8 @@
   (vec (reverse matrix)))
 
 (defn rand-piece []
-  (transpose (rand-nth pieces))
-  #_(transpose (first pieces)))
+  #_(transpose (rand-nth pieces))
+  (transpose (nth pieces 4)))
 
 (def colors
   ["#181818"

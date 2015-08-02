@@ -60,13 +60,4 @@
       "Restart"])])
 
 (defn root-view []
-  [:div 
-   [tetris-view @world/app-state]
-   [:div {:style {:font-family "Courier New"
-                  :text-align "center"}}
-    [:h1 "App State"]
-    [:form
-     [:textarea {:readOnly true
-                 :rows     20
-                 :cols     100
-                 :value    (-> world/app-state deref (dissoc :block-pile) clj->js (js/JSON.stringify nil 2))}]]]])
+  [tetris-view @world/app-state])

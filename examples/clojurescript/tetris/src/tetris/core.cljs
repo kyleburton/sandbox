@@ -59,17 +59,42 @@
       (.preventDefault e)
       (swap! world/app-state maybe-step f))))
 
+  
+(defn restart-world-clock! []
+ (when-let [interval-id (-> app-state deref :tick-interval-id)]
+   (js/clearInterval interval-id))
+ (let [tick-interval (-> app-state deref :tick-interval)]
+   (js/console.log "Setting tick-interval to: %s" tick-interval)
+   (swap! app-state
+          assoc :tick-interval-id (js/setInterval world/tick! tick-interval))))
+
+(defn controls-view []
+  [:div {:style {:font-family "Courier New"
+                 :text-align "center"}}
+   [:h1 "App State"]
+   [:form
+    [:label {:for "tick-interval"}]
+    [:input {:type  "text"
+             :value (-> app-state deref :tick-interval)
+             :onChange (fn [e]
+                         (swap! app-state assoc :tick-interval (-> e .-target .-value))
+                         (restart-world-clock!))}]
+    [:textarea {:readOnly true
+                :rows     5
+                :cols     100
+                :value    (-> app-state deref clj->js (js/JSON.stringify nil 2))}]
+    [:textarea {:readOnly true
+                :rows     20
+                :cols     100
+                :value    (-> world/app-state deref (dissoc :block-pile) clj->js (js/JSON.stringify nil 2))}]]])
+
+
 (defn on-js-reload []
   (println "Reloaded...")
   (reset! world/app-state (world/new-world))
   (reagent/render-component [view/root-view] (. js/document (getElementById "app")))
-  
-  (when-let [interval-id (-> app-state deref :tick-interval-id)]
-    (js/clearInterval interval-id))
-  (let [tick-interval (-> app-state deref :tick-interval)]
-    (js/console.log "Setting tick-interval to: %s" tick-interval)
-    (swap! app-state
-           assoc :tick-interval-id (js/setInterval world/tick! tick-interval))))
+  (reagent/render-component [controls-view app-state] (. js/document (getElementById "controls")))
+  (restart-world-clock!))
 
 (defn init []
   (on-js-reload)
