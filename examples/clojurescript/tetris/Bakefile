@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+bake_require github.com/kyleburton/bake-recipies/emacs/cider.sh
+
+
+bake_task run_emacs
+function run_emacs () {
+  if [ ! -e $HOME/.bake/packages/github.com/kyleburton/bake-recipies/files/emacs/.emacs ]; then
+    bake_echo_red "Error: can't find the local .emacs file"
+  fi
+
+  set -x
+  emacs -nw -q -l $HOME/.bake/packages/github.com/kyleburton/bake-recipies/files/emacs/.emacs "$@"
+}
+
+
+bake_task run_figwheel
+function run_figwheel () {
+  echo "Open: http://localhost:3449/"
+  lein figwheel
+}
