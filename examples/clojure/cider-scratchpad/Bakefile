@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+bake_task run_emacs
+function run_emacs () {
+  emacs -nw -q -l $HOME/.bake/packages/github.com/kyleburton/bake-recipies/files/emacs/.emacs "$@"
+}
