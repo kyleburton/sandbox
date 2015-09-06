@@ -1,7 +1,8 @@
 (ns scratchpad.heap
   (:require
-   [clojure.tools.logging :as log]
-   [clojure.core          :as core]))
+   [clojure.tools.logging   :as log]
+   [clojure.core            :as core]))
+
 ;; Binomoial heap and Fibonacci heap
 
 (defprotocol Heap
@@ -200,6 +201,14 @@
   (->
    (BinHeap. >=)
    (insert-all [19 36 17 3 25 1 2 7 100 109])
-   is-max-heap?)
+   is-valid-heap?)
+
+  (spit
+   "h4.dot"
+   (->
+    (BinHeap. <=)
+    (insert-all [19 36 17 3 25 1 2 7 100 109 172])
+    heap->pairs
+    pairs->digraph))
 
   )

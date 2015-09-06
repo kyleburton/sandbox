@@ -14,4 +14,5 @@
                  [prismatic/schema                       "0.3.1"]
                  [clj-time                               "0.8.0"]
                  [org.clojure/core.cache                 "0.6.4"]
+                 [com.github.kyleburton/clj-etl-utils    "1.0.88"]
                  ])
