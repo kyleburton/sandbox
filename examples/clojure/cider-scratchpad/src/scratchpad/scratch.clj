@@ -10,14 +10,16 @@
 
 
 (defonce words-file "/usr/share/dict/words")
-(defonce num-words 235886)
+(def num-words (memoize (fn []
+                          (with-open [rdr (io/reader words-file)]
+                            (count (line-seq rdr))))))
 
 (defn random-words [n]
   (with-open [rdr (io/reader words-file)]
     (doall
      (etl-seq/random-sample-seq
       (line-seq rdr)
-      num-words
+      (num-words)
       n))))
 
 (defn test-seq [tname op s]
@@ -28,6 +30,11 @@
     (heap/insert-all s)
     heap/heap->pairs
     heap/pairs->digraph)))
+
+(defn test-seq->heap [op s]
+  (->
+   (BinHeap. op)
+   (heap/insert-all s)))
 
 (comment
 
@@ -45,13 +52,13 @@
    "w1"
    (fn [a b]
      (= -1 (.compareToIgnoreCase a b)))
-   (random-words 100))
+   (random-words 25))
 
   (test-seq
    "w2"
    (fn [a b]
      (not= -1 (.compareToIgnoreCase a b)))
-   (random-words 100))
+   (random-words 25))
 
 
   )

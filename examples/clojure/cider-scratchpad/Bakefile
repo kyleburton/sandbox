@@ -5,9 +5,20 @@ function run_emacs () {
   emacs -nw -q -l $HOME/.bake/packages/github.com/kyleburton/bake-recipies/files/emacs/.emacs "$@"
 }
 
+bake_task open_file
+function open_file () {
+  local fname="$1"
+  if which gnome-open; then
+    gnome-open "$fname"
+    return
+  fi
+
+  open "$fname"
+}
+
 bake_task render_graph
 function render_graph () {
   local dotfile="${1:-$(ls -t -1 *.dot | head -n 1)}"
   local pngfile="$(basename $dotfile .dot).png"
-  dot "$dotfile" -Tpng > "$pngfile" && open "$pngfile"
+  dot "$dotfile" -Tpng > "$pngfile" && open_file "$pngfile"
 }

@@ -143,7 +143,7 @@
   (let [sb (StringBuilder.)]
     (.append sb "digraph Heap {\n")
     (doseq [[l r] pairs]
-      (.append sb (str "  " l " -> " r ";\n")))
+      (.append sb (str "  \"" l "\" -> \"" r "\";\n")))
     (.append sb "}")))
 
 (comment
