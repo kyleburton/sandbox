@@ -39,7 +39,6 @@
 (defn rebalance [elts cmp]
   (loop [elts elts
          ii   (dec (count elts))]
-    (log/infof "rebalance: ii=%s elts=%s" ii elts)
     (cond
      (zero? ii)
      elts
@@ -108,7 +107,6 @@
           elts (-> h
                    :elts
                    core/pop)]
-      (log/infof "pop: calling heapify-down with 0 %s :op" elts)
       (assoc
           h
         :elts (if (empty? elts)
