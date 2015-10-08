@@ -1,0 +1,24 @@
+OSX
+========================================
+TODO:   Validate XCode (cmdline tools for XCode, see the homebrew installation
+        instructions) is installed, or instruct the user on how to get it TODO:
+        Validate Homebrew is installed, or offer to install it
+TODO:   Validate Emacs is installed or offer to install it
+TODO:   Install clojure-mode
+TODO:   Install paredit-mode
+TODO:   Install cider (via git)
+TODO:   Install cider-ac (via git)
+TODO:   Install leiningen to the user's PATH
+TODO:   Test the environment: generate a lein project and run the main, verify
+        the REPL is working and that Emacs cna connect to it.  This should
+        be scriptable, with elisp and using 'emacs -q -l init-file.el'
+ 
+
+Linux
+========================================
+TODO:   write up tasks...
+
+
+Windows
+========================================
+TODO:   What's the strategy here?

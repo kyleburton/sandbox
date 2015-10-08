@@ -6,7 +6,7 @@ The intent of this project is to ease the process of bootstrapping a development
 
 ## Live Development
 
-### Live Emacs and CIDER
+### Live Emacs and CIDER : ./live-emacs-cider/
 
 Who: Kyle and Dane
 
