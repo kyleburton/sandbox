@@ -1,0 +1,5 @@
+TODO[ctl script]: bash script for controlling installation
+TODO[ctl script]: detect user's enviornment and suggested which environments are supported
+TODO[ctl script]: detect user's enviornment and suggested which environments are already read to go!
+TODO[ctl script]: support 'list' to show tagged, known good versions of each environment, and for speficic environments
+TODO[ctl script]: support 'upgrade' to refresh the environment
