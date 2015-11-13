@@ -11,3 +11,9 @@ bake_task dbshell
 function dbshell () {
   sqlite3 $DBFILE
 }
+
+bake_task shell
+function shell () {
+  cd flaskr
+  python
+}
