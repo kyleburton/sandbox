@@ -96,7 +96,7 @@ def login():
     # on GET, render the form
     return render_template('login.html', error=error)
 
-@app.route('/logout')
+@app.route('/logout', methods=['GET','POST','DELETE'])
 def logout():
     session.pop('logged_in', None)
     flash('You were logged out')

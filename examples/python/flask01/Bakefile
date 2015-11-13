@@ -17,3 +17,9 @@ function shell () {
   cd flaskr
   python
 }
+
+bake_task run_tests
+function run_tests () {
+  cd flaskr
+  python flaskr_tests.py
+}
