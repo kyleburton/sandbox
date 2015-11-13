@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+DBFILE="flaskr/db/flaskr.db"
+
+bake_task run
+function run () {
+  cd flaskr
+  python flaskr.py
+}
+
+bake_task dbshell
+function dbshell () {
+  sqlite3 $DBFILE
+}
