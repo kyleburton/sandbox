@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# https://docs.python.org/2.3/whatsnew/section-slices.html
 import sys
 
 
@@ -16,3 +17,6 @@ print "slice[::4] %s" % (s[::4])
 print "slice[::5] %s" % (s[::5])
 for ii in range(1, 2 * len(s)):
   print "slice[::%s] %s" % (ii, s[::ii])
+
+# reverse the list
+print "slice[::-1] %s" % (s[::-1])
