@@ -1,0 +1,4 @@
+https://www.jeffknupp.com/blog/2014/02/04/starting-a-python-project-the-right-way/
+
+  pip install virtualenvwrapper
+  source /Users/kburton/local/homebrew//bin/virtualenvwrapper.sh
