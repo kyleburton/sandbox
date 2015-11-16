@@ -1,0 +1,22 @@
+{
+  "name": "polymer-ex1",
+  "homepage": "https://github.com/kyleburton/sandbox",
+  "authors": [
+    "Kyle Burton <kyle.burton@gmail.com>"
+  ],
+  "description": "Polymer Tutorial",
+  "main": "",
+  "moduleType": [],
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#^1.2.0"
+  }
+}
