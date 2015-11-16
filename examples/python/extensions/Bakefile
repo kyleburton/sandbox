@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+bake_task build "Build the module"
+function build () {
+  python setup.py build
+}
+
+bake_task run_tests "Test the module"
+function run_tests () {
+  python setup.py test
+}
