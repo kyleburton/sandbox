@@ -3,7 +3,7 @@
 def foo():
   pass
 
-print "foo's class=%s" % (foo.__class__)
+print("foo's class=%s" % (foo.__class__))
 
 
 def add(x,y):
@@ -12,7 +12,7 @@ def add(x,y):
 def apply(func, x, y):
   return func(x,y)
 
-print "apply(add,1,20)=%s" % (apply(add,1,2))
+print("apply(add,1,20)=%s" % (apply(add,1,2)))
 
 
 
@@ -22,26 +22,38 @@ def makeAdder(x):
   return adder
 
 add3 = makeAdder(3)
-print "add3(11)=%s" % (add3(10))
+print("add3(11)=%s" % (add3(10)))
 
 def wrap_with_print(func):
   def inner(*args,**kwargs):
     res = None
     try:
-      print "wrap_with_print: calling f with args: %s %s" % (args, kwargs)
+      print("wrap_with_print: calling f with args: %s %s" % (args, kwargs))
       res = func(*args,**kwargs)
-      print "wrap_with_print: f returned %s" % (res)
+      print("wrap_with_print: f returned %s" % (res))
       return res
     except:
-      print "wrap_with_print: wrapped function threw!"
+      print("wrap_with_print: wrapped function threw!")
       raise
   return inner
 
 @wrap_with_print
 def myfunc(a,b):
-  print "myfunc(%s,%s)" % (a,b)
+  print("myfunc(%s,%s)" % (a,b))
   return a+b
 
 res = myfunc(5,6)
-print "myfunc(5,6) = %s" % (res)
+print("myfunc(5,6) = %s" % (res))
 
+
+class MyClass():
+  @property
+  def foo(v):
+    return "foo's value"
+
+c = MyClass()
+print("c={}".format(c))
+print("c.foo={}".format(c.foo))
+# NB: @property doesn't allow you to set 
+# c.foo(1234);
+print("c.foo={}".format(c.foo))
