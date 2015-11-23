@@ -1,0 +1,4 @@
+*.pyc
+Spam.egg-info
+build
+*.so
