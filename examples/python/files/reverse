@@ -1,0 +1,14 @@
+#!/usr/bin/env python
+
+with open("input.txt", "r") as inf:
+  lines = inf.readlines()
+  lines.reverse()
+  # import pdb; pdb.set_trace()
+  with open("output.txt", 'w') as outf:
+    for line in lines:
+      # NB: readlines doens't chomp the line
+      #print(line, file=outf)
+      outf.write(line)
+
+
+
