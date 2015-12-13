@@ -1,0 +1,58 @@
+#!/usr/bin/env python
+import sys
+from collections import Counter
+
+def primes(n):
+    primfac = []
+    d = 2
+    while d*d <= n:
+        while (n % d) == 0:
+            primfac.append(d)  # supposing you want multiple factors repeated
+            n //= d
+        d += 1
+    if n > 1:
+       primfac.append(n)
+    return primfac
+
+def primes_reduced(n):
+  return list(set(primes(n)))
+
+def lcm(nums):
+  # get all the prime factors
+  all_factors = {}
+  for n in nums:
+    # factor the number
+    #import pdb; pdb.set_trace()
+    factors = primes(n)
+    c = Counter(factors)
+    for item in c.keys():
+      item_count = c[item]
+      curr_count = all_factors.get(item)
+      if curr_count is None:
+        all_factors[item] = item_count
+      elif curr_count < item_count:
+        all_factors[item] = item_count
+  least_multiple = 1
+  for k,v in all_factors.items():
+    least_multiple *= k ** v
+  return [least_multiple,all_factors]
+
+
+#import pdb; pdb.set_trace()
+
+# print("primes(44)={}".format(primes_reduced(44)))
+# 
+# nums = map(int, sys.argv[1:])
+# factor_sets = []
+# for ii in nums:
+#   factor_sets.append([ii, primes(ii)])
+# 
+# for s in factor_sets:
+#   print("s={}".format(s))
+ 
+# nums = list(map(int, sys.argv[1:]))
+nums = [int(ii) for ii in sys.argv[1:]]
+print("nums={}".format(nums))
+nn   = lcm(nums)
+print("nn={}".format(nn))
+

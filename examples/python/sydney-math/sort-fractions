@@ -1,0 +1,32 @@
+#!/usr/bin/env python
+
+import sys
+
+def parse_fraction(s):
+  #print("s={}".format(s))
+  num, den = s.split('/')
+  #print("num={}, den={}".format(num, den))
+  num = int(num)
+  den = int(den)
+  return [num/den, s, num, den]
+
+problems = []
+for line in sys.stdin.readlines():
+  problem = line.rstrip('\n').split(' ')
+  problem = list(map(parse_fraction, problem))
+  problems.append([line, problem])
+
+def srt_key(p):
+  print("sorted:p=%s :: %s" % (p, p[1][0]))
+  return p[1][0]
+
+# problems = sorted(problems, key=srt_key)
+for problem in problems:
+  line, fracts = problem
+  fracts = sorted(fracts, key=lambda p: p[0])
+  print(problem)
+  for v in fracts:
+    print("  %-10s: %3.2f" % (v[1], v[0]))
+  print()
+
+
