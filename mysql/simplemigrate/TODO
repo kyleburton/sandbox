@@ -1,0 +1,14 @@
+TODO: make password optional: env var, pulled from ~/.my.cnf or typed from cmdline (any other ways to provide a password?)
+TODO: status:   list the status of all migrations (applied and pending)
+TODO: pending:  lists all unapplied migrations
+TODO: up:       applies one migration
+TODO: down:     downgrades a specific migration
+TODO: migrate:  runs all pending migrations
+TODO: new:      generates a blank migration template up/down)
+TODO: force:    run a migration (up or down, regardless of its tracking status)
+TODO: documentation: simple installation instructions
+TODO: documentation: on the bake utilities
+
+DONE[2016-01-03T14:18:17Z]: createdb
+DONE[2016-01-03T14:18:17Z]: bootstrap
+
