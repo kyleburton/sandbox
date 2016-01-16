@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+
+
+function is_osx() {
+  if [ "Darwin" = "$(uname)" ]; then
+    return 0
+  fi
+  return 1
+}
+
+function is_osx_10_10_5 () {
+  if is_osx; then
+    if [ $(sw_vers -productVersion) = "10.10.5" ]; then
+      return 0
+    fi
+  fi
+  return 1
+}
+
+
+bake_task install
+function install () {
+  # http://stackoverflow.com/questions/32417141/cant-install-gevent-osx-10-11
+  if is_osx_10_10_5; then
+    CFLAGS='-std=c99' pip --isolated install gevent==1.1rc1
+  else
+    pip install gevent
+  fi
+}
+
+bake_task run
+function run () {
+  GOLESS_BACKEND=gevent python main.py
+}

@@ -1,0 +1,3 @@
+goless
+# NB: gevent needs special consideration, see the Bakefile
+# gevent
