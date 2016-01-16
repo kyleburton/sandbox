@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+GIT_URL="https://github.com/stevedekorte/io.git"
+PKG_DIR="$(basename "$GIT_URL" .git)"
+
+bake_task install_from_source "Install via git clone of source repository"
+function install_from_source () {
+set -x
+  test -d software || mkdir software
+  cd software
+  test -d "$PKG_DIR" || git clone "$GIT_URL"
+  cd "$PKG_DIR"
+  test -d build || mkdir build
+  cd build
+  cmake ..
+  make
+  cd ..
+}
+
+bake_task install "Attempt install using package manager"
+function install () {
+  local osname="$(uname)"
+  echo "install io here"
+  if [ "$osname" = "Darwin" ]; then
+    brew install io
+    return 0
+  fi
+
+  if [ "$osname" = "Linux" ]; then
+    install_from_source
+    return 0
+  fi
+
+  bake_echo_red "Sorry, no installer for your platform [$osname] yet (not OSX w/homebrew or Linux)"
+}

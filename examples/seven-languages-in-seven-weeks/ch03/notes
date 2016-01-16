@@ -1,0 +1,30 @@
+Seven Languages in Seven Weeks
+
+  http://iolanguage.org/
+  https://github.com/stevedekorte/io
+
+  "Steve Dekorte invented the Io language in 2002"
+
+p62
+  "Io syntax simply chains messages together, with each message returning an
+   object and each message taking optional parameters in parentheses. In Io,
+   everything is a message that returns another receiver."
+
+
+  "Io gets you about as close to object-oriented Lisp as you’re likely to get."
+
+    ...hrm...
+    Tate leaves this unexplained.  Having traveled my own road, I don't know what
+    he means by this and since he doesn't touch 'lisp' in this book (Clojure further on
+    is a lisp, though I don't think how it's covered in this book is related to
+    this statement).
+
+! doFile("day01.io") // load&run a file
+
+! slotNames
+! Protos Core
+! Protos Core slotNames
+! Protos Core Sequence slotNames
+
+
+HERE p80
