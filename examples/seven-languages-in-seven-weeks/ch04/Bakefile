@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+
+bake_task install
+function install () {
+  if [ "Darwin" = "$(uname)" ]; then
+    brew install homebrew/x11/swi-prolog
+  else
+    bake_echo_red "please do an installer for $(uname)"
+  fi
+}
+
