@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+bake_task sbt_setup
+function sbt_setup () {
+    test -d project || mkdir project
+    if [ ! -f project/site.sbt ]; then
+	echo "addSbtPlugin("org.ensime" % "ensime-sbt" % "0.3.2")" >> project/site.sbt
+    fi
+}
+
+bake_task install
+function install () {
+  sbt_setup
+  if [ "Darwin" = "$(uname)" ]; then
+    bake_echo_green "Installing via brew"
+    brew install sbt
+    return 0
+  fi
+
+  bake_echo_red "Sorry, no installer for $(uname)"
+  exit 1
+}

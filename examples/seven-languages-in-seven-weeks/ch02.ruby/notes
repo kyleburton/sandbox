@@ -1,0 +1,88 @@
+General Goals
+* what makes the language special?
+* how can we use this impact us / help us in the other languages we use?
+
+
+
+Ruby: Strongly Typed, Dynamically Typed
+
+
+  "Duck typing is extremely important when it comes to clean object-oriented design."
+
+This is a very strong statement that many an OO Programmer will almost certainly have issues with.
+
+
+p42
+
+  "This technique will let you pass around executable code. 
+   Blocks aren’t just for iteration. 
+   In Ruby, you’ll use blocks to delay execution..."
+                   =============================
+
+  It is interesting to look at the ways different programming languages delay execution.
+
+  Some of the OO design patterns are specifically to address their host language's
+  lack of expressive support for delayed exectuion.
+
+  There are a few ideas mixed in here in my mind:
+    * conditional statements (if, when, unless) are
+      a form of delay, though they are ossified and inflexible
+    * labmdas, and function pointers are able to be manipulated
+    * OO Design patterns mix 2 levels of interface: the object themselves
+      and the function's signature
+    * source code mannipulation, syntactic sugar, macros
+    * lazy evaluation (see: Haskell)
+
+p51/52
+
+  Exending existing classes.  This is often seen as heresy by developers, that
+  the sky will fall.  This may be because it means they will no longer understand
+  the execution model of their code.  In practice I've rarely (if ever?) seen
+  this cause a systemic failure to be able to work with a codebase, or critical
+  bugs (that were any more severe than any other normal logic bug).
+
+  This kind of open class feature does allow for some interesting ways to 
+  build and release features if you fully embrace it.  A feature can be
+  expressed, dynamically, as the changes to existing code, then your app
+  can be thought of as a series of these 'patches' being applied.  If
+  something goes wrong, you may be able to comment out one of the patches.
+  It can also be used as an alternative to feature switches.  If features
+  are encapsulated in specific files, they are easier to compose into
+  the codebase.  May devs are going to be uncomfortable with this though,
+  as it is a fundamental change to how they think about codebase layout 
+  and what they're comfortable with.  (tbh, it's worth thinking about
+  this wrt all the libraries you use and that they're not all in one source
+  tree anyway, class hierarchies are in separate files/paths and so forth).
+
+
+p52
+
+  The method_missing "can't tell if a method really exists till we run it"
+  issue still exists in languages like Java (see: NoSuchMethodError), to 
+  a lesser extent.  
+
+  This has often made me wonder how you create a dynamic
+  module / plugin system in a language like Haskell, as the entire codebase 
+  (the plugin) would not have been present to the compiler.
+
+
+p53
+
+  DSLs. I actually see DSLs all over the place.  OO languages give you the Interface,
+  Class and Module as your expressive toolset.  You see DSLs represented using these
+  tools, see RxJava.  They're nice, but have very little semantic flexibility.
+  Ruby, with blocks, method_missing (and other dynamic features), makes for a
+  lot more semantic flexibility, which IMO makes it more suitable for DSLs.
+
+  Another important point here for me is weather you have to go outside of 
+  your language (I'm lookin at you Java and all your XML), or you can do DSLs
+  within your language (and get the support of the tooling and safety of your
+  language).  Ruby and the Lisps are fantasitic at this.  Haskell w/Lazy evaluation
+  may also be great for this.  
+
+  Generating code, writing code that writes your code, is just another type of 
+  refactoring.  It's another, higher, level of abstraction.  I'm a bit fan of
+  having access to that level.  I think they give you access to more produtivity 
+  and clarity - especially for expressing your problem domain.
+
+
