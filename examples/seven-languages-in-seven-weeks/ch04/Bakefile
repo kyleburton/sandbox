@@ -4,9 +4,22 @@
 bake_task install
 function install () {
   if [ "Darwin" = "$(uname)" ]; then
-    brew install homebrew/x11/swi-prolog
+    #brew install homebrew/x11/swi-prolog
+    brew install gnu-prolog
   else
     bake_echo_red "please do an installer for $(uname)"
   fi
 }
 
+
+bake_task run
+function run () {
+  local fname="${1:-}"
+  if [ -n "$fname" ]; then
+    gprolog --consult-file "$fname"
+  else
+    bake_echo_green "you can load a file with: ['fname']."
+    bake_echo_green "leave off the file extension (.pl')"
+    gprolog
+  fi
+}
