@@ -2,10 +2,18 @@
 
 bake_task sbt_setup
 function sbt_setup () {
-    test -d project || mkdir project
-    if [ ! -f project/site.sbt ]; then
-	echo "addSbtPlugin("org.ensime" % "ensime-sbt" % "0.3.2")" >> project/site.sbt
-    fi
+  test -d project || mkdir project
+  if [ ! -f project/site.sbt ]; then
+    echo "addSbtPlugin(\"org.ensime\" % \"ensime-sbt\" % \"0.3.2\")" >> project/site.sbt
+  fi
+
+  if [ ! -f .ensime ]; then
+    sbt gen-ensime
+  fi
+
+  if [ ! -f project/build.properties ]; then
+    touch project/build.properties
+  fi
 }
 
 bake_task install
@@ -20,3 +28,4 @@ function install () {
   bake_echo_red "Sorry, no installer for $(uname)"
   exit 1
 }
+
