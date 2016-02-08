@@ -1,12 +1,6 @@
-#!/usr/bin/env bash
+#!/usr/bin/env bash 
 
-# export SIMPLEMIGRATE_CONFIG="sm.env"
 SIMPLEMIGRATE_CONFIG="${SIMPLEMIGRATE_CONFIG:-}"
-DEBUG="${DEBUG:-}"
-
-if [ -n "$DEBUG" ]; then
-  set -x
-fi
 
 function simplemigrate_config () {
   if [ -n "$SIMPLEMIGRATE_CONFIG" ]; then
@@ -112,3 +106,4 @@ function new () {
   echo "raw_name='$raw_name'"
   echo "migration_name='$migration_name'"
 }
+
