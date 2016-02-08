@@ -29,4 +29,7 @@ function install () {
   exit 1
 }
 
-
+bake_task repl
+function repl () {
+  sbt consoleProject
+}
