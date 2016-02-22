@@ -1,0 +1,43 @@
+Gtuples
+
+{type, "some-data", 3.14159}
+
+this simple way of representing values, no classes, just immutable values
+
+this begats records a way to carry type information (for the programmer) around
+so you can see what the intent is for these tuples.
+
+
+"Concurrency hurts, not because it is inherently difficult but because we’ve
+ been using the wrong programming model!"
+
+How does this statement make you feel?
+
+
+
+Processes with an accept loop are little services.  Talk about 'micro' services :)
+That's part of how you build erlang applications...as pico services.
+
+How does process linking (the monitor) relate to how you typicall think about
+error handling?  via returned vlaues or try/catch/finally?  
+
+One is rooted in the stack, the other is decoupled from the stack.
+One is about primarily about saying something is wrong.  The other focuses
+on reacting to what went wrong - to encourage you to think about recovery.
+
+
+The chapter doens't touch on some of the things I think are more intersting about Erlang:
+
+* self-upgrading process recv loops (send function in)
+
+  loop(Self) ->
+    receive
+      {translate, From, Phrase} ->
+        From ! do_translation(Phrase),
+        Self(Self);
+      {upgrade, From, NewSelf} ->
+        io:format("upgrade!~n"),
+        NewSelf(NewSelf)
+     end.
+
+* QuickCheck: http://www.quviq.com/products/erlang-quickcheck/
