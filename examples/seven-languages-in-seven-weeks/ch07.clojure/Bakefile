@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+bake_require github.com/kyleburton/bake-recipies/emacs/cider.sh
+
+KRBMACS_GIT_URL="https://github.com/kyleburton/krbemacs.git"
+
+bake_task install "Install: bake, emacs configuration, leiningen, etc"
+function install () {
+  if [ ! -d software/krbemacs ]; then
+    mkdir -p software
+    pushd software
+    git clone "$KRBMACS_GIT_URL"
+    popd
+  fi
+
+  if [ ! -x software/bin/lein ]; then
+    curl https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein > software/bin/lein
+    chmod 755 software/bin/lein
+  fi
+}
+
+
+bake_task run-repl
+function run-repl () {
+  pushd cider-nrepl-scratchpad
+  lein run
+  popd
+}
+
+bake_task run-emacs
+function run-emacs () {
+  if [ ! -e ./software/krbemacs/.emacs ]; then
+    install
+  fi
+
+  emacs -nw -q -l ./software/krbemacs/.emacs "$@"
+}
