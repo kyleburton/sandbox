@@ -15,4 +15,16 @@
                  [clj-time                               "0.11.0"]
                  [org.clojure/core.cache                 "0.6.4"]
                  [com.github.kyleburton/clj-etl-utils    "1.0.94"]
+
+                 ;; web backend development http://www.http-kit.org/
+                 [http-kit                               "2.1.18"]
+                 [compojure                              "1.4.0"]
+                 [ring                                   "1.4.0"]
+
+                 ;; TODO: aws library / examples: sqs, sns
+                 ;; TODO: amqp show pub/sub w/rabbit using http://clojurerabbitmq.info/
+                 ;; TODO: kafka
+                 ;; TODO: an example pedestal app
+                 ;; TODO: storm
+                 ;; TODO: spark
                  ])

@@ -17,3 +17,22 @@
                         :handler cider-nrepl-handler))
   (log/infof "nrepl is running as %s" @config)
   (s/set-fn-validation! true))
+
+
+(def the-time (java.util.Date.))
+(defonce was-the-time (java.util.Date.))
+(defn some-function [msg]
+  (.println System/out (str"Hello: " msg)))
+
+(comment
+  (meta (var defonce))
+  (some-function "Kevin")
+
+  (do
+    (some-function the-time)
+    (some-function was-the-time))
+
+
+  (java.util.Date.)
+ 
+)

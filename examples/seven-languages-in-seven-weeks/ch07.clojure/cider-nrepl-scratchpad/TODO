@@ -1,0 +1,53 @@
+NB: as I list out the examples I want to show, I see each this building into something that has value as
+a series of starter projects, or perhaps teaching projects.  Especially if they include installers for
+many of the dependencies (rabbit, redis, etc).
+
+TODO[tricks] user=> (def to-english (partial clojure.pprint/cl-format nil "~@(~@[~R~]~^ ~A.~)"))
+             #'user/to-english
+             
+             user=> (to-english 1234567890)
+             "One billion, two hundred thirty-four million, five hundred sixty-seven thousand, eight hundred ninety"
+
+
+
+TODO[jdbc]: simple: select, insert, update and delete examples using records
+TODO[jdbc]: dsl (just sql): https://github.com/krisajenkins/yesql
+TODO[jdbc]: dsl (just sql): https://github.com/jkk/honeysql
+TODO[jdbc]: dsl (orm-ish): http://sqlkorma.com/
+TODO[jdbc]: show connection pooling
+
+TODO[web]: web backend development http://www.http-kit.org/
+  [http-kit                               "2.1.18"]
+  [compojure                              "1.4.0"]
+  [ring                                   "1.4.0"]
+TODO[web]: web-socket example
+TODO[web]: ring-middleware for api, separate mount point, autohandle application/json
+
+TODO[web]: clojurescript / reagent single page app
+
+TODO[core.async]: show basic cps
+TODO[core.async]: example that includes websockets?
+TODO[core.async]: http requester pool (for executing http requests, not handling them) w/backpressure iow rate-limiting
+TODO[core.async]: using core.async for non-blocking state machines (recall the integrated web+email+sms performance testing)
+TODO[core.async]: using core.async for perf testing (recall the integrated web+email+sms performance testing)
+
+TODO: redis https://github.com/ptaoussanis/carmine, or https://github.com/benashford/redis-async
+
+TODO[aws]: aws sdk: sqs
+TODO[aws]: aws sdk: sns
+TODO[aws]: aws sdk: EMR job in cascading
+TODO[aws]: aws sdk: EMR job in cascalog
+
+TODO[mq]: amqp publish w/rabbit using http://clojurerabbitmq.info/
+TODO[mq]: amqp consumer w/rabbit using http://clojurerabbitmq.info/
+TODO[mq]: amqp show the dispatch table pattern
+
+TODO[storm]: implemting a simple flow (one bolt + one spout)
+TODO[storm]: 'live' storm in development, allowing updating of code w/o restarting the topology (win!)
+TODO[kafka]: kafka basic pub/sub example
+TODO[pedestal]: an example pedestal app
+TODO[spark]:
+TODO[riak]: 
+
+
+DONE: lein run + cider baseline
