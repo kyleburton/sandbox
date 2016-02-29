@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+bake_require github.com/kyleburton/bake-recipes/docker/docker.sh
+# bake_add_libdir $HOME/personal/projects/bake-recipes
+# bake_require docker/docker.sh
+
+export DOCKER_IMAGE_TAG="perfortress-p4d:1.0"
+export DOCKER_MACHINE_NAME="${DOCKER_MACHINE_NAME:-default}"
+export DOCKER_RUN_OPTS="-p 1666:1666"
+
+function init () {
+  if [ "$(uname)" == "Darwin" ]; then
+    export P4PORT="$(docker-machine ip "$DOCKER_MACHINE_NAME"):1666"
+    return 0
+  fi
+
+  bake_echo_red "Error: don't know how to set P4PORT on $(uname), please enhance the init function!"
+  return 1
+}
+
+bake_task build "Build the docker image"
+function build () {
+  cd dockerfiles/p4d && docker-build $DOCKER_IMAGE_TAG .
+}
+
+bake_task p4-init "Bootstrap the p4 instance"
+function p4-init () {
+  init
+  echo "Initialzing p4 protections"
+  p4 protect -o | p4 protect -i
+  echo "The following output should show your username ($LOGNAME):"
+  p4 users
+}
+
+bake_task run-p4 "Run a p4 comand in the context of the docker container"
+function run-p4 () {
+  init
+  p4 "$@"
+}
+
+
