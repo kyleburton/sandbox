@@ -10,6 +10,7 @@ export DOCKER_RUN_OPTS="-p 1666:1666"
 
 function init () {
   if [ "$(uname)" == "Darwin" ]; then
+    bake_echo_yellow "INFO: looks like OSX, assuming you have docker-machine and the DOCKER_MACHINE_NAME is ${DOCKER_MACHINE_NAME}"
     export P4PORT="$(docker-machine ip "$DOCKER_MACHINE_NAME"):1666"
     return 0
   fi
@@ -38,4 +39,7 @@ function run-p4 () {
   p4 "$@"
 }
 
-
+bake_task develop "Run the clojure dev environment"
+function develop () {
+  lein run with-profile dev
+}

@@ -4,7 +4,8 @@
    [clojure.core            :as core]
    [clj-etl-utils.sequences :as etl-seq]
    [scratchpad.heap         :as heap]
-   [clojure.java.io         :as io])
+   [clojure.java.io         :as io]
+   [schema.core             :as s])
   (:import
    [scratchpad.heap BinHeap]))
 
@@ -62,3 +63,23 @@
 
 
   )
+
+(def UserAccount
+  {(s/required-key :full-name) s/Str
+   (s/required-key :email)     s/Str
+   (s/required-key :id)        s/Num
+   (s/required-key :props)     {s/Keyword s/Str}})
+
+
+(comment
+
+
+  (require '[schema-generators.complete :as c] '[schema-generators.generators :as g])
+
+  (schema-generators.generators/sample 3 UserAccount)
+
+  ({:full-name "", :email "", :id 0.5, :props {:! ""}}
+   {:full-name "k", :email "", :id -1, :props {:q:4 "F"}}
+   {:full-name "Zi", :email "", :id -1, :props {:fR1 ""}})
+  
+)

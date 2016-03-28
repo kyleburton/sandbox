@@ -1,11 +1,11 @@
 (ns perfortress.repl
   (:require
-   [clojure.tools.nrepl.server                 :refer [start-server stop-server]]
-   [cider.nrepl                                :refer [cider-nrepl-handler]]
-   [clojure.tools.logging                      :as log]
-   [schema.core                                :as s]))
+   [clojure.tools.nrepl.server :refer [start-server stop-server]]
+   [cider.nrepl                :refer [cider-nrepl-handler]]
+   [clojure.tools.logging      :as log]
+   [schema.core                :as s]))
 
-
+;; NB: this namespace is for interactive development
 (defonce nrepl-server (atom nil))
 (defonce config (atom {:nrepl {:port 4002}}))
 

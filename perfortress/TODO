@@ -1,4 +1,18 @@
-TODO: init project
-TODO: add dependencies
-TODO: docker container for running integration tests
-TODO: design / sketch out api
+TODO[integration tests]: create a user
+TODO[integration tests]: create a group
+TODO[integration tests]: add a user to a group
+TODO[integration tests]: add a user to a group: detect a collision
+TODO[integration tests]: remove a user from a group
+TODO[integration tests]: remove a user from a group: detect a collision
+TODO[integration tests]: create a client
+TODO[integration tests]: delete a client
+TODO[integration tests]: submit a changeset
+TODO[integration tests]: get a file at a revision
+TODO[integration tests]: install a trigger
+TODO[integration tests]: test the trigger
+TODO[integration tests]: manage the protects table
+
+DONE: init project
+DONE: add dependencies
+DONE: docker container for running integration tests
+DONE: execute a basic command: info, clients, users, groups

@@ -7,6 +7,8 @@
     :dev {:dependencies [
             [org.clojure/tools.nrepl                "0.2.11"]
             [cider/cider-nrepl                      "0.10.2"]
+            ;; [com.github.docker-java/docker-java     "2.2.3"]
+            ;; [com.spotify/docker-client              "3.5.12"]
           ]}
   }
   :main ^:skip-aot perfortress.repl
