@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+DOCKER_IMAGE_TAG="cider-nrepl-clojure:1.0"
+DOCKER_CONTAINER_NAME="cider-nrepl-clojure"
+CIDER_PORT=4014
+
+bake_task build "Build the docker container"
+function build () {
+  docker build -t "$DOCKER_IMAGE_TAG" .
+}
+
+
+bake_task run "Run the docker container $DOCKER_CONTAINER_NAME"
+function run () {
+  # docker run -p 4013:4013/tcp -ti "$DOCKER_IMAGE_TAG" .
+  docker rm "$DOCKER_CONTAINER_NAME" || echo "ok"
+  docker run -v $(pwd)/src:/src --name "$DOCKER_CONTAINER_NAME" -d -p 4014:4014/tcp "$DOCKER_IMAGE_TAG" .
+  docker logs "$DOCKER_CONTAINER_NAME"
+}
+
+bake_task port-forward "Port forward $CIDER_PORT"
+function port-forward () {
+  set -x
+  machine=default; ssh -i ~/.docker/machine/machines/$machine/id_rsa docker@$(docker-machine ip $machine) -N -L $CIDER_PORT:localhost:$CIDER_PORT
+}
+
+bake_task stop "Stop the container $DOCKER_CONTAINER_NAME"
+function stop () {
+  docker stop "$DOCKER_CONTAINER_NAME"
+}
+
+bake_task kill "Kill the container $DOCKER_CONTAINER_NAME"
+function kill () {
+  docker kill "$DOCKER_CONTAINER_NAME"
+}
