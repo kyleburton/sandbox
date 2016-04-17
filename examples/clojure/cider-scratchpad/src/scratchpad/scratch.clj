@@ -81,5 +81,55 @@
   ({:full-name "", :email "", :id 0.5, :props {:! ""}}
    {:full-name "k", :email "", :id -1, :props {:q:4 "F"}}
    {:full-name "Zi", :email "", :id -1, :props {:fR1 ""}})
+
   
+)
+
+
+(comment
+
+  (->
+   (java.io.File/createTempFile "this" "")
+   str)
+  "/var/folders/dm/j2p8cll146q39384tjcf8_9dpk4_s1/T/this8093560198764234544"
+
+  ;; (import 'com.google.common.io.Files)
+
+  (com.google.common.io.Files/toString
+   (java.io.File. "/etc/passwd")
+   (java.nio.charset.Charset/forName "UTF-8"))
+
+  (import java.nio.charset.Charset)
+  (import java.util.Date)
+
+  (com.google.common.io.Files/write
+   "this is my\ncontent\nok\ngot it?"
+   (java.io.File. "some.file")
+   (java.nio.charset.Charset/forName "UTF-8"))
+
+
+  ;; Files.write(this.config.get(???), new File(certPath, "key.pem"), CharSet.forName())
+
+  (str (java.io.File. "/some/path/to/a/file.txt"))
+
+  (let [props (java.util.Properties.)]
+    (with-open [rdr (java.io.FileInputStream. "some.properties")]
+      (.load props rdr))
+    props
+    #_(into {} props))
+
+  ;; DockerClient dockerClient = DockerClientBuilder.getInstance("http://localhost:2375").build();
+  ;; (com.github.dockerjava.api.DockerClient/getInstance "http://192.168.99.100:2375")
+  ;; (com.github.dockerjava.core.DockerClientBuilder/getInstance "tcp://192.168.99.100:2375")
+
+  (let [config (com.github.dockerjava.core.DockerClientConfig/createDefaultConfigBuilder)]
+    (.withUri config "https://192.168.99.100:2376")
+    (.withDockerCertPath config "/Users/kburton/.docker/machine/certs")
+    ;; (.withUsername config registryUser)
+    ;; (.withPassword config registryPass)
+    ;; (.withEmail config registryMail)
+    ;; (.withServerAddress config registryUrl)
+    (.build config))
+
+
 )

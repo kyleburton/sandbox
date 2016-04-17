@@ -17,5 +17,11 @@
                  [org.clojure/core.cache                 "0.6.4"]
                  [com.github.kyleburton/clj-etl-utils    "1.0.88"]
                  [prismatic/schema-generators            "0.1.0"]
+
+                 [com.google.guava/guava                 "19.0"]
+                 [com.github.docker-java/docker-java     "3.0.0-RC4"]
+
+
+
                  ])
 
