@@ -1,6 +1,6 @@
 (defproject repl-from-java "1.0.0"
-  :description "FIXME: write description"
-  :url "http://example.com/FIXME"
+  :description "CIDER + Nepl in a single dependency."
+  :url "https://github.com/kyleburton/sandbox/tree/master/examples/clojure/repl-from-java"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :source-paths      ["src/clojure"]
