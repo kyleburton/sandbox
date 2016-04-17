@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="5 seconds"> 
+  <appender name="DAEMON" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <!--See also http://logback.qos.ch/manual/appenders.html#RollingFileAppender-->
+    <File>logs/daemon.log</File>
+    <encoder>
+      <pattern>[%-5p]@%d %c - %m%n</pattern>
+    </encoder>
+    <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+      <maxIndex>10</maxIndex>
+      <FileNamePattern>logs/daemon.log.%i</FileNamePattern>
+    </rollingPolicy>
+    <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+      <MaxFileSize>10MB</MaxFileSize>
+    </triggeringPolicy>
+  </appender>
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>[%-5p]@%d %c - %m%n</pattern>
+    </encoder>
+  </appender>
+  <root level="INFO">
+    <appender-ref ref="CONSOLE"/>
+    <appender-ref ref="DAEMON"/>
+  </root>
+
+  <logger name="org.apache.http"                                   level="WARN"/>
+  <logger name="org.eclipse.jetty"                                 level="WARN"/>
+  <logger name="com.amazonaws.request"                             level="INFO"/>
+  <logger name="com.amazonaws.http.impl.client.SdkHttpClient"      level="INFO"/>
+  <logger name="com.amazonaws"                                     level="INFO"/>
+  <logger name="org.quartz.core.QuartzSchedulerThread"             level="INFO"/>
+  <logger name="org.apache.storm.daemon.supervisor"                  level="INFO"/>
+  <logger name="org.apachehe.storm.zookeeper"                        level="INFO"/>
+  <logger name="org.apache.storm.zookeeper.server"                 level="INFO"/>
+  <logger name="org.apache.storm.zookeeper.server.ZooKeeperServer" level="INFO"/>
+  <logger name="org.apache.storm.curator"                          level="INFO"/>
+  <logger name="org.apache.storm.daemon.worker"                      level="INFO"/>
+  <logger name="org.apache.storm.daemon.nimbus"                      level="INFO"/>
+  <logger name="com.amazonaws.http.AmazonHttpClient"               level="WARN"/>
+
+</configuration>
