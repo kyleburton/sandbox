@@ -20,6 +20,7 @@
 
                  [com.google.guava/guava                 "19.0"]
                  [com.github.docker-java/docker-java     "3.0.0-RC4"]
+                 [http-kit "2.1.18"] 
 
 
 
