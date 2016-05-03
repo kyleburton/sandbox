@@ -14,6 +14,9 @@
    [com.perforce.p4java.client IClient]
    [com.perforce.p4java.client IClientSummary$ClientLineEnd]))
 
+
+;; TODO: need the ability to set the socket timeout on the underlying connection (lets hope that p4java exposes that capability :/)
+
 (defn hostname-impl []
   (.. java.net.InetAddress getLocalHost getHostName))
 
@@ -120,6 +123,9 @@
 
 (s/defn clients [client :- P4Client args input]
   (exec-cmd client "clients" args input))
+
+(s/defn sizes [client :- P4Client args input]
+  (exec-cmd client "sizes" args input))
 
 (defn seq->list [s]
   (reduce
