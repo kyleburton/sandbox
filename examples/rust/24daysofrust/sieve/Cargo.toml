@@ -1,0 +1,8 @@
+[package]
+name = "sieve"
+version = "0.1.0"
+authors = ["Kyle Burton <kyle.burton@gmail.com>"]
+
+[dependencies]
+primal = "~0.2.3"
+# t_bang = "0.1.2"
