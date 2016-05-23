@@ -1,0 +1,6 @@
+[package]
+name = "12_6_Where_clauses"
+version = "0.1.0"
+authors = ["Kyle Burton <kyle.burton@gmail.com>"]
+
+[dependencies]
