@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+
+bake_task init
+function init () {
+  if [ ! -d src/components ]; then
+    mkdir -p src/{components,containers,styles,utils,views}
+  fi
+
+  # test -e webpack.config.js || touch webpack.config.js
+
+  # TODO: make this idempotent: how can we test if these are alerady installed?
+
+  if ! npm list | grep -q file-loader ; then
+    npm install --save-dev \
+      react \
+      react-dom \
+      react-router \
+      babel-core \
+      babel-preset-es2015 \
+      babel-preset-react \
+      babel-preset-react-hmre \
+      babel-preset-stage-0 \
+      hjs-webpack \
+      webpack \
+      babel-loader \
+      css-loader \
+      style-loader \
+      postcss-loader \
+      url-loader \
+      file-loader
+  fi
+
+  if [ ! -e .babelrc ]; then
+    cat > .babelrc <<END
+{
+  "presets": ["es2015", "stage-0", "react"],
+  "env": {
+    "development": {
+      "presets": ["react-hmre"],
+    }
+  }
+}
+END
+  fi
+
+  if [ ! -e webpack.config.js ]; then
+    cat > webpack.config.js <<END
+const webpack = require('webpack');
+const fs      = require('fs');
+const path    = require('path'),
+      join    = path.join,
+      resolve = path.resolve;
+
+const root    = resolve(__dirname);
+const src     = join(root, 'src');
+const modules = join(root, 'node_modules');
+const dest    = join(root, 'dist');
+
+const NODE_ENV = process.env.NODE_ENV;
+const isDev = NODE_ENV === 'development';
+
+const getConfig = require('hjs-webpack');
+var config = getConfig({
+  isDev:            isDev,
+  in:               join(__dirname, "src/app.js"),
+  out:              join(__dirname, "dist"),
+  clearBeforeBuild: true
+});
+module.exports = config;
+END
+  fi
+}
+
+bake_task run
+function run () {
+  NODE_ENV=development ./node_modules/.bin/hjs-dev-server
+}
