@@ -20,6 +20,9 @@
                  [prismatic/schema                       "1.1.1"]
                  [org.clojure/tools.nrepl                "0.2.12"]
                  [cider/cider-nrepl                      "0.10.2"]
+                 [frankiesardo/route-swagger             "0.1.0"]
+
+                 [org.clojure/tools.logging "0.3.1"]
                 ]
   :min-lein-version "2.0.0"
   :resource-paths ["config", "resources"]

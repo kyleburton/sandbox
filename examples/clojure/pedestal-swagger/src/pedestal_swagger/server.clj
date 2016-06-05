@@ -1,9 +1,11 @@
 (ns pedestal-swagger.server
   (:gen-class) ; for -main method in uberjar
-  (:require [io.pedestal.http           :as server]
-            [pedestal-swagger.service   :as service]
-            [clojure.tools.nrepl.server :refer [start-server stop-server]]
-            [cider.nrepl                :refer [cider-nrepl-handler]]))
+  (:require
+   [io.pedestal.http           :as server]
+   [pedestal-swagger.service   :as service]
+   [clojure.tools.nrepl.server :refer [start-server stop-server]]
+   [cider.nrepl                :refer [cider-nrepl-handler]]
+   [clojure.tools.logging      :as log]))
 
 
 (defonce nrepl-server (atom nil))
@@ -16,6 +18,10 @@
 (defn run-dev
   "The entry-point for 'lein run-dev'"
   [& args]
+  (reset! nrepl-server (start-server
+                        :port (-> @config :nrepl :port)
+                        :handler cider-nrepl-handler))
+  (log/infof "NREPL: %s" (-> config deref :nrepl))
   (println "\nCreating your [DEV] server...")
   (-> service/service ;; start with production configuration
       (merge {:env :dev
@@ -38,6 +44,7 @@
   (reset! nrepl-server (start-server
                         :port (-> @config :nrepl :port)
                         :handler cider-nrepl-handler))
+  (log/infof "NREPL: %s" (-> config deref :nrepl))
   (println "\nCreating your server...")
   (server/start runnable-service))
 
