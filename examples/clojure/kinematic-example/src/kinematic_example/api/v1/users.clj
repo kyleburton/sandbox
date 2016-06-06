@@ -2,7 +2,7 @@
   (:require
    [kinematic.dsl :refer [defapi api-get]]))
 
-(defapi :example1 ["api/v1/users" "index"])
+(defapi :example1 ["api/v1/users"])
 
 (api-get
  {:status "OK"

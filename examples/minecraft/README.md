@@ -1,10 +1,9 @@
-Install bake:
+# Overview
 
-    https://github.com/kyleburton/bake
-    # or
-    test -d $HOME/bin || mkdir $HOME/bin
-    curl https://raw.githubusercontent.com/kyleburton/bake/master/bake > $HOME/bin/bake
-    chmod 755 $HOME/bin/bake
+
+# Hacking
+
+Install bake: https://github.com/kyleburton/bake
 
 Download / Install / Build the necessaries:
 
