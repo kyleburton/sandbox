@@ -1,0 +1,26 @@
+#!/usr/sbin/dtrace -s
+/*
+ *  malloc.d
+ *  run using ./malloc.d -p <pid>
+ *  count the user stack using mallocs and
+ *  prints a histogram of the allocation size
+ */
+
+pid$target::malloc:entry
+{
+        self->size = arg0;
+}
+
+pid$target::malloc:return
+/self->size/
+{
+        @[ustack()] = count();
+        @size = quantize(self->size);
+        self->size = 0;
+}
+
+/* tick-600sec */
+tick-10sec
+{
+    exit(0);
+}
