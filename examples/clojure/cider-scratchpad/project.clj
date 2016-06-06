@@ -6,7 +6,8 @@
   :main ^:skip-aot scratchpad.core
   :global-vars  {*warn-on-reflection* true}
   :dependencies [
-                 [org.clojure/clojure                    "1.8.0"]
+                 ;; [org.clojure/clojure                    "1.8.0"]
+                 [org.clojure/clojure                    "1.9.0-alpha3"]
                  [org.clojure/tools.logging              "0.3.1"]
                  [org.clojure/tools.nrepl                "0.2.12"]
                  [cider/cider-nrepl                      "0.10.2"]
