@@ -1,0 +1,8 @@
+[package]
+name = "hyper"
+version = "0.1.0"
+authors = ["Kyle Burton <kyle.burton@gmail.com>"]
+
+[dependencies]
+hyper = "0.9.7"
+rustc-serialize = "0.3"
