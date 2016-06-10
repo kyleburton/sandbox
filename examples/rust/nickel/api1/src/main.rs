@@ -15,14 +15,6 @@ struct Person {
 fn main() {
     let mut server = Nickel::new();
 
-    /*
-    server.utilize(router! {
-        get "**" => |_req, _res| {
-            "Hello world"
-        }
-    });
-    */
-
     server.get("/", middleware!("request to root"));
     server.get("/user/:userid", middleware! { |request|
         format!("paramter userid={}", request.param("userid").unwrap())

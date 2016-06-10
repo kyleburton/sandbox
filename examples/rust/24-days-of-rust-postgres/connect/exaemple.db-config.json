@@ -1,0 +1,7 @@
+{
+  "host": "<<set a hostname>>",
+  "port": "<<set a port>>",
+  "user": "<<set a username>>",
+  "pass": "<<set a password>>",
+  "db":   "<<set a dbname>>"
+}
