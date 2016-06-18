@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+bake_task postgres-start 
+function postgres-start () {
+  docker-compose -f dev-docker-compose.yml up -d
+}
+
+bake_task postgres-stop
+function postgres-stop () {
+  docker-compose -f dev-docker-compose.yml down
+}
+
+bake_task postgres-psql
+function postgres-psql () {
+  psql -p 5442 -U alembic -h $(docker-machine ip default) alembic_scratchpad
+}
+
+bake_task migration-new
+function migration-new () {
+  local description="$@"
+  alembic -c config/development.alembic.ini revision -m "$description"
+}
+
+bake_task migration-upgrade
+function migration-upgrade () {
+  set -x
+  alembic -c config/development.alembic.ini upgrade head
+}

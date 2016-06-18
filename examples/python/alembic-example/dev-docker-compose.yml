@@ -1,0 +1,19 @@
+version: '2'
+services:
+  pgdata:
+    container_name: 'alembic-scratchpad-pgdata'
+    image: 'alpine:latest'
+    command: "echo 'this is the pgdata volume'"
+    volumes: 
+      - "/var/lib/postgresql/data"
+  postgres:
+    container_name: 'alembic-scratchpad-db'
+    image: "postgres:9.5.2"
+    environment:
+    - "POSTGRES_USER=alembic"
+    - "POSTGRES_PASSWORD=password"
+    - "POSTGRES_DB=alembic_scratchpad"
+    ports:
+      - "5442:5432"
+    volumes_from:
+      - "pgdata"
