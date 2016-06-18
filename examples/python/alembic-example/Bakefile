@@ -15,14 +15,19 @@ function postgres-psql () {
   psql -p 5442 -U alembic -h $(docker-machine ip default) alembic_scratchpad
 }
 
+bake_task alembic
+function alembic () {
+  command alembic -c config/development.alembic.ini "$@"
+}
+
 bake_task migration-new
 function migration-new () {
   local description="$@"
-  alembic -c config/development.alembic.ini revision -m "$description"
+  alembic revision -m "$description"
 }
 
 bake_task migration-upgrade
 function migration-upgrade () {
   set -x
-  alembic -c config/development.alembic.ini upgrade head
+  alembic upgrade head
 }
