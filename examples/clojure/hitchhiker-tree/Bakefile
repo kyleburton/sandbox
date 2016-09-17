@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+
+# bake_require github.com/kyleburton/bake-recipes/docker/docker.sh
+
+DOCKER_REDIS_IMAGE_TAG="redis:3.0"
+DOCKER_REDIS_CONTAINER_NAME="redis-hitchhiker-tree"
+PROJECT_DIR="$(bake_bakefile_dir)"
+
+bake_task init "Install required deps (including the hitchhiker tree)"
+function init () {
+  test -d software || mkdir -p software
+  if [ ! -d software/hitchhiker-tree ]; then
+      (cd software; git clone git@github.com:datacrypt-project/hitchhiker-tree.git)
+  else
+      (cd software/hitchhiker-tree; git co master; git pull origin master)
+  fi
+  test -d checkouts || mkdir checkouts
+
+  test -h "$PROJECT_DIR/checkouts/hitchhiker-tree" || ln -s "$PROJECT_DIR/software/hitchhiker-tree checkouts/"
+
+  docker pull "$DOCKER_REDIS_IMAGE_TAG"
+  # if the redis docker image isn't running, lets run it
+}
+
+bake_task redis "Control the redis docker contianer"
+function redis () {
+  local cmd="${1:-}"
+
+  if [ -n "$cmd" ]; then
+      shift
+  fi
+
+  case "$cmd" in
+      start)
+          docker run -p 6379:6379 -d --name "$DOCKER_REDIS_CONTAINER_NAME" "$DOCKER_REDIS_IMAGE_TAG"
+          ;;
+      clean)
+          command bake redis stop || echo "OK: redis is not running"
+          docker ps -a | grep "$DOCKER_REDIS_CONTAINER_NAME" | awk '{print $1}' | xargs docker rm
+          ;;
+      stop)
+          docker stop "$DOCKER_REDIS_CONTAINER_NAME"
+          ;;
+      restart)
+          command bake redis stop
+          command bake redis start
+          ;;
+      cli|repl)
+          set -x
+          docker run --rm -ti --link "$DOCKER_REDIS_CONTAINER_NAME:redis-server" redis:3.0 redis-cli -h redis-server "$@"
+          ;;
+      *)
+          echo "bake redis (start|stop|repl|cli)"
+          return 1
+          ;;
+  esac
+}
