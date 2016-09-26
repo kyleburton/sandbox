@@ -20,6 +20,8 @@ func main() {
 	flag.StringVar(&wordsFile, "wordsFile", "/usr/share/dict/words", "The path to your system's words file.")
 	flag.IntVar(&numWords, "numWords", 5, "The number of words to choose.")
 	flag.BoolVar(&includeProperNouns, "includeProperNouns", false, "Include proper nouns (capitalized words)")
+	// TODO: minLen "Specify a minimum word length"
+	// TODO: maxLen "Specify a maximum word length"
 	flag.Parse()
 
 	file, err := os.Open(wordsFile)
@@ -67,7 +69,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	for _, word := range resevior {
+	for idx, word := range resevior {
+		if idx >= ii {
+			break
+		}
 		fmt.Printf("%s\n", word)
 	}
 
