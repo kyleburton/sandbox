@@ -1,0 +1,1 @@
+* 'backronym' - cli tool that takes a word, for each letter in the word, pulls a word from /usr/share/dict/words and prints out the (random) acronym
