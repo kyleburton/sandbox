@@ -12,3 +12,19 @@ Code Retreat : Conway's Game of Life
 * Expresses Intent
 * No Duplication
 * Short
+
+
+# getting started (from scratch)
+
+```
+$ rspec --init
+```
+
+8th Light Session Facilitators:
+
+* Tom
+* Zach
+
+
+
+
