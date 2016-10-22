@@ -23,9 +23,25 @@ defmodule LifeORamaTest do
 
   test "can update and track state" do
     cpid = LifeORama.create_cell(:alive)
+    send(cpid, {:get_state, self})
+    assert_receive :alive
+
     send(cpid, {:set_state, self, :dead})
     send(cpid, {:get_state, self})
     assert_receive :alive
+
     LifeORama.destroy_cell(cpid)
   end
+
+  test "add a neighbor" do
+    cpid = LifeORama.create_cell(:alive)
+    cpid2 = LifeORama.create_cell(:alive)
+    send(cpid, {:num_neighbors, self})
+    assert_receive 0
+    send(cpid, {:add_neighbor, self, cpid2})
+    assert_receive 1
+    LifeORama.destroy_cell(cpid)
+    LifeORama.destroy_cell(cpid2)
+  end
+
 end
