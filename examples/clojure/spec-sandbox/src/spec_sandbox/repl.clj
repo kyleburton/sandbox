@@ -10,6 +10,6 @@
 
 (defn -main [& args]
   (reset! nrepl-server (start-server
-                        :port (-> @config :nrepl :port)
+                        :port    (-> @config :nrepl :port)
                         :handler cider-nrepl-handler))
   (log/infof "nrepl is running %s" @config))

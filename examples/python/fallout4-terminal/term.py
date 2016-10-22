@@ -4,11 +4,21 @@ from random import shuffle, choice, random # NOQA
 words_file = "words.txt"
 
 
-def slurp_lines(fname):
+def all_words(fname):
     with open(fname, 'r') as f:
         return [l.rstrip().upper()
                 for l in f.readlines()
                 if l.rstrip() == l.rstrip().lower()]
+
+
+def random_word():
+    words = all_words(words_file)
+    shuffle(words)
+    while words:
+        w = words.pop()
+        if len(w) > 4:
+            return w
+    raise Exception("Whoops, didn't find a suitable word!")
 
 
 def chunk(l, n):
@@ -35,7 +45,7 @@ def get_decoys(target_word, max_words=40):
     decoys = []
     # TODO: make sure the words we're testing have at least 1 character in
     # common w/the target word
-    for decoy in slurp_lines(words_file):
+    for decoy in all_words(words_file):
         if len(target_word) == len(decoy) and target_word != decoy:
             decoys.append(decoy)
 
@@ -151,5 +161,12 @@ def test_match(target, candidate):
 
 
 if __name__ == "__main__":
-    for word in sys.argv[1:]:
+    words = sys.argv[1:]
+    if not words:
+        target = random_word()
+        print("TARGET: {}".format(target))
+        words = [target]
+
+    for word in words:
         generate_terminal(word.upper())
+        print("")

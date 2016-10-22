@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-bake_require github.com/kyleburton/bake-recipies/emacs/cider.sh
+bake_require github.com/kyleburton/bake-recipes/emacs/cider.sh
 
 bake_task run_emacs
 function run_emacs () {

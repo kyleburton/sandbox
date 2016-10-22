@@ -132,3 +132,28 @@
     (.build config))
 
   )
+
+
+(comment
+
+
+  (.getResource Class "/foo.foo")
+
+  (slurp (.getResourceAsStream Class "/foo.foo"))
+
+
+  (+ 3 4)
+
+  (->
+   (doto (java.util.HashMap.)
+     (.put "this" :that)
+     (.put "other" "thing")
+     (.put "111" 222)
+     (.put "111" {"more" 234
+                  "stuff" 3.1415777}))
+   )
+)
+
+
+(defn tell-isaac-hi [msg]
+  (.println System/out (format "Yo Isaac: %s" msg)))

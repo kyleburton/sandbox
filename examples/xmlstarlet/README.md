@@ -36,3 +36,39 @@ to manipulate.
 * http://xmlstar.sourceforge.net/
 * http://xmlstar.sourceforge.net/doc/UG/xmlstarlet-ug.html#idm47077139530992
 * http://stackoverflow.com/questions/5954168/how-to-insert-a-new-element-under-another-with-xmlstarlet
+
+
+```bash
+$ cat xml/books.xml
+<library>
+  <book title="Something about things" author="A. Person">
+    <book-info>
+      <pages>123</pages>
+      <weight unit="ounces">23</weight>
+      <aroma>Knowledge</aroma>
+    </book-info>
+  </book>
+  <book title="XML Ate my Car" author="Author Machavelli Laxinica">
+    <book-info>
+      <pages>999</pages>
+      <weight unit="parsecs">2.1831e28</weight>
+      <aroma>Rancid Helvetica</aroma>
+    </book-info>
+  </book>
+</library>
+```
+
+```bash
+$ xmlstarlet  el xml/books.xml
+library
+library/book
+library/book/book-info
+library/book/book-info/pages
+library/book/book-info/weight
+library/book/book-info/aroma
+library/book
+library/book/book-info
+library/book/book-info/pages
+library/book/book-info/weight
+library/book/book-info/aroma
+``

@@ -16,7 +16,7 @@ function init () {
   fi
   test -d checkouts || mkdir checkouts
 
-  test -h "$PROJECT_DIR/checkouts/hitchhiker-tree" || ln -s "$PROJECT_DIR/software/hitchhiker-tree checkouts/"
+  test -h "$PROJECT_DIR/checkouts/hitchhiker-tree" || ln -s "$PROJECT_DIR/software/hitchhiker-tree" "checkouts/"
 
   docker pull "$DOCKER_REDIS_IMAGE_TAG"
   # if the redis docker image isn't running, lets run it
