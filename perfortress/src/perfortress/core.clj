@@ -94,7 +94,7 @@
          (throw e#)))))
 
 (s/defn exec-cmd [client :- P4Client cmd :- s/Str args :- [s/Str] input :- (s/maybe s/Str)]
-  (let [args   (into-array String args)
+  (let [args    (into-array String args)
         results (->
                  client
                  :client
@@ -195,4 +195,16 @@
 
 (s/defn paths->changelist [paths :- [s/Str]]
   (com.perforce.p4java.core.file.FileSpecBuilder/makeFileSpecList paths))
+
+(defn seq->file-specs [l]
+  (mapv (fn [e]
+          (com.perforce.p4java.impl.generic.core.file.FileSpec. e))
+        l))
+
+(defn get-file-contents [cli path]
+ (->
+  cli
+  :client
+  (.getFileContents (seq->file-specs [path]) false true)
+  slurp))
 
