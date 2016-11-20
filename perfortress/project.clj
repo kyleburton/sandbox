@@ -19,5 +19,5 @@
                  [clj-time                               "0.11.0"]
                  [org.clojure/core.cache                 "0.6.4"]
                  [com.cemerick/url                       "0.1.1"]
-                 [com.perforce/p4java                    "2015.2.1312871"]
+                 [com.perforce/p4java                    "2015.2.1365273"]
   ])
