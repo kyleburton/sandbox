@@ -3,7 +3,8 @@
 bake_require github.com/kyleburton/bake-recipies/emacs/cider.sh
 
 INSTAL_PATH=/cygdrive/c/Users/kyle/AppData/Roaming/.minecraft
-MINECRAFT_SERVER_JAR_URL="https://s3.amazonaws.com/Minecraft.Download/versions/1.8.3/minecraft_server.1.8.3.jar"
+# MINECRAFT_SERVER_JAR_URL="https://s3.amazonaws.com/Minecraft.Download/versions/1.8.3/minecraft_server.1.8.3.jar"
+MINECRAFT_SERVER_JAR_URL="https://s3.amazonaws.com/Minecraft.Download/versions/1.11.1/minecraft_server.1.11.1.jar"
 BAKCUP_DIR="$HOME/local/minecraft"
 CANARYMOD_VERSION="1.2.0"
 CANARYMOD_JAR="CanaryMod-$CANARYMOD_VERSION.jar"
@@ -50,7 +51,7 @@ function backup () {
   git commit -m "$logmsg"
 }
 
-bake_task restore 
+bake_task restore
 function restore () {
   cd data
   rsync -avz ./saves $INSTAL_PATH/
@@ -73,6 +74,7 @@ function install_sun_jdk () {
 bake_task run_standard_server "Run vanilla Minecraft Server"
 function run_standard_server () {
   jfile="$(basename $MINECRAFT_SERVER_JAR_URL)"
+  #    java -Xmx1024M -Xms1024M -jar minecraft_server.jar nogui
   jvm_args="-Xmx3G -Xms3G -Xmn768m -XX:MaxGCPauseMillis=30 -XX:GCPauseIntervalMillis=150 -XX:+OptimizeStringConcat"
   set -x
   java $jvm_args -jar $jfile nogui
@@ -166,7 +168,7 @@ function canarymod_build_plugin () {
   rm -f bin/*/*.class || echo "removed classes"
   rm -f dist/*.jar || echo "removed jar"
   bake_echo_green "$plugin: compiling..."
-  javac $javac_opts -cp $javac_classpath:$EZPLUGIN_JAR $(find src -name '*.java') 
+  javac $javac_opts -cp $javac_classpath:$EZPLUGIN_JAR $(find src -name '*.java')
   bake_echo_green "$plugin: compiled"
   bake_echo_green "$plugin: creating jar..."
   jar -cf "dist/$plugin.jar" *.inf -C bin . || exit 3
@@ -204,7 +206,7 @@ function build_plugin () {
   canarymod_build_plugin "$plugin" "$JAVAC_OPTS" "$(javac_classpath)" "$(server_plugindir)" "."
 }
 
-bake_task init 
+bake_task init
 function init () {
   download_canarymod_jar
   ahmine2_download
