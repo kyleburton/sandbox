@@ -1,0 +1,11 @@
+version: '2'
+services:
+  postgres:
+    container_name: 'krb-utils-db'
+    image: "postgres:9.5.2"
+    environment:
+      - "POSTGRES_USER=krb-utils"
+      - "POSTGRES_PASSWORD=password"
+      - "POSTGRES_DB=krb_utils"
+    ports:
+      - "5433:5432"

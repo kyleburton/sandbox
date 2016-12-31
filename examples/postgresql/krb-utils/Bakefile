@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+
+bake_task docker-ensure-shutdown
+function docker-ensure-shutdown () {
+  docker-compose down || echo "ok: the docker container should be stopped"
+}
+
+bake_task docker-ensure-started
+function docker-ensure-started () {
+  docker-compose up -d
+}
+
+POSTGRES_PORT="${POSTGRES_PORT:-5433}"
+POSTGRES_HOST="${POSTGRES_HOST:-localhost}"
+POSTGRES_USER="${POSTGRES_USER:-krb-utils}"
+POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-password}"
+POSTGRES_DB="${POSTGRES_DB:-krb_utils}"
+
+function _ensure_pgpass () {
+   local pgpassline="$POSTGRES_HOST:$POSTGRES_PORT:$POSTGRES_DB:$POSTGRES_USER:$POSTGRES_PASSWORD"
+   echo "$pgpassline" >> ~/.pgpass
+   cat ~/.pgpass | sort -u > ~/.pgpass.new
+   cp ~/.pgpass.new ~/.pgpass
+   chmod 0600 ~/.pgpass
+}
+
+bake_task postgres "Control the Docker postgres db: start, stop, status, psql"
+function postgres () {
+  local cmd="${1:-}"
+  _ensure_pgpass
+  case $cmd in
+    start)
+      docker-ensure-started
+      ;;
+    stop)
+      docker-ensure-stopped
+      ;;
+    status)
+      docker ps -f "name=krb-utils-db"
+      ;;
+    psql)
+      exec psql -h $POSTGRES_HOST -p $POSTGRES_PORT -U $POSTGRES_USER $POSTGRES_DB
+      ;;
+    *)
+      echo "bake postgres (start|stop|status|psql)"
+      return 1
+
+      ;;
+  esac
+}
+
+bake_task run-test-suite
+function run-test-suite () {
+  for f in $(ls tests/*.sh | sort); do
+    if bash $f; then
+        echo "OK:     $f"
+    else
+        echo "FAILED: $f"
+    fi
+  done
+}
+
+bake_task run-tests "Run the test suite"
+function run-tests () {
+  docker-ensure-shutdown
+  docker-ensure-started
+  run-test-suite
+  docker-ensure-shutdown
+}
+
