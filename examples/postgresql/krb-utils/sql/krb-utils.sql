@@ -26,7 +26,6 @@ DECLARE
   stmt text;
   has_colname boolean;
 BEGIN
-  -- TODO: check if the table has an updated_at (colname)
   EXECUTE 'SELECT true FROM information_schema.columns WHERE table_schema=''' || sname || ''''
           || ' AND table_name=''' || tname || ''''
           || ' AND column_name=''' || colname || ''''
@@ -50,6 +49,21 @@ BEGIN
 
   RAISE NOTICE 'krb_utils.install_updated_at_tracker installed trigger on %.%(%)',
     sname, tname, colname;
+END;
+$$
+LANGUAGE 'plpgsql' -- IMMUTABLE -- NB: not sure what IMMUTABLE means .. probably don't want it for installing the stored proc
+SECURITY DEFINER;
+
+
+CREATE OR REPLACE FUNCTION krb_utils.uninstall_updated_at_tracker(sname varchar, tname varchar, colname varchar)
+  RETURNS void AS
+$$
+DECLARE
+  stmt text;
+  has_colname boolean;
+BEGIN
+  stmt := 'DROP TRIGGER IF EXISTS ' || tname || '_updt ON ' || sname || '.' || tname || ';';
+  EXECUTE stmt;
 END;
 $$
 LANGUAGE 'plpgsql' -- IMMUTABLE -- NB: not sure what IMMUTABLE means .. probably don't want it for installing the stored proc

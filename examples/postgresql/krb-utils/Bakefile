@@ -39,7 +39,8 @@ function postgres () {
       docker ps -f "name=krb-utils-db"
       ;;
     psql)
-      exec psql -h $POSTGRES_HOST -p $POSTGRES_PORT -U $POSTGRES_USER $POSTGRES_DB
+      shift
+      exec psql -h $POSTGRES_HOST -p $POSTGRES_PORT -U $POSTGRES_USER $POSTGRES_DB "$@"
       ;;
     *)
       echo "bake postgres (start|stop|status|psql)"
@@ -52,6 +53,7 @@ function postgres () {
 bake_task run-test-suite
 function run-test-suite () {
   for f in $(ls tests/*.sh | sort); do
+    echo "RUNNING: $f"
     if bash $f; then
         echo "OK:     $f"
     else
