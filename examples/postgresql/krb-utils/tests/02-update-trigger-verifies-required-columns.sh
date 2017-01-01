@@ -1,7 +1,7 @@
 #!/usr/bin/env
 set -eu
 
-set -x
+# set -x
 
 function try_install_trigger () {
 bake postgres psql <<END

@@ -1,7 +1,7 @@
 #!/usr/bin/env
 set -eu
 
-set -x
+# set -x
 
 function ensure-test-data () {
 bake postgres psql <<END

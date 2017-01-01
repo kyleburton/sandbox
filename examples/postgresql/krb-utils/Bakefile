@@ -8,6 +8,14 @@ function docker-ensure-shutdown () {
 bake_task docker-ensure-started
 function docker-ensure-started () {
   docker-compose up -d
+  echo "waiting for postgres to start "
+  while :; do
+      if echo "select now()" | postgres psql > /dev/null 2>&1; then
+          break
+      fi
+      echo -n "."
+      sleep 1
+  done
 }
 
 POSTGRES_PORT="${POSTGRES_PORT:-5433}"
@@ -52,14 +60,27 @@ function postgres () {
 
 bake_task run-test-suite
 function run-test-suite () {
+  local npassed="0"
+  local nfailed="0"
   for f in $(ls tests/*.sh | sort); do
     echo "RUNNING: $f"
     if bash $f; then
         echo "OK:     $f"
+        npassed="$((npassed+1))"
     else
         echo "FAILED: $f"
+        nfailed="$((nfailed+1))"
     fi
   done
+
+  local total="$(($npassed + $nfailed))"
+  if [ 0 == "$nfailed" ]; then
+      bake_echo_green "PASS: $npassed passed, $nfailed failed out of $total tests"
+      exit 0
+  else
+      bake_echo_red "FAIL: $npassed passed, $nfailed failed out of $total tests"
+      exit 1
+  fi
 }
 
 bake_task run-tests "Run the test suite"
