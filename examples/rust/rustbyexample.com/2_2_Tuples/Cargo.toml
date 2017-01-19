@@ -1,0 +1,6 @@
+[package]
+name = "2_2_Tuples"
+version = "0.1.0"
+authors = ["Kyle Burton <kyle.burton@gmail.com>"]
+
+[dependencies]
