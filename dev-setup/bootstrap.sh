@@ -58,7 +58,19 @@ if ! which ruby ; then
   exit 1
 fi
 
-ruby linuxbrew/bin/install.rb
+if [ ! -d "$HOME/.linuxbrew" ]; then
+  ruby linuxbrew/bin/install.rb
+fi
+
+$HOME/.linuxbrew/bin/brew tap --full github/kyleburton https://github.com/kyleburton/homebrew-kyleburton.git
+$HOME/.linuxbrew/bin/brew update
+
+while read -r line; do
+  $HOME/.linuxbrew/bin/brew install $line
+done < brew.packages
+
+pyenv install 3.6.0
+
 echo "Please add the following to your ~/.bash_profile"
 echo ""
 echo PATH="\$PATH:\$HOME/.linuxbrew/bin"

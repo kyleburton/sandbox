@@ -4,8 +4,12 @@ Self-contained, [bake](https://github.com/kyleburton/bake) based Unix dev enviro
 
 
 DONE: change the bootstratp to install linuxbrew (idempotently)
-TODO: tap my kburton / bake tap via linuxbrew
-TODO: install bake (idempotently) via linuxbrew
+DONE: tap my kburton / bake tap via linuxbrew
+DONE: install bake (idempotently) via linuxbrew
+DONE: install pyenv
+DONE: install python 3.6.0
+TODO: install nodejs
+TODO: install npm
 TODO: install ansible
 TODO: install openbox
 TODO: apply openbox configuration
