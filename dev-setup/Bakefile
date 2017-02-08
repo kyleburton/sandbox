@@ -3,6 +3,13 @@
 bake_push_libdir $(bake_bakefile_dir)/src/sh
 bake_require erlang
 
+source src/sh/python.sh
+source src/sh/oracle-java.sh
+source src/sh/leiningen.sh
+source src/sh/os-utils.sh
+source src/sh/profile.sh
+source src/sh/linuxbrew.sh
+
 bake_task write-env-sh "Create the env.sh file"
 function write-env-sh () {
   sort -u .path.dirs > .path.dirs.new

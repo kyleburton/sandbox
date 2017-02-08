@@ -2,37 +2,26 @@
 
 set -eu -o pipefail
 
+source src/sh/fake-bake.sh
+source src/sh/python.sh
+source src/sh/oracle-java.sh
+source src/sh/leiningen.sh
+source src/sh/os-utils.sh
+source src/sh/profile.sh
+source src/sh/linuxbrew.sh
+
+PACKAGES_FILE="packages.ubuntu"
+PKG_INSTALLER="os-utils:pkg-install.ubuntu"
+
+
 if [ -n "${DEBUG:-}" ]; then
   set -x
 fi
 
-PACKAGES_FILE="packages.ubuntu"
-PKG_INSTALLER="pkg-install.ubuntu"
-
-function host-is-ubuntu () {
-  if ! which lsb_release > /dev/null 2>&1; then
-    return 1
-  fi
-
-  if [[ $(lsb_release -i -s) == "Ubuntu" ]]; then
-    return 0
-  fi
-
-  return 1
-}
-
-function pkg-install-deb () {
-  sudo apt-get install -y "$@"
-}
-
-function pkg-install-yum () {
-  sudo apt-get install -y "$@"
-}
-
 function init () {
-  if host-is-ubuntu; then
+  if os-utils:host-is-ubuntu; then
     PACKAGES_FILE="packages.ubuntu"
-    PKG_INSTALLER="pkg-install-deb"
+    PKG_INSTALLER="os-utils:pkg-install-deb"
     return 0
   fi
 
@@ -44,32 +33,26 @@ function all-packages () {
   cat "$PACKAGES_FILE" | grep -v '^#' | grep -v '^$' | tr '\n' ' '
 }
 
-function install-packages () {
+function install-os-packages () {
   local packages="$(all-packages)"
   echo "INSTALLING: $PKG_INSTALLER $packages"
   $PKG_INSTALLER $packages
 }
 
+
 init
-install-packages
+install-os-packages
 
 if ! which ruby ; then
   echo "Sorry, you have to have ruby installed"
   exit 1
 fi
 
-if [ ! -d "$HOME/.linuxbrew" ]; then
-  ruby linuxbrew/bin/install.rb
-fi
-
-$HOME/.linuxbrew/bin/brew tap --full github/kyleburton https://github.com/kyleburton/homebrew-kyleburton.git
-$HOME/.linuxbrew/bin/brew update
-
-while read -r line; do
-  $HOME/.linuxbrew/bin/brew install $line
-done < brew.packages
-
-pyenv install 3.6.0
+linuxbrew:install brew.packages
+profile:install
+python:install
+oracle-java:install
+lein:init
 
 echo "Please add the following to your ~/.bash_profile"
 echo ""

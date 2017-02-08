@@ -12,5 +12,6 @@ TODO: install nodejs
 TODO: install npm
 TODO: install ansible
 TODO: install openbox
+TODO: install erlang
+TODO: install elixir
 TODO: apply openbox configuration
-

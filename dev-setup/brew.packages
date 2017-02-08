@@ -1,5 +1,6 @@
 github/kyleburton/bake --without-bash
 pyenv
 pyenv-virtualenv
-node@6
-npm
+# node@6
+# npm
+leiningen
