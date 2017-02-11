@@ -4,3 +4,4 @@ whois
 build-essential
 zlib1g-dev
 libssl-dev
+emacs24

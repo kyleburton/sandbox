@@ -3,6 +3,7 @@
 Self-contained, [bake](https://github.com/kyleburton/bake) based Unix dev environment boostrap.
 
 
+TODO: install emacs, cider & my emacs configuration
 TODO: install nodejs
 TODO: install npm
 TODO: install ansible
@@ -19,7 +20,6 @@ TODO: install nginx
 TODO: install postgresql
 TODO: install rabbitmq?
 TODO: install scala?
-TODO: install emacs, cider & my emacs configuration
 TODO: install clisp, sbcl
 TODO: install the minecraft server and canarymod or bukkit for mods
 TODO: apply openbox configuration

@@ -2,6 +2,8 @@
 #set -x
 bake_push_libdir $(bake_bakefile_dir)/src/sh
 bake_require erlang
+bake_require_git https://github.com/kyleburton/bake-recipies.git emacs/cider.sh
+
 
 source src/sh/python.sh
 source src/sh/oracle-java.sh

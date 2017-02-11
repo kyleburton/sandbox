@@ -1,6 +1,10 @@
 github/kyleburton/bake --without-bash
 pyenv
 pyenv-virtualenv
-# node@6
-# npm
+node
+npm
 leiningen
+go
+cmake
+sbcl
+clisp
