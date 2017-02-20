@@ -42,5 +42,19 @@ extern crate hellolib;
         assert_eq!( 8,  hellolib::gcd(  8,   24));
 
         assert_eq!( 9,  hellolib::gcd(  9,   27));
+
+
+
+        assert_eq!(
+            hellolib::gcd(  2 *  5 * 11 * 17,
+                            3 *  7 * 13 * 19),
+            1
+            );
+
+        assert_eq!(
+            hellolib::gcd(  2 *  3 *  5 * 11 * 17,
+                            3 *  7 * 11 * 13 * 19),
+            3 * 11
+            );
     }
 // }
