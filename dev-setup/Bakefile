@@ -11,6 +11,7 @@ source src/sh/os-utils.sh
 source src/sh/profile.sh
 source src/sh/linuxbrew.sh
 source src/sh/rust.sh
+source src/sh/python.sh
 
 bake_task write-env-sh "Create the env.sh file"
 function write-env-sh () {
