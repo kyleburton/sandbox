@@ -12,6 +12,7 @@ source src/sh/profile.sh
 source src/sh/linuxbrew.sh
 source src/sh/rust.sh
 source src/sh/python.sh
+source src/sh/docker.sh
 
 bake_task write-env-sh "Create the env.sh file"
 function write-env-sh () {
@@ -23,7 +24,7 @@ function write-env-sh () {
 
 function add_path () {
   if [ -z "$1" ]; then
-    echo "Sorry, you must pass a path to add_path!"   
+    echo "Sorry, you must pass a path to add_path!"
     exit 1
   fi
 
