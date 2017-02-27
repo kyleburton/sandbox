@@ -1,4 +1,4 @@
-(ns jdbc-and-c3po.postgres
+(ns jdbc-and-c3po.mysql
   (:require
    [clojure.tools.logging :as log]
    [clojure.java.jdbc     :as jdbc]
@@ -8,9 +8,6 @@
   (:import com.mchange.v2.c3p0.ComboPooledDataSource
            java.net.URI))
 
-;; https://devcenter.heroku.com/articles/database-connection-pooling-with-clojure
-
-;; jdbc:postgresql://host:port/database?param1=value1&param2=value2&
 (defonce db (atom nil))
 
 (defrecord DataSource [datasource]
@@ -32,7 +29,7 @@
     ds))
 
 (defn load-config []
-  (let [lines (-> "pg.env" slurp
+  (let [lines (-> "mysql.env" slurp
                   (.split "\n")
                   vec)
         lines (filter #(not (.startsWith % "#")) lines)
@@ -40,7 +37,7 @@
     (reduce
      (fn [acc [k v]]
        (assoc acc
-              (-> k (.replaceAll "DOCKER_PG_" "") .toLowerCase keyword)
+              (-> k (.replaceAll "DOCKER_MYSQL_" "") .toLowerCase keyword)
               (.replaceAll v "(^\"|\"$)" "")))
      {}
      pairs)))
@@ -53,11 +50,11 @@
 
 (s/defn init! [db-info :- DBInfo]
   (reset! db {:datasource
-              (new-data-source {:driver-class "org.postgresql.Driver"
-                                :jdbc-url     (format "jdbc:postgresql://%s:%s/%s"
+              (new-data-source {:driver-class "com.mysql.jdbc.Driver"
+                                :jdbc-url     (format "jdbc:mysql://%s:%s/%s"
                                                       (:hostname db-info "localhost")
                                                       (:port db-info)
-                                                      (:dbname db-info "postgres"))
+                                                      (:dbname db-info "information_schema"))
                                 :username     (:username db-info)
                                 :password     (:password db-info)})}))
 
@@ -65,15 +62,16 @@
   (do
     (defonce config (load-config))
     (init! {:hostname (config :hostname "localhost")
-            :username (config :username "postgres")
+            :username (config :username "root")
             :password (config :password)
-            :dbname   (config :dbname   "postgres")
-            :port     (config :port 15432)}))
+            :dbname   (config :dbname   "information_schema")
+            :port     (config :port 13306)}))
   
   (def tables-like-user
-    (jdbc/query
-     @db
-     ["select * from information_schema.columns WHERE table_name ilike ?" (str "%user%")]))
+    (do
+      (jdbc/query
+       @db
+       ["select * from INFORMATION_SCHEMA.COLUMNS WHERE table_name like ?" (str "%USER%")])))
 
 
   (first tables-like-user)
@@ -86,10 +84,10 @@
      (update-in
       acc
       [(keyword (:table_schema row)) (keyword (:table_name row))]
-      conj (:column_name row)))
+      assoc (:column_name row)
+      row))
    {}
    tables-like-user)
-
 
   (def rs
     (jdbc/query

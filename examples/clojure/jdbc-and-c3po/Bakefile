@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 source pg.env
+source mysql.env
 
 function postgres:pgpass-check () {
   # https://www.postgresql.org/docs/9.2/static/libpq-pgpass.html
@@ -42,6 +43,40 @@ function postgres () {
      *)
        echo ""
        bake_echo_red "Error: you have to supply a command: start, stop, status, psql"
+       echo ""
+       return 1
+       ;;
+   esac
+}
+
+
+bake_task mysql "Control MySQL in docker"
+function mysql () {
+   local cmd="${1:-}"
+
+   case "$cmd" in
+     start)
+       docker rm "$DOCKER_MYSQL_CONTAINER_NAME" || :
+       docker run \
+         -d \
+         -p $DOCKER_MYSQL_PORT:3306 \
+         -e "MYSQL_ROOT_PASSWORD=$DOCKER_MYSQL_PASSWORD" \
+         --name "$DOCKER_MYSQL_CONTAINER_NAME" \
+         "$DOCKER_MYSQL_IMAGE_TAG"
+       ;;
+     stop)
+       docker stop "$DOCKER_MYSQL_CONTAINER_NAME"
+       ;;
+     status)
+       docker ps -f name="$DOCKER_MYSQL_CONTAINER_NAME"
+       ;;
+     mysql)
+       set -x
+       command mysql --protocol=TCP --port="$DOCKER_MYSQL_PORT" --host="localhost" --user="root" --password="$DOCKER_MYSQL_PASSWORD" "$@"
+       ;;
+     *)
+       echo ""
+       bake_echo_red "Error: you have to supply a command: start, stop, status, mysql"
        echo ""
        return 1
        ;;
