@@ -10,3 +10,6 @@ libbz2-dev
 libsqlite3-dev
 openssh-server
 docker.io
+postgresql-client-common
+postgresql-client
+mysql-client-core-5.7
