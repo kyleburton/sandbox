@@ -1,6 +1,6 @@
 # jdbc-and-c3po
 
-This project shows how to use (`clojure.java.jdbc`)[https://github.com/clojure/java.jdbc] connected to SQLite, PostgreSQL and MySQL using (`C3P0`)[https://github.com/clojure/java.jdbc] database connection pooling.  NB: the sqlite example does not use connection pooling.
+This project shows how to use [`clojure.java.jdbc`](https://github.com/clojure/java.jdbc) connected to SQLite, PostgreSQL and MySQL using [`C3P0`](https://github.com/clojure/java.jdbc) database connection pooling.  NB: the sqlite example does not use connection pooling.
 
 ## Usage
 
