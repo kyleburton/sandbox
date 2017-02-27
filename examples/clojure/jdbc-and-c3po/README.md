@@ -12,9 +12,9 @@ $ lein run
 
 ## Examples
 
-* [`/src/jdbc_and_c3po/sqlite.clj`](/src/jdbc_and_c3po/sqlite.clj)
-* [`/src/jdbc_and_c3po/postgres.clj`](/src/jdbc_and_c3po/postgres.clj)
-* [`/src/jdbc_and_c3po/mysql.clj`](/src/jdbc_and_c3po/mysql.clj)
+* [`/src/jdbc_and_c3po/sqlite.clj`](/examples/clojure/jdbc-and-c3po/src/jdbc_and_c3po/sqlite.clj)
+* [`/src/jdbc_and_c3po/postgres.clj`](/examples/clojure/jdbc-and-c3po/src/jdbc_and_c3po/postgres.clj)
+* [`/src/jdbc_and_c3po/mysql.clj`](/examples/clojure/jdbc-and-c3po/src/jdbc_and_c3po/mysql.clj)
 
 You can then connec to the repl, for example from [CIDER](https://github.com/clojure/java.jdbc).
 
