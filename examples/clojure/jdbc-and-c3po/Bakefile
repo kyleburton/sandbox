@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+
+source pg.env
+
+function postgres:pgpass-check () {
+  # https://www.postgresql.org/docs/9.2/static/libpq-pgpass.html
+  # hostname:port:database:username:password
+  local pass="$(echo "$DOCKER_PG_PASSWORD" | sed 's/\\/\\\\/g' | sed 's/:/\\:/g')"
+  local pgpass_line="localhost:$DOCKER_PG_PORT:*:postgres:$pass"
+  test -e ~/.pgpass || (touch ~/.pgpass && chmod 600 ~/.pgpass)
+  if ! grep -q -F "$pgpass_line" ~/.pgpass; then
+    echo "$pgpass_line" >> ~/.pgpass
+  fi
+}
+
+
+bake_task postgres "Control Postgres in docker"
+function postgres () {
+   local cmd="${1:-}"
+
+   postgres:pgpass-check
+
+   case "$cmd" in
+     start)
+       docker rm "$DOCKER_PG_CONTAINER_NAME" || :
+       docker run \
+         -d \
+         -p $DOCKER_PG_PORT:5432 \
+         -e "POSTGRES_PASSWORD=$DOCKER_PG_PASSWORD" \
+         --name "$DOCKER_PG_CONTAINER_NAME" \
+         "$DOCKER_PG_IMAGE_TAG"
+       ;;
+     stop)
+       docker stop "$DOCKER_PG_CONTAINER_NAME"
+       ;;
+     status)
+       docker ps -f name="$DOCKER_PG_CONTAINER_NAME"
+       ;;
+     psql)
+       psql -Upostgres -p 15432 -h localhost -d $DOCKER_PG_DBNAME  "$@"
+       ;;
+     *)
+       echo ""
+       bake_echo_red "Error: you have to supply a command: start, stop, status, psql"
+       echo ""
+       return 1
+       ;;
+   esac
+}

@@ -16,13 +16,18 @@
                  [org.clojure/java.jdbc                  "0.7.0-alpha1"]
                  ;; https://mvnrepository.com/artifact/c3p0/c3p0
                  ;; [c3p0/c3p0                              "0.9.2"]
-                 [c3p0/c3p0                              "0.9.1.2"]
-                 
+                 ;; [c3p0/c3p0                              "0.9.1.2"]
+                 [com.mchange/c3p0                       "0.9.5.2"]
+
+
                  [org.xerial/sqlite-jdbc                 "3.16.1"]
-                 [postgresql/postgresql                  "9.3-1102.jdbc41"]
+                 ;; https://mvnrepository.com/artifact/org.postgresql/postgresql
+                 ;; [postgresql/postgresql                  "9.3-1102.jdbc41"]
+                 [org.postgresql/postgresql              "9.4-1202-jdbc42"]
+
 
                  [mysql/mysql-connector-java             "6.0.5"]
-                 
-                 
+
+
 
                  ])
