@@ -4,7 +4,7 @@ This project shows how to use (`clojure.java.jdbc`)[https://github.com/clojure/j
 
 ## Usage
 
-To run the embedded Clojure (NREPL)[https://github.com/clojure/java.jdbc], execute:
+To run the embedded Clojure [NREPL](https://github.com/clojure/java.jdbc), execute:
 
 ```
 $ lein run
@@ -12,11 +12,11 @@ $ lein run
 
 ## Examples
 
-* (`/src/jdbc_and_c3po/sqlite.clj`)[/kyleburton/sandbox/tree/master/examples/clojure/jdbc-and-c3po/src/jdbc_and_c3po/sqlite.clj]
-* (`/src/jdbc_and_c3po/postgres.clj`)[/kyleburton/sandbox/tree/master/examples/clojure/jdbc-and-c3po/src/jdbc_and_c3po/postgres.clj]
-* (`/src/jdbc_and_c3po/mysql.clj`)[/kyleburton/sandbox/tree/master/examples/clojure/jdbc-and-c3po/src/jdbc_and_c3po/mysql.clj]
+* [`/src/jdbc_and_c3po/sqlite.clj`](/kyleburton/sandbox/tree/master/examples/clojure/jdbc-and-c3po/src/jdbc_and_c3po/sqlite.clj)
+* [`/src/jdbc_and_c3po/postgres.clj`](/kyleburton/sandbox/tree/master/examples/clojure/jdbc-and-c3po/src/jdbc_and_c3po/postgres.clj)
+* [`/src/jdbc_and_c3po/mysql.clj`](/kyleburton/sandbox/tree/master/examples/clojure/jdbc-and-c3po/src/jdbc_and_c3po/mysql.clj)
 
-You can then connec to the repl, for example from (CIDER)[https://github.com/clojure/java.jdbc].
+You can then connec to the repl, for example from [CIDER](https://github.com/clojure/java.jdbc).
 
 ## License
 
