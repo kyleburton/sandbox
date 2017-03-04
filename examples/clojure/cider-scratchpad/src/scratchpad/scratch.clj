@@ -152,8 +152,39 @@
      (.put "111" {"more" 234
                   "stuff" 3.1415777}))
    )
-)
+  )
 
 
 (defn tell-isaac-hi [msg]
   (.println System/out (format "Yo Isaac: %s" msg)))
+
+
+(defn braces-recursive [^String s]
+  (let [opens-for-closes {"{" "}"
+                          "[" "]"
+                          "(" ")"}
+        is-open?         #{"(" "{" "["}]
+    (loop [[ch & chars] (.split s "")
+           expect       []]
+      (cond
+        (not ch)
+        (empty? expect)
+
+        (is-open? ch)
+        (recur chars (cons (opens-for-closes ch) expect))
+
+        (= (first expect) ch)
+        (recur chars (rest expect))
+
+        :otherwise
+        false))))
+
+(comment
+  (braces-recursive "(")
+  (braces-recursive "))")
+  (braces-recursive "()")
+  (braces-recursive "(){}[]")
+  (braces-recursive "({)}")
+  (braces-recursive "((({{{[[[((()))]]]}}})))")
+
+  )
