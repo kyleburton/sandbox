@@ -8,3 +8,5 @@ go
 cmake
 sbcl
 clisp
+jq
+lastpass-cli --with-pinetry
