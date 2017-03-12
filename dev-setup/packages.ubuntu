@@ -14,3 +14,6 @@ docker.io
 postgresql-client-common
 postgresql-client
 mysql-client-core-5.7
+libcurl4-gnutls-dev
+valgrind
+afl
