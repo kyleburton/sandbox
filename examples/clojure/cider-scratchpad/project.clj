@@ -23,5 +23,7 @@
                  [com.google.guava/guava                 "19.0"]
                  [com.github.docker-java/docker-java     "3.0.0-RC4"]
 
+                 [com.rpl/specter                        "1.0.0"]
+
                  ])
 

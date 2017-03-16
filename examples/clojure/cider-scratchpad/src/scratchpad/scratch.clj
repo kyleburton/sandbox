@@ -5,7 +5,8 @@
    [clj-etl-utils.sequences :as etl-seq]
    [scratchpad.heap         :as heap]
    [clojure.java.io         :as io]
-   [schema.core             :as s])
+   [schema.core             :as s]
+   [com.rpl.specter         :as specter])
   (:import
    [scratchpad.heap BinHeap]))
 
@@ -188,3 +189,17 @@
   (braces-recursive "((({{{[[[((()))]]]}}})))")
 
   )
+
+
+(comment
+
+  (specter/setval [specter/MAP-KEYS specter/NAMESPACE] (str *ns*) any-map)
+  
+  (specter/transform [specter/ALL :a even?] inc [{:a 1} {:a 2 :b 1} {:a 4}])
+  
+  ;; [{:a 1} {:a 3, :b 1} {:a 5}]  
+  
+  ;; => [{:a 1} {:a 3, :b 1} {:a 5}]
+  
+
+)
