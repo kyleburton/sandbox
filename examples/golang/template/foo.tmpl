@@ -1,0 +1,10 @@
+<configuration name="{{ .Name }}">
+  {{ range .DataSources }}
+  <database-pool type="{{ .Type }}">
+    <datasource name="{{ .Name }}">
+      <username>{{ .Username }}</username>
+      <password>{{ .Password }}</password>
+    </datasource>
+  </database-pool>
+  {{ end }}
+</configuration>

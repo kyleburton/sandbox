@@ -1,0 +1,11 @@
+{
+  "Name": "my-config",
+  "DataSources": [
+    {
+      "Type": "c3p0",
+      "Name": "oltpdb",
+      "Username": "uname",
+      "Password": "pass"
+    }
+  ]
+}
