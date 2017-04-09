@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 pub fn gcd(mut n: u64, mut m: u64) -> u64 {
     assert!(n != 0 && m != 0);
     while m != 0 {
@@ -25,5 +27,19 @@ fn main() {
     let lines = "this\nthat\nother\nthing\n";
     for line in lines.lines() {
         println!("Line: '{}'", line);
+    }
+
+    // https://doc.rust-lang.org/core/result/enum.Result.html#method.map
+    let numbers = "1\n2\n3\n4\n";
+    for snum in numbers.lines() {
+        match snum.parse::<i32>().map(|ii| ii * 2) {
+            Ok(nn) => println!("number: {}", nn),
+            Err(ee) => println!("error: {}", ee),
+        }
+    }
+
+    match u64::from_str("23") {
+            Ok(nn) => println!("number: {}", nn),
+            Err(ee) => println!("error: {}", ee),
     }
 }
