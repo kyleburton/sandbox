@@ -1,0 +1,11 @@
+[package]
+name = "iron-gcd"
+version = "0.1.0"
+authors = ["Kyle Burton <kyle.burton@gmail.com>"]
+
+[dependencies]
+iron = "0.4.0"
+mime = "0.2.1"
+router = "0.2.0"
+urlencoded = "0.4.0"
+hello = {path = "../hello", version = "0.1.0"}

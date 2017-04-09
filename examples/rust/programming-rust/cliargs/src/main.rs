@@ -31,6 +31,7 @@ fn main() {
     }
 
     let mut d = numbers[0];
+    // the '&' 'borrows' a reference to the vector's elements
     for m in &numbers[1..] {
         d = gcd(d, *m);
     }
