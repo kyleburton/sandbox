@@ -15,7 +15,7 @@ fn print_padovan_bigint() {
     }
     println!("P(1..1000)");
     for pp in padovan {
-        print!("{} ", pp);
+        println!("{} ", pp);
     }
     println!("");
 }
@@ -28,7 +28,7 @@ fn print_padovan() {
     }
     println!("P(1..100)");
     for pp in padovan {
-        print!("{} ", pp);
+        println!("{} ", pp);
     }
     println!("");
 }
@@ -46,11 +46,16 @@ fn main() {
     println!("{}", parts.join(", "));
 
 
-    let mut s = "frayed knot".to_string();
+    // let mut s = "frayed knot".to_string();
+    let s = "frayed knot".to_string();
     println!("s.len()={}; s.capacity()={}; s='{}'", s.len(), s.capacity(), s);
-    s += ", sir";
-    println!("s.len()={}; s.capacity()={}; s='{}'", s.len(), s.capacity(), s);
+    // s = s + ", sir";
+    // println!("s.len()={}; s.capacity()={}; s='{}'", s.len(), s.capacity(), s);
 
     print_padovan();
     print_padovan_bigint();
+
+    let s1 = vec!["udon", "ramen", "soba"];
+    let s: Vec<String> = s1.iter().map(|x| x.to_string()).collect();
+    println!("mapped: s={:?}", s);
 }
