@@ -6,14 +6,15 @@ evince ~/Downloads/Programming_Rust.pdf
 
 2017-04-10T14:28:45Z: pg 49 Chapter 3
  
-
-
 pg 67: a reference toa  slice is a "fat pointer"
 
 
 
 
 raw string: r###" a string, no escapes are recognized, can have quotes" <-- like that"###
+
+NB: Rust's char type is 32 bits!
+Strings are UTF-8
 
 byte string: b"GET"
   u8 values rather than Unicode text (utf8)
