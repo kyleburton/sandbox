@@ -17,6 +17,7 @@ func main() {
 	var wordsFile string
 	var numWords int
 	var includeProperNouns bool
+
 	flag.StringVar(&wordsFile, "wordsFile", "/usr/share/dict/words", "The path to your system's words file.")
 	flag.IntVar(&numWords, "numWords", 5, "The number of words to choose.")
 	flag.BoolVar(&includeProperNouns, "includeProperNouns", false, "Include proper nouns (capitalized words)")
