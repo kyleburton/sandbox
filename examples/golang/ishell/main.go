@@ -21,5 +21,13 @@ func main() {
 		},
 	})
 
+	shell.AddCmd(&ishell.Cmd{
+		Name: "!",
+		Help: "Run some stuff (danger!)",
+		Func: func(c *ishell.Context) {
+			c.Println(fmt.Sprintf("run this: %s", strings.Join(c.Args, " ")))
+		},
+	})
+
 	shell.Start()
 }
