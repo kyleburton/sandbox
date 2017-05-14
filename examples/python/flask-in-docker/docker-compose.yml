@@ -4,6 +4,9 @@ web:
   build: ./web
   expose:
     - "8000"
+  # 3000 is the remote python debugging port
+  ports:
+    - "3000:3000"
   volumes:
     - ./web:/usr/src/app
   env_file: .env
@@ -22,17 +25,8 @@ nginx:
   links:
     - web:web
 
-data:
-  restart: always
-  image: postgres:latest
-  volumes:
-    - /var/lib/postgresql
-  command: "true"
-
 postgres:
   restart: always
   image: postgres:latest
-  volumes_from:
-    - data
   ports:
     - "5432:5432"
