@@ -1,3 +1,5 @@
+extern crate time;
+
 mod utils;
 
 fn main() {
