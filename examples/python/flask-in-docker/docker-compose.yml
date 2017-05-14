@@ -1,0 +1,38 @@
+# docker-compose.yml
+web:
+  restart: always
+  build: ./web
+  expose:
+    - "8000"
+  volumes:
+    - ./web:/usr/src/app
+  env_file: .env
+  command: python -m flask run --host=0.0.0.0 --port 8000 --debugger
+
+nginx:
+  restart: always
+  build: ./nginx/
+  ports:
+    - "8000:80"
+  # TODO: mount the sites-enabled local directory
+  volumes:
+    - /www/static
+  volumes_from:
+    - web
+  links:
+    - web:web
+
+data:
+  restart: always
+  image: postgres:latest
+  volumes:
+    - /var/lib/postgresql
+  command: "true"
+
+postgres:
+  restart: always
+  image: postgres:latest
+  volumes_from:
+    - data
+  ports:
+    - "5432:5432"

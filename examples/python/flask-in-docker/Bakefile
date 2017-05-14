@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+# bake_require github.com/kyleburton/bake-recipes/docker/docker.sh
+
+bake_task psql "Connect to the database container"
+function psql () {
+  exec psql -U postgres -h localhost -p 5432 "$@"
+}
+
+bake_task docker "Docker compose wrapper: (up|down|start|stop)"
+function docker () {
+  docker-compose "$@"
+}
