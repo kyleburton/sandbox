@@ -4,12 +4,12 @@ extern crate num_traits;
 use num_bigint::BigInt;
 use num_traits::One;
 
-fn print_padovan_bigint() {
+fn print_padovan_bigint(limit: usize) {
     let mut padovan = Vec::<BigInt>::new();
     padovan.push(One::one());
     padovan.push(One::one());
     padovan.push(One::one());
-    for i in 3..1000 {
+    for i in 3..limit {
         let next = &padovan[i-3] + &padovan[i-2];
         padovan.push(next);
     }
@@ -53,9 +53,22 @@ fn main() {
     // println!("s.len()={}; s.capacity()={}; s='{}'", s.len(), s.capacity(), s);
 
     print_padovan();
-    print_padovan_bigint();
+    // print_padovan_bigint(1000);
+    print_padovan_bigint(100);
 
     let s1 = vec!["udon", "ramen", "soba"];
     let s: Vec<String> = s1.iter().map(|x| x.to_string()).collect();
     println!("mapped: s={:?}", s);
+
+    {
+        // Programming Rust pg 79, Box, pointer/ref to heap allocated data
+        let point = Box::new((0.625, 0.5));
+        let p2 = (0.625, 0.5);
+        let label = format!("{:?}", point);
+        let l2 = format!("{:?}", p2);
+        assert_eq!(label, "(0.625, 0.5)");
+        println!("label={:?}", label);
+        println!("l2={:?}", l2);
+        // nb: b/c point leaves scope here, it gets freed
+    }
 }
