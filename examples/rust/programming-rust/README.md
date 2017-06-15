@@ -2,10 +2,12 @@ O'Reilly Book Programming Rust
 
 ```
 evince ~/Downloads/Programming_Rust.pdf
+
+cargo install rustfmt # https://github.com/rust-lang-nursery/rustfmt
 ```
 
 2017-04-10T14:28:45Z: pg 49 Chapter 3
- 
+
 pg 67: a reference toa  slice is a "fat pointer"
 
 
