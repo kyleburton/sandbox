@@ -1,14 +1,16 @@
 (ns scratchpad.scratch
   (:require
-   [clojure.tools.logging   :as log]
-   [clojure.core            :as core]
-   [clj-etl-utils.sequences :as etl-seq]
-   [scratchpad.heap         :as heap]
-   [clojure.java.io         :as io]
-   [schema.core             :as s]
-   [com.rpl.specter         :as specter])
+   [clojure.tools.logging         :as log]
+   [clojure.core                  :as core]
+   [clj-etl-utils.sequences       :as etl-seq]
+   [clj-etl-utils.landmark-parser :as lp]
+   [scratchpad.heap               :as heap]
+   [clojure.java.io               :as io]
+   [schema.core                   :as s]
+   [com.rpl.specter               :as specter])
   (:import
-   [scratchpad.heap BinHeap]))
+   [scratchpad.heap BinHeap]
+   [org.jsoup Jsoup]))
 
 
 (defonce words-file "/usr/share/dict/words")
@@ -201,5 +203,53 @@
   
   ;; => [{:a 1} {:a 3, :b 1} {:a 5}]
   
+
+)
+
+
+(comment
+
+  (def wikipedia-url "https://en.wikipedia.org/wiki/Comparison_of_network_monitoring_systems")
+  (def content (slurp wikipedia-url))
+
+  (count content)
+  ;; => 126853
+
+  (def doc (lp/make-parser content))
+
+  (def table-content
+   (lp/extract
+    doc
+    [[:ft "<table class=\"wikitable sortable"]]
+    [[:ft "</table>"]]))
+
+  (def rows
+   (..
+    (Jsoup/parse table-content)
+    (select "table.wikitable")
+    (get 0)
+    (select "tr")))
+
+  (def header (.get rows 0))
+
+  ;; the first and last of each row are headers
+  ;; from each row, need to grab the th then the trs
+
+
+
+  (def chars "01000010 01000101 01000101 01010010")
+
+
+  (let [chars (->
+               "01000010 01000101 01000101 01010010"
+               (.split " ")
+               vec)
+        nums  (mapv #(Integer/parseInt % 2)
+                    chars)]
+    (mapv #(-> % char str) nums))
+
+  
+  
+
 
 )

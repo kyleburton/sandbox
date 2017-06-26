@@ -22,27 +22,27 @@
     :note        ", country code using 00"}
 
    {:expectation false
-    :number "+47909090"
-    :note ", without country code or too short number"}
+    :number      "+47909090"
+    :note        ", without country code or too short number"}
    
    {:expectation false
-    :number "9090909o"
-    :note ",  invalid character"}
+    :number      "9090909o"
+    :note        ",  invalid character"}
    
    {:expectation false
-    :number "9090909"
-    :note ",  too few digits"}
+    :number      "9090909"
+    :note        ",  too few digits"}
    
    {:expectation false
-    :number "+4690909090"
-    :note ", wrong country code"}
+    :number      "+4690909090"
+    :note        ", wrong country code"}
    
    {:expectation false
-    :number "909090909"
-    :note ", too many digits"}
+    :number      "909090909"
+    :note        ", too many digits"}
    
    {:expectation false
-    :number "00474790909090"
-    :note " Trying to fool the regex now"}
+    :number      "00474790909090"
+    :note        " Trying to fool the regex now"}
    
    ])

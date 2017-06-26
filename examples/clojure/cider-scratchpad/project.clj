@@ -27,6 +27,9 @@
 
                  [org.threeten/threetenbp                "1.3.3"]
 
+                 ;; https://mvnrepository.com/artifact/org.jsoup/jsoup
+                 [org.jsoup/jsoup                        "1.10.2"]
+
 
                  ])
 

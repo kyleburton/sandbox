@@ -11,71 +11,59 @@ import (
 	"unicode"
 )
 
-// https://en.wikipedia.org/wiki/Reservoir_sampling
-func main() {
-	var rnd = rand.New(rand.NewSource(time.Now().UnixNano()))
-	var wordsFile string
-	var numWords int
-	var includeProperNouns bool
+func NewLineChannel(fname string) (chan(string), error) {
+  f, err := os.Open(fname)
+  if err != nil {
+    return nil, err
+  }
 
-	flag.StringVar(&wordsFile, "wordsFile", "/usr/share/dict/words", "The path to your system's words file.")
-	flag.IntVar(&numWords, "numWords", 5, "The number of words to choose.")
-	flag.BoolVar(&includeProperNouns, "includeProperNouns", false, "Include proper nouns (capitalized words)")
-	// TODO: minLen "Specify a minimum word length"
-	// TODO: maxLen "Specify a maximum word length"
-	flag.Parse()
 
-	file, err := os.Open(wordsFile)
-	if err != nil {
-		log.Fatal(fmt.Sprintf("Error opening file: %s : %s", wordsFile, err))
-		os.Exit(1)
-	}
-	defer file.Close()
+  c := make(chan(string))
 
-	resevior := make([]string, numWords)
+  go func () {
+    scanner := bufio.NewScanner(f)
+    for scanner.Scan() {
+      c <- scanner.Text()
+    }
+    f.Close()
+    close(c)
+  }()
 
-	// TODO: this could be a general library if we define it in terms of channels:
-	//   reseviorSample(reseviorSlice[]interface{}, in chan(interface{}), out chan(interface{}))
-	//      reseviorSlice: the resevior, len is the # of samples
-	//      in:            input channel of items
-	//      out:           a channel that will emit 1 item, the resul when in is exhausted
-	scanner := bufio.NewScanner(file)
-
-	var ii = 0
-	var reseviorLength = len(resevior)
-
-	// first fill the resevior with the first numWords words from the file
-	for scanner.Scan() && ii < reseviorLength {
-		line := scanner.Text()
-		resevior[ii] = line
-		ii = ii + 1
-	}
-
-	// for the rest of the words in the file, replace with decreasing
-	// probability
-	for scanner.Scan() {
-		line := scanner.Text()
-		if !includeProperNouns && unicode.IsUpper(([]rune(line))[0]) {
-			continue
-		}
-		jj := rnd.Intn(ii)
-		if jj < reseviorLength {
-			resevior[jj] = line
-		}
-		ii = ii + 1
-	}
-
-	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
-		os.Exit(1)
-	}
-
-	for idx, word := range resevior {
-		if idx >= ii {
-			break
-		}
-		fmt.Printf("%s\n", word)
-	}
-
-	os.Exit(0)
+  return c, nil
 }
+
+// TODO: urfave/cli - turn this into a cli app
+// TODO: allow the user to specify the # of words from the cli
+// TODO: allow the user to specify the file to use, default to /usr/share/dict/words if it exists, can we embed a words list?
+// TODO: filter out Capitolized words
+// TODO: filter out symbols & words that arew too short (support minlen?)
+func main () {
+  numWords := 10
+  lnum := 0
+  resevior := make([]string, numWords)
+
+  rand.Seed(time.Now().UTC().UnixNano())
+
+  c, err := NewLineChannel("/usr/share/dict/words")
+  if err != nil {
+    panic(err)
+  }
+
+  for ii := 0; ii < numWords; ii++ {
+    resevior[ii] = <-c
+    lnum++
+  }
+
+  for line := range(c) {
+    lnum++
+    idx := rand.Intn(lnum)
+    if idx < numWords {
+      resevior[idx] = line
+    }
+  }
+
+  for _, line := range(resevior) {
+    fmt.Printf("%s\n", line)
+  }
+}
+
