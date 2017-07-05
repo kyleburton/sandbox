@@ -3,7 +3,9 @@ extern crate num_traits;
 
 use num_bigint::BigInt;
 use num_traits::One;
+use std::fmt;
 
+#[allow(dead_code)]
 fn print_padovan_bigint(limit: usize) {
     let mut padovan = Vec::<BigInt>::new();
     padovan.push(One::one());
@@ -20,6 +22,7 @@ fn print_padovan_bigint(limit: usize) {
     println!("");
 }
 
+#[allow(dead_code)]
 fn print_padovan() {
     let mut padovan = vec![1i64, 1i64, 1i64];
     for i in 3..100 {
@@ -191,13 +194,29 @@ fn main() {
     // her we go, drive Copy makes a copy for our own structs
     #[derive(Copy, Clone)]
     struct Label { number: u32 }
+    impl fmt::Display for Label {
+        fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+            write!(f, "Label{{number:{}}}", self.number)
+        }
+    }
     fn print(l: Label) {
         println!("STAMP: {}", l.number);
     }
 
     let l = Label {number: 3};
     print(l);
-    // NB: this would be a move, but b/c we've #deriveda copy it's a
+    // NB: this would be a move, but b/c we've #derived copy it's a
     // copy
-    println!("My label number is: {}", l.number);
+    println!("My label is: {}", l);
+    println!("My label number is: {:?}", l.number);
+
+    #[derive(Copy, Clone)]
+    #[derive(Debug)]
+    struct Label2 {number: u32}
+    // #[derive(Copy, Clone)]
+    // struct StringLabel{name: String}
+
+    let l2 = Label2 {number: 3};
+    println!("l2={:?}", l2);
+    
 }
