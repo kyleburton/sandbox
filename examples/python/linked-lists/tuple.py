@@ -133,6 +133,17 @@ def ll_remove_duplicates(lst):
     return ll_reversed(nlst)
 
 
+def ll_is_palindrome(lst):
+    # TODO: we really only need to go half way
+    rlst = ll_reversed(lst)
+    while lst is not None:
+        val, lst = lst
+        rval, rlst = rlst
+        if val != rval:
+            return False
+    return True
+
+
 def is_zero(n):
     return n == 0
 
@@ -219,6 +230,16 @@ print("ll_remove_duplicates(l6):  {}".format(ll_remove_duplicates(l6)))
 # Remove loop in linked list
 # Find nth node from the end of linked list
 # Function to check if a singly linked list is a palindrome
+l7 = ll_new(1, 2, 3, 4, 3, 2, 1)
+print("l7:                      {}".format(l7))
+print("ll_is_palindrome(l7):    {}".format(ll_is_palindrome(l7)))
+l8 = ll_new(1, 1, 1, 1)
+print("l8:                      {}".format(l8))
+print("ll_is_palindrome(l8):    {}".format(ll_is_palindrome(l8)))
+l9 = ll_new(1, 1, 1, 1, 2)
+print("l9:                      {}".format(l9))
+print("ll_is_palindrome(l9):    {}".format(ll_is_palindrome(l9)))
+
 # Reverse alternate k node in a singly linked list
 # Delete last occurrence of an item from linked list
 # Rotate a linked list.
