@@ -91,6 +91,48 @@ def ll_filter(lst, p):
     return newl
 
 
+def ll_nth(lst, n):
+    while n > 0 and lst is not None:
+        n = n - 1
+        _, lst = lst
+    return lst
+
+
+def ll_del_middle(lst):
+    llen = ll_len(lst)
+    midx = int(llen/2)
+    idx = 0
+    nlst = None
+    while lst is not None:
+        val, lst = lst
+        if idx != midx:
+            nlst = (val, nlst)
+        idx = idx + 1
+    return ll_reversed(nlst)
+
+
+def ll_member(lst, elt):
+    found = False
+    # print("ll_member: lst={}, elt={}".format(lst, elt))
+    while lst:
+        val, lst = lst
+        if val == elt:
+            found = True
+            break
+    return found
+
+
+def ll_remove_duplicates(lst):
+    nlst = None
+    while lst is not None:
+        val, lst = lst
+        # print("ll_remove_duplicates: checking membership for val={} "
+        #       "in nlst={} from lst={}".format(val, nlst, lst))
+        if not ll_member(nlst, val):
+            nlst = (val, nlst)
+    return ll_reversed(nlst)
+
+
 def is_zero(n):
     return n == 0
 
@@ -152,7 +194,25 @@ print("ll_filter(.., compliment(is_zero)):   {}".format(
 ))
 
 # Delete middle of linked list
+l5 = ll_new(1, 2, 3, 4, 5)
+print("l5:                    {}".format(l5))
+print("ll_nth(l5,0):          {}".format(ll_nth(l5, 0)))
+print("ll_nth(l5,1):          {}".format(ll_nth(l5, 1)))
+print("ll_nth(l5,2):          {}".format(ll_nth(l5, 2)))
+print("ll_nth(l5,3):          {}".format(ll_nth(l5, 3)))
+print("ll_nth(l5,4):          {}".format(ll_nth(l5, 4)))
+print("ll_nth(l5,5):          {}".format(ll_nth(l5, 5)))
+print("ll_nth(l5,6):          {}".format(ll_nth(l5, 6)))
+print("ll_del_middle(l5):     {}".format(ll_del_middle(l5)))
+
 # Remove duplicate elements from sorted linked list
+l6 = ll_new(1, 2, 3, 4, 5, 5, 5, 5, 1, 6, 7, 7, 8)
+print("l6:                        {}".format(l6))
+print("ll_member(l6,7)            {}".format(ll_member(l6, 7)))
+print("ll_member(l6,9)            {}".format(ll_member(l6, 9)))
+print("ll_remove_duplicates(l6):  {}".format(ll_remove_duplicates(l6)))
+
+
 # Add 1 to a number represented as a linked list
 # Reverse a linked list in groups of given size
 # Detect loop in linked list
