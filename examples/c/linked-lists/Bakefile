@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+# bake_require github.com/kyleburton/bake-recipes/docker/docker.sh
+
+bake_task build "Build"
+function build () {
+  gcc -Wall -Werror -o ll ll.c
+}
+
+bake_task run "Run"
+function run () {
+  test -e ll || build
+  test ll.c -nt ll || build
+  ./ll
+}
