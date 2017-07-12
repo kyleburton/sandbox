@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+// TODO: change the example to load /usr/share/dict/words (& do resevior sampling?)
+
 struct Person {
   int64_t  userid;
   char     *email;
