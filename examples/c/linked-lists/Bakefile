@@ -9,7 +9,7 @@ function build () {
 
 bake_task run "Run"
 function run () {
-  test -e ll || build
-  test ll.c -nt ll || build
+  test -e ll        || build
+  test ll.c -nt ll  && build
   ./ll
 }
