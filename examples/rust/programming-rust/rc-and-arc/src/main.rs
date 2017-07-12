@@ -1,9 +1,12 @@
 // Pg 93 Rc and Arc: shared ownership
 // Rc:  reference count -- is _not_ thread safe
 // Arc: atomic reference count -- is thread safe
+extern crate rand;
 
 use std::rc::Rc;
 use std::collections::HashMap;
+
+use rand::Rng;
 
 fn main() {
     let s : Rc<String> = Rc::new("shirataki".to_string());
@@ -71,5 +74,28 @@ fn main() {
     println!("After sorting");
     println!("");
     sort_works(&mut table);
-    show(&table)
+    show(&table);
+        
+    // pg 102
+    let x = 10;
+    let y = 20;
+    let mut r = &x;
+
+    let mut rng = rand::thread_rng();
+    fn rand_bool(rng : & mut rand::ThreadRng) -> bool {
+        let val : u32 = rng.gen();
+        return (val % 2) == 1;
+        // alternatively:
+        // return rng.gen_weighted_bool(2);
+    }
+    let b = rng.gen();
+    for _idx in 1..10 {
+        println!("rand_bool(rng): {}", rand_bool(& mut rng));
+    }
+    println!("b is: {}", b);
+    if b {
+        r = &y;
+    }
+
+    assert!(*r == 10 || *r == 20);
 }
