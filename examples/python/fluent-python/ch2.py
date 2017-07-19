@@ -1,8 +1,9 @@
 import os
-import array
 import dis
 import bisect
 import sys
+import random
+from array import array
 from random import shuffle
 from collections import namedtuple
 
@@ -20,7 +21,7 @@ print("ords: {}".format(ords))
 # I is unsigned int
 # l is signed long
 # L is unsigned long
-things = array.array('I', (ord(symbol) for symbol in symbols))
+things = array('I', (ord(symbol) for symbol in symbols))
 print("things: {}".format(things))
 
 colors = ['black', 'white']
@@ -206,3 +207,26 @@ def grade(score, breakpoints=[60, 70, 80, 85, 90, 95, 100], grades=['F', 'D', 'C
 
 for score in [33, 99, 77, 70, 89, 90, 100]:
     print("grade({:3d}): {:s}".format(score, grade(score)))
+
+
+SIZE=7
+random.seed() # nb: no arg uses some sensible system entropy
+my_list = []
+for i in range(SIZE):
+    new_item = random.randrange(SIZE*2)
+    bisect.insort(my_list, new_item)
+    print('{:2d} -> {}'.format(new_item, my_list))
+
+print("my_list: {}".format(my_list))
+
+if False:
+    floats = array('d', (random.random() for i in range(10**7)))
+    print("floats[-1]: {}".format(floats[-1]))
+    with open('floats.bin', 'wb') as fh:
+        floats.tofile(fh)
+
+    floats2 = array('d')
+    with open('floats.bin', 'r') as fh:
+        floats.fromfile(fh)
+    print("floats2[-1]: {}".format(floats2[-1]))
+print("typecode: {}".format(array('d').typecode))
