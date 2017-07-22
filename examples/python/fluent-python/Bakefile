@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+# bake_require github.com/kyleburton/bake-recipes/docker/docker.sh
+
+bake_task init "Init the local [dev] environment"
+function init () {
+  if [ ! -e .pyenv-virtualenv ]; then
+    echo "pyenv activate fluent-python" > .pyenv-virtualenv
+    echo source .pyenv-virtualenv
+    source .pyenv-virtualenv
+  fi
+  test -f requirements.txt && pip install -r requirements.txt
+
+  test -f filter.gif || curl -s -O filter.gif https://raw.githubusercontent.com/fluentpython/images/master/filter.gif
+}
