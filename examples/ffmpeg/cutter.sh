@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -eu -o pipefail
 
-test -f stack_overflow_q45304233.tar ||  curl -k -O https://84.19.186.119/stack_overflow_q45304233.tar
+# From: https://stackoverflow.com/questions/45304233/execute-command-in-bash-script-until-output-exceeds-certain-value
+# test -f stack_overflow_q45304233.tar ||  curl -k -O https://84.19.186.119/stack_overflow_q45304233.tar
 
 function parser () {
   local max="$1"
