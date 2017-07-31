@@ -4,6 +4,8 @@
    [reagent.core        :as r]
    [reddit-viewer.chart :as chart]))
 
+;; TODO: https://github.com/ClojureTO/JS-Workshop/tree/re-frame
+
 ;; -------------------------
 ;; our data
 (defonce posts (r/atom nil))
@@ -71,17 +73,16 @@
           [:div.col-4 [display-post post]])])]))
 
 (defn home-page []
-  (let [navbar-state (r/atom :posts)]
-    (fn []
-      [:div
-       [navbar navbar-state]
-       [:div.card>div.card-block
-        [:div.btn-group
-         [sort-posts "score" :score]
-         [sort-posts "comments" :num_comments]]
-        (case @navbar-state
-          :chart [chart/chart-posts-by-votes posts]
-          :posts [display-posts @posts])]])))
+  (r/with-let [navbar-state (r/atom :posts)]
+    [:div
+     [navbar navbar-state]
+     [:div.card>div.card-block
+      [:div.btn-group
+       [sort-posts "score" :score]
+       [sort-posts "comments" :num_comments]]
+      (case @navbar-state
+        :chart [chart/chart-posts-by-votes posts]
+        :posts [display-posts @posts])]]))
 
 ;; -------------------------
 ;; Initialize app
@@ -90,4 +91,5 @@
   (r/render [home-page] (.getElementById js/document "app")))
 
 (defn init! []
+  (load-posts)
   (mount-root))
