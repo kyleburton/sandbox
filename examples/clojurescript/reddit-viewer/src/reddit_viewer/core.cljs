@@ -30,6 +30,20 @@
 
 ;; -------------------------
 ;; Views
+(defn navitem [title view id]
+  [:li.nav-item
+   {:class-name (when (= id @view) "active")}
+   [:a.nav-link
+    {:href     "#"
+     :on-click #(reset! view id)}
+    title]])
+
+(defn navbar [view]
+  [:nav.navbar.navbar-toggleable-md.navbar-light.bg-faded
+   [:ul.navbar-nav.mr-auto.nav
+    {:className "navbar-nav mr-auto"}
+    [navitem "Posts" view :posts]
+    [navitem "Chart" view :chart]]])
 
 (defn sort-posts [title sort-key]
   (when-not (empty? @posts)
@@ -57,12 +71,17 @@
           [:div.col-4 [display-post post]])])]))
 
 (defn home-page []
-  [:div.card>div.card-block
-   [:div.btn-group
-    [sort-posts "score" :score]
-    [sort-posts "comments" :num_comments]]
-   [chart/chart-posts-by-votes posts]
-   [display-posts @posts]])
+  (let [navbar-state (r/atom :posts)]
+    (fn []
+      [:div
+       [navbar navbar-state]
+       [:div.card>div.card-block
+        [:div.btn-group
+         [sort-posts "score" :score]
+         [sort-posts "comments" :num_comments]]
+        (case @navbar-state
+          :chart [chart/chart-posts-by-votes posts]
+          :posts [display-posts @posts])]])))
 
 ;; -------------------------
 ;; Initialize app
