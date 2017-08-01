@@ -2,3 +2,6 @@ ipython
 pyflakes
 numpy
 bobo
+rdflib==3.4.0
+tagger
+
