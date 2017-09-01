@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+# bake_require github.com/kyleburton/bake-recipes/docker/docker.sh
+
+function install-vim-libraries () {
+    # vim colors: badwolf
+    test -d "$HOME/.vim/colors" || mkdir -p "$HOME/.vim/colors"
+    local badwolf_url="https://raw.githubusercontent.com/sjl/badwolf/master/colors/badwolf.vim"
+    test -f "$HOME/.vim/colors/badwolf.vim" || curl -o "$HOME/.vim/colors/badwolf.vim" "$badwolf_url"
+
+
+    # pathogen.vim
+    test -d "$HOME/.vim/autoload" || mkdir -p "$HOME/.vim/autoload"
+    test -f "$HOME/.vim/autoload/pathogen.vim" || curl -o "$HOME/.vim/autoload/pathogen.vim" "https://tpo.pe/pathogen.vim"
+
+    # erlang vim support plugins
+    test -d "$HOME/.vim/pack/plugins/start" || mkdir -p "$HOME/.vim/pack/plugins/start"
+    (
+    cd "$HOME/.vim/pack/plugins/start"
+    test -d vim-erlang-compiler      || git clone "git@github.com:vim-erlang/vim-erlang-compiler.git"
+    test -d vim-erlang-omnicomplete  || git clone "git@github.com:vim-erlang/vim-erlang-omnicomplete.git"
+    test -d vim-erlang-runtime       || git clone "git@github.com:vim-erlang/vim-erlang-runtime.git"
+    test -d vim-erlang-tags          || git clone "git@github.com:vim-erlang/vim-erlang-tags.git"
+    )
+
+}
+
+bake_task init "Initialize the (local) development enviornment"
+function init () {
+    install-vim-libraries
+}
+
+bake_task vim "Run vim with the local vimrc, specialized for Erlang development"
+function vim () {
+  command vim -u .erlang.vimrc "$@"
+}
+
+
+
