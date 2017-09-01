@@ -30,6 +30,29 @@ function init () {
     install-vim-libraries
 }
 
+bake_task install:erlang "Ubuntu installer for Erlang using ESL's apt repositories"
+function install:erlang () {
+    if [ "$(uname)" = "Linux" ]; then
+        # assume ubuntu
+        if [ ! -f erlang-solutions_1.0_all.deb ]; then
+            curl -o erlang-solutions_1.0_all.deb "https://packages.erlang-solutions.com/erlang-solutions_1.0_all.deb"
+            sudo dpkg -i erlang-solutions_1.0_all.deb
+            sudo apt-get update
+            sudo apt-get install -y erlang
+        fi
+        return 0
+    fi
+
+    if [ "$(uname)" = "Darwin" ]; then
+        brew install erlang
+        return 0
+    fi
+
+    bake_echo_red "Error: don't know how to install Erlang on this platform."
+    exit 1
+}
+
+
 bake_task vim "Run vim with the local vimrc, specialized for Erlang development"
 function vim () {
   command vim -u .erlang.vimrc "$@"
