@@ -1,3 +1,7 @@
+# TODO: try https://github.com/gorillalabs/neo4j-clj for the BOLT driver
+# TODO: how are we going to handle migrations tooling w/neo4j?
+#       https://neo4j.com/blog/neo4j-real-world-performance/
+
 Polyglot Persistence w/Neo4j
 
   Mark
@@ -211,6 +215,25 @@ Gene: Titan is HDFS based, not a full blown database.  My not be ACID compliant 
 
 ################################################################################
 # 2017-10-23T14:46:13Z - section 1 is completed
+
+BatchInserter or neo4j-admin import
+
+* database has to be offline
+* building a new database
+
+$ brew install p7zip
+
+$ bake run:neo4j start -path ./software/neo4j-community-3.2.6/data/databases/stackoverflow.db/
+
+
+  https://github.com/jexp/neo4j-stackoverflow-import
+
+MATCH (:User) RETURN count(*)
+
+# NB: ok, how do you get a count of relations?
+# http://bigdatums.net/2017/01/01/counting-relationships-in-neo4j/
+MATCH (n)-[r]->() RETURN COUNT(r)
+
 
 
 

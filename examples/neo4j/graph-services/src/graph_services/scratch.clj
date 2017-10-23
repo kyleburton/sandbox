@@ -110,7 +110,7 @@ MATCH (flight:Flight)
 
   ;; then you can query cancelled as a bool
   (def res5
-   (cy/tquery conn "
+    (cy/tquery conn "
  MATCH (flight:Flight)
  WHERE flight.cancelled
 RETURN flight"))
@@ -137,7 +137,71 @@ MERGE (flight)-[:DESTINATION]->(destination)")
 
   ;; NB: still pretty quick
 
+  ;; ... the above w/data conversion
+  (cy/tquery conn "
+USING PERIODIC COMMIT
+LOAD CSV WITH HEADERS FROM \"https://raw.githubusercontent.com/neo4j-contrib/training/master/modeling/data/flights_50k.csv \" AS row
+MERGE (origin:Airport {code: row.Origin})
+MERGE (destination:Airport {code: row.Dest})
+WITH row.UniqueCarrier + row.FlightNum + \"_ \" + row.Year + \"- \" + row.Month + \"- \" + row.DayofMonth + \"_ \" + row.Origin + \"_ \" + row.Dest AS flightIdentifier, row
+MERGE (flight:Flight { id: flightIdentifier })
+ON CREATE SET flight.date = row.Year + \"- \" + row.Month + \"- \" + row.DayofMonth,
+              flight.airline = row.UniqueCarrier, flight.number = row.FlightNum, flight.departure = row.CRSDepTime,
+              flight.arrival = row.CRSArrTime, flight.distance = row.Distance, flight.cancelled = row.Cancelled
+MERGE (flight)-[:ORIGIN]->(origin)
+MERGE (flight)-[:DESTINATION]->(destination)
+
+
+// FOREACH(ignoreMe in CASE when row.Origin THEN [1] else [] "
+             )
+
+  ;; OR
+
+  (cy/tquery conn "
+MATCH (flight:Flight)
+  SET flight.cancelled = CASE WHEN flight.cancelled = \"1\" THEN true ELSE false END
+")
+
   (cy/tquery conn "MATCH (:Flight) RETURN count(*)")
   ;; => ({"count(*)" 49999})
 
+
+
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;;
+
+  (cy/tquery conn "MATCH (:User) RETURN count(*)")
+  ;; => ({"count(*)" 4551130})
+
+  (cy/tquery conn "MATCH (n)-[r]->() RETURN COUNT(r)")
+  ({"COUNT(r)" 77929763})
+
+  (cy/tquery conn "MATCH (:User)-[r]->() RETURN COUNT(r)")
+  ({"COUNT(r)" 26317630})
+
+  (cy/tquery conn "MATCH (:Post)-[r]->() RETURN COUNT(r)")
+  ({"COUNT(r)" 51612133})
+
+  (cy/tquery conn "MATCH (:Tag)-[r]->() RETURN COUNT(r)")
+  ({"COUNT(r)" 0})
+
+  (cy/tquery conn "MATCH (n)-[r]-(m) RETURN DISTINCT type(r) LIMIT 5;")
+  ;; NB: this is taking a while ...
+  ({"type(r)" "POSTED"} {"type(r)" "HAS_TAG"} {"type(r)" "ANSWERS"} {"type(r)" "PARENT_OF"})
+  
+  ;; http://neo4j.com/docs/operations-manual/3.1/reference/procedures/
+  (cy/tquery conn "CALL db.schema();")
+  (cy/tquery conn "CALL db.indexes();")
+  ;; constraints, propertyKeys, functions(), components() <== see the http ui, it has completion for all of these
+
+  (cy/tquery conn "
+  MATCH (n:Post)
+  WHERE exists (n.title) return n limit 5;
+")
+
+
+  ;; NB: this causes a huge stacktrace :/ -- a parse error, so these console commands aren't supported by this interface
+  ;; (cy/tquery conn ":sysinfo")
+  
+  
   )
