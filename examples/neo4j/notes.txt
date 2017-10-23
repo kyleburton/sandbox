@@ -4,6 +4,20 @@
 # TODO: read: https://snowplowanalytics.com/blog/2014/07/28/explorations-in-analyzing-web-event-data-in-graph-databases/
 # TODO: create an example showing how to create a procedure we can call from cypher (needs to be compiled to byte code with annotations)
 # TODO: Michael Moore GraphAdvantage - Kafka Streaming into Neo4j
+# https://db-engines.com/en/system/JanusGraph%3BNeo4j%3BTitan
+#      http://www.objectivity.com/products/infinitegraph/
+# https://www.opencypher.org/#resources
+# recommended by Zach:
+#  "Leveraging the Graph for Knowledge Architecture at NASA"
+#   https://km.nasa.gov/wp-content/uploads/sites/3/2016/06/Meza-David.pdf
+#   https://www.slideshare.net/neo4j/knowledge-architecture-graphing-your-knowledge
+#   https://github.com/neo4j-contrib/training/tree/master/cloud
+# TODO: what are the differences between the community version and the enterprise version?
+#   see: https://neo4j.com/editions/
+#  JVM Heap Tuning: https://www.elastic.co/blog/a-heap-of-trouble
+# TODO[read]: "eager operator neo4j"
+#   http://www.markhneedham.com/blog/2014/10/23/neo4j-cypher-avoiding-the-eager/
+# TODO: terraform up our neo4j instance setup & cluster setup
 
 Polyglot Persistence w/Neo4j
 
@@ -287,4 +301,107 @@ FEEDBACK: watching Mark create & execute queries may be showing off neo4j,
 
 
 SEE: https://github.com/neo4j-contrib
+
+
+################################################################################
+# 2017-10-23T17:28:55Z
+
+* Dave Gordon
+* Mark Needham
+* Martin Furmanski
+* Ryan Boyd
+
+Q: has neo4j been tested w/Jepsen? >> doesn't look like it
+
+  bit.ly/_neo4jcloud
+    https://docs.google.com/document/d/1fSh_CWodS_BQKEx4ePQ5D9ndzFpQLLM6rdWUhN8o8eo/view
+
+# 2017-10-23T17:36:01Z - they gathered topics (on postit notes) again :/
+
+Recommended that we use an AWS account to follow along :/
+
+* Deploying a Single Node Neo4j Server
+
+https://github.com/neo4j-contrib/training/tree/master/cloud
+
+
+FEEDBACK: first part of this .. installing a single node is just the ami or
+super rudimentary setup, nice that it's straightforward, not much out of the
+training here though.  Spent time waiting for Mark to start & stop the EC2
+instances.
+
+Machine Sizing: number of cores; type of disk; how much ram
+
+Page Cache size:  Select the size based on
+* size of store.db files
+* the amount of growth you expect to see, eg: 20%
+
+  default dbms.memory.pagecache.size=4096m
+
+  # by default, it's dynamic based on how much ram the machine has
+
+Q: is there a tuning guide?
+
+David G. [Neo4j]: "generally graphs are going to fit in memory" <- ???
+
+ pagecache is off heap
+
+Heap Size
+  Select size based on:
+* size of queries
+* amount of transaction state create by queries
+* number of concurrent queries
+
+Heap Size: rules of thumb
+
+  Test with a production like workload
+* start w/a heap of 8-12Gb
+* run the workoad
+  if big GC pauses then increase expirementally up to a max of 26 GB
+* if there are still big GC pauses
+  tune queries
+  reduce the number of client threads hitting the server
+
+NB: does this mean scaling horizontally or constraining the connection resources?
+
+  watch out for eager operators, use 'profile' or 'explain' to find out!
+
+
+2017-10-23T18:14:44Z Starting Causal Clustering
+
+Product released in the 3.1 seriese
+Neo4j HA was a predecesor for CC (Causal Clustering)
+
+2 types of machines: core or replica
+Core:
+* small group
+* implements cosensus commit
+* responsiblie for data safety
+
+they've seen clusters with up to 9 machines in the role of core
+
+Replica:
+* for massive query throughput
+* read-only replicas
+* not involved in consensu commit => less overhead
+* disposable, suitable for auto-scaling
+
+* raft based consensus protcol in CC for consensus commits
+* paxos is for node membership
+* they have an internal stress test, couldn't get jepsen to compile (???) so kinda gave up
+  https://web.stanford.edu/~ouster/cgi-bin/papers/raft-atc14
+
+  NB: I hope they try again, or hire Kingsbury to test out neo4j, the fact that they
+      haven't might be a sign -- the agreement w/Jepsen is that results will be published
+      regardless of the outcome.  That's a hard thing to face.
+
+
+Deploying a Neo4j Causal Cluster
+  HTAP: Hybrid Transactional / Analytical Processing
+
+minikube - lets you run & test out kubernets on single-machine environments
+(eg: a laptop).  Q: is this like docker-compose?
+
+
+
 
