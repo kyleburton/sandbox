@@ -190,8 +190,8 @@ MATCH (flight:Flight)
   ({"type(r)" "POSTED"} {"type(r)" "HAS_TAG"} {"type(r)" "ANSWERS"} {"type(r)" "PARENT_OF"})
   
   ;; http://neo4j.com/docs/operations-manual/3.1/reference/procedures/
-  (cy/tquery conn "CALL db.schema();")
-  (cy/tquery conn "CALL db.indexes();")
+  (def schema (cy/tquery conn "CALL db.schema()"))
+  (cy/tquery conn "CALL db.indexes()")
   ;; constraints, propertyKeys, functions(), components() <== see the http ui, it has completion for all of these
 
   (cy/tquery conn "

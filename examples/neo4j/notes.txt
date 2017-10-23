@@ -235,5 +235,25 @@ MATCH (:User) RETURN count(*)
 MATCH (n)-[r]->() RETURN COUNT(r)
 
 
+MATCH (u:User)
+WITH u, size( (u)-[:POSTED]->() ) as posts
+ORDER by posts DESC
+LIMIT 10
+RETURN u.name, posts
+
+
+CREATE INDEX ON :Tag(tagId)
+
+
+EXERCISE: load the badges data
+  https://archive.org/download/stackexchange
+    https://archive.org/download/stackexchange/stackoverflow.com-Badges.7z
+
+
+## a few more samples the instructor was writing
+call apoc.create.node(["Person", "Foo"], {})
+
+with ["Person", "Foo"] as labels
+call apoc.create.node(labels, {}) yield node return count(*)
 
 
