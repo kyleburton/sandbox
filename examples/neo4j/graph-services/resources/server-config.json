@@ -1,0 +1,10 @@
+{
+    "neo4j": {
+        "scheme":   "http",
+        "host":     "localhost",
+        "port":     7474,
+        "dbname":   "data",
+        "username": "neo4j",
+        "password": "password"
+    }
+}

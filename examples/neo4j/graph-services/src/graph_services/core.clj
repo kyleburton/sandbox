@@ -1,45 +1,22 @@
 (ns graph-services.core
   (:require
+   [graph-services.config      :as cnf]
    [clojure.tools.nrepl.server :refer [start-server stop-server]]
    [cider.nrepl                :refer [cider-nrepl-handler]]
    [clojure.tools.logging      :as log]
+   [clojure.data.json          :as json]
    [schema.core                :as s]))
 
+;; TODO: add a rest api using http-kit & compojure
+(defonce config (atom {:nrepl {:port 4023}}))
 (defonce nrepl-server (atom nil))
 
-(defonce config
-  (atom
-   {:nrepl {:port 4474}
-    :apps  []
-    :neo4j {:host "localhost"
-            :port 7474}}))
-
-(defn neo4j-url []
-  (format "http://%s:%s/db/data"
-          (-> config deref :neo4j :host)
-          (-> config deref :neo4j :port)))
-
-(defn init [config]
-  :ok)
-
-(defn restart [config]
-  (init config))
-
-(defn -main
-  "Start the service."
-  [& args]
-  (init config)
-  (s/set-fn-validation! true)
+(defn -main [& args]
   (reset! nrepl-server (start-server
                         :port (-> @config :nrepl :port)
                         :handler cider-nrepl-handler))
-  (log/infof "nREPL server started: %s" (-> @config :nrepl :port)))
+  (log/infof "nrepl is running %s" @config)
+  (s/set-fn-validation! true)
+  (cnf/load-config!))
 
 
-
-(comment
-  (restart config)
-
-  (-main [])
-
-  )

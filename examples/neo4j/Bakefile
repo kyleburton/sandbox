@@ -1,113 +1,91 @@
-#!/usr/bin/env bash 
+#!/usr/bin/env bash
 
-function cd_software_dir () {
-  bake_cd
-  test -d software || mkdir software
-  cd software
-}
+source config/env.sh
+NEO4J_LOCALHOST_URL="http://localhost:7474/"
 
 function neo4j-package-name () {
-  echo $NEO4J_PACKAGE_URL | cut -f2 -d=
+  echo "$NEO4J_PACKAGE_URL" | cut -f2 -d=
 }
 
 function neo4j-package-dir () {
   basename $(neo4j-package-name) -unix.tar.gz
 }
 
-bake_task neo4j-install
+bake_task neo4j-install "Download and install neo4j into ./software"
 function neo4j-install () {
-  cd_software_dir
-  local package="$(neo4j-package-name)"
-  test -f $package || curl $NEO4J_PACKAGE_URL > $package
-  local pkgdir="$(neo4j-package-dir)"
-  test -d $pkgdir || tar xzvf $package
+  test -d software || mkdir software
+  (
+    cd software
+    local package="$(neo4j-package-name)"
+    test -f $package || curl "$NEO4J_PACKAGE_URL" > "$package"
+    local pkgdir="$(neo4j-package-dir)"
+    test -d $pkgdir || tar xzvf $package
+  )
 }
 
-bake_task neo4j
-function neo4j () {
-  local action="${1:-info}"
+bake_task run:neo4j "Run neo4j (username=neo4j; password=neo4j)"
+function run:neo4j () {
   bake_cd ./software/$(neo4j-package-dir)
-  ./bin/neo4j "$action"
+  ./bin/neo4j "$@"
 }
 
-bake_task neo4j-browse
-function neo4j-browse () {
+bake_task run:neo4j-admin "Run neo4j-admin"
+function run:neo4j-admin () {
+  bake_cd ./software/$(neo4j-package-dir)
+  ./bin/neo4j-admin "$@"
+}
+
+bake_task run:neo4j-import "Run neo4j-import"
+function run:neo4j-import () {
+  bake_cd ./software/$(neo4j-package-dir)
+  ./bin/neo4j-import "$@"
+}
+
+bake_task run:neo4j-shell "Run neo4j-shell"
+function run:neo4j-shell () {
+  bake_cd ./software/$(neo4j-package-dir)
+  ./bin/neo4j-shell "$@"
+}
+
+bake_task browse:neo4j "Open a browser to: $NEO4J_LOCALHOST_URL"
+function browse:neo4j () {
   if [ "Darwin" = "$(uname)" ]; then
-    open "http://localhost:7474/"
-  else
-    gnome-open "http://localhost:7474/"
+    open "$NEO4J_LOCALHOST_URL"
+    return 0
   fi
+
+  gnome-open "$NEO4J_LOCALHOST_URL"
 }
 
-function init-config () {
-  source config/env.sh
-}
 
-bake_task clj-init
+bake_task clj-init "Create a new service backend project"
 function clj-init () {
   bake_cd
   test -d graph-services || lein new graph-services
 }
 
-bake_task cljs-init
+bake_task cljs-init "Create a new service frontend project"
 function cljs-init () {
   bake_cd
   test -d web-app || lein new figwheel web-app
 }
 
-bake_task cljs-run
-function cljs-run () {
+bake_task run:cljs "Run figwheel"
+function run:cljs () {
   cd web-app
   lein figwheel
 }
 
-bake_task clj-run
-function clj-run () {
+bake_task run:server "Run the service backend"
+function run:server () {
   cd graph-services
   lein run
 }
 
-bake_task emacs-install 
-function emacs-install () {
-  # cider
-  bake_cd
-  cd software
-  if [ ! -d cider ]; then
-    git clone git@github.com:clojure-emacs/cider.git
-  fi
-
-  cd cider
-  git checkout master
-  git pull origin master
-  git checkout v0.7.0
-  # cider
-
-  # ac-cider
-  bake_cd
-  cd software
-  if [ ! -d ac-cider ]; then
-    git clone git@github.com:clojure-emacs/ac-cider.git
-  fi
-
-  cd ac-cider
-  git checkout master
-  git pull origin master
-  git checkout 0.2.0
-  bake_cd
-  # ac-cider
-}
-
-bake_task emacs 
-function emacs () {
-  emacs -nw -q -l .emacs "$@"
-}
-
-bake_task install
+bake_task install "Install neo4j, set up clj and cljs projects"
 function install () {
-  emacs-install
   neo4j-install
   cljs-init
   clj-init
 }
 
-init-config
