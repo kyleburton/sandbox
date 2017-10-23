@@ -141,4 +141,76 @@ interactive tutorial / guide
   RETURN flight
 
 
+NB: by defualt, CSV loads every field as type String
+
+Q: how do you ensure a connection or Cypher query is read only?  It looks like all cypher queries are read or write?
+
+a  CREATE CONSTRAINT ON (a:Airport)
+ASSERT a.code IS UNIQUE
+
+PROFILE
+ MATCH (flight:Flight)
+ WHERE flight.cancelled = "0"
+RETURN count(*)
+
+ MATCH (flight:Flight)
+ WHERE not(flight.cancelled = "0")
+RETURN count(*)
+
+// profile runs the query
+PROFILE
+MATCH (flight:Flight)
+ WHERE not(flight.cancelled = "0")
+ RETURN count(*)
+
+// 10k db hits
+
+// explain doesn't run
+EXPLAIN
+MATCH (flight:Flight)
+ WHERE not(flight.cancelled = "0")
+ RETURN count(*)
+
+
+
+// index the airport code and flight id for better perf
+CREATE CONSTRAINT ON (a:Airport)
+ASSERT a.code is UNIQUE
+
+CREATE CONSTRAINT ON (f:Flight)
+ASSERT f.id IS UNIQUE
+
+PROFILE
+MATCH (flight:Flight)
+ WHERE not(flight.cancelled = "0")
+ RETURN count(*)
+
+:schema // <-- shows the schema w/constraints
+
+
+// DANGER (cascade delete)
+match (n) detach delete n
+
+// Wow, the import took ~50s the first time, now it's 1.4s
+
+  LOAD CSV WITH HEADERS FROM "https://raw.githubusercontent.com/neo4j-contrib/training/master/modeling/data/flights_initial.csv" AS row
+  MERGE (origin:Airport {code: row.Origin})
+  MERGE (destination:Airport {code: row.Dest})
+  WITH row.UniqueCarrier + row.FlightNum + "_" + row.Year + "-" + row.Month + "-" + row.DayofMonth + "_" + row.Origin + "_" + row.Dest AS flightIdentifier, row
+  MERGE (flight:Flight { id: flightIdentifier })
+  ON CREATE SET flight.date = row.Year + "-" + row.Month + "-" + row.DayofMonth,
+                flight.airline = row.UniqueCarrier, flight.number = row.FlightNum, flight.departure = row.CRSDepTime,
+                flight.arrival = row.CRSArrTime, flight.distance = row.Distance, flight.cancelled = row.Cancelled
+  MERGE (flight)-[:ORIGIN]->(origin)
+  MERGE (flight)-[:DESTINATION]->(destination)
+
+
+
+
+Gene: Titan is HDFS based, not a full blown database.  My not be ACID compliant ...
+
+################################################################################
+# 2017-10-23T14:46:13Z - section 1 is completed
+
+
 

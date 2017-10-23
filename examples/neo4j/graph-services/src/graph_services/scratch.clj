@@ -79,6 +79,65 @@ RETURN flight"))
 
   
   
+  (def res4
+    (cy/tquery conn "
+ MATCH (flight:Flight)
+ WHERE flight.distance > 500
+RETURN flight
+ LIMIT 5"))
 
+  res4
+
+  (cy/tquery conn "match (n) detach delete n")
+  (time
+   (cy/tquery conn "
+  LOAD CSV WITH HEADERS FROM \"https://raw.githubusercontent.com/neo4j-contrib/training/master/modeling/data/flights_initial.csv \" AS row
+  MERGE (origin:Airport {code: row.Origin})
+  MERGE (destination:Airport {code: row.Dest})
+  WITH row.UniqueCarrier + row.FlightNum + \"_ \" + row.Year + \"- \" + row.Month + \"- \" + row.DayofMonth + \"_ \" + row.Origin + \"_ \" + row.Dest AS flightIdentifier, row
+  MERGE (flight:Flight { id: flightIdentifier })
+  ON CREATE SET flight.date = row.Year + \"- \" + row.Month + \"- \" + row.DayofMonth,
+                flight.airline = row.UniqueCarrier, flight.number = row.FlightNum, flight.departure = row.CRSDepTime,
+                flight.arrival = row.CRSArrTime, flight.distance = row.Distance, flight.cancelled = row.Cancelled
+  MERGE (flight)-[:ORIGIN]->(origin)
+  MERGE (flight)-[:DESTINATION]->(destination)"))
+
+  ;; update the cancelled to a boolean
+  (cy/tquery conn "
+MATCH (flight:Flight)
+  SET flight.cancelled = CASE WHEN flight.cancelled = \"1\" THEN true ELSE false END
+")
+
+  ;; then you can query cancelled as a bool
+  (def res5
+   (cy/tquery conn "
+ MATCH (flight:Flight)
+ WHERE flight.cancelled
+RETURN flight"))
+
+  (count res5)
+  163
+
+  (first res5)
+
+
+  ;; import a larger dataset
+  (cy/tquery conn "
+USING PERIODIC COMMIT
+LOAD CSV WITH HEADERS FROM \"https://raw.githubusercontent.com/neo4j-contrib/training/master/modeling/data/flights_50k.csv \" AS row
+MERGE (origin:Airport {code: row.Origin})
+MERGE (destination:Airport {code: row.Dest})
+WITH row.UniqueCarrier + row.FlightNum + \"_ \" + row.Year + \"- \" + row.Month + \"- \" + row.DayofMonth + \"_ \" + row.Origin + \"_ \" + row.Dest AS flightIdentifier, row
+MERGE (flight:Flight { id: flightIdentifier })
+ON CREATE SET flight.date = row.Year + \"- \" + row.Month + \"- \" + row.DayofMonth,
+              flight.airline = row.UniqueCarrier, flight.number = row.FlightNum, flight.departure = row.CRSDepTime,
+              flight.arrival = row.CRSArrTime, flight.distance = row.Distance, flight.cancelled = row.Cancelled
+MERGE (flight)-[:ORIGIN]->(origin)
+MERGE (flight)-[:DESTINATION]->(destination)")
+
+  ;; NB: still pretty quick
+
+  (cy/tquery conn "MATCH (:Flight) RETURN count(*)")
+  ;; => ({"count(*)" 49999})
 
   )
