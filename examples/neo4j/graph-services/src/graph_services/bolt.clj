@@ -7,7 +7,7 @@
   (:import
    [org.neo4j.driver.v1 Driver GraphDatabase AuthTokens Session StatementResult]))
 
-(defn make-driver []
+(defn ^Driver make-driver []
   (GraphDatabase/driver "bolt://localhost:7687" (AuthTokens/basic "neo4j" "password")))
 
 (defmacro with-conn [connvar & body]
@@ -15,9 +15,17 @@
      (with-open [~connvar (.session driver#)]
        ~@body)))
 
-(defn statement-result->vec [sr]
-  ;; call .next / .hasNext in a loop/recur, accum to a vector and return it
-  :finish-this)
+;; TODO: implement a record->map helper & use it from statement-result->vec
+
+(defn statement-result->vec [^StatementResult sr]
+  (loop [sr sr
+         res []]
+    (cond
+      (.hasNext sr)
+      (recur sr (conj res (.next sr)))
+
+      :otherwise
+      res)))
 
 (comment
   (macroexpand
@@ -25,8 +33,10 @@
       (.run conn "MATCH (:User) RETURN count(*)")))
 
   (def res1
-   (with-conn conn
-     (.run conn "MATCH (:User) RETURN count(*)")))
+    (with-conn conn
+      (->
+       (.run conn "MATCH (:User) RETURN count(*)")
+       statement-result->vec)))
 
   (.keys res1)
   ["count(*)"]

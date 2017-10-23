@@ -2,6 +2,7 @@
 # TODO: how are we going to handle migrations tooling w/neo4j?
 #       https://neo4j.com/blog/neo4j-real-world-performance/
 # TODO: read: https://snowplowanalytics.com/blog/2014/07/28/explorations-in-analyzing-web-event-data-in-graph-databases/
+# TODO: create an example showing how to create a procedure we can call from cypher (needs to be compiled to byte code with annotations)
 
 Polyglot Persistence w/Neo4j
 
@@ -277,4 +278,11 @@ https://github.com/jexp/neo4j-dataset-import
 * 1.4.2 [bolt protocol version] . [driver feature set] . [driver patch level]
 * https://github.com/neo4j/neo4j-java-driver :: 1.4.4
 
-https://github.com/neo4j-contrib/neo4j-apoc-procedures
+SEE: https://github.com/neo4j-contrib/neo4j-apoc-procedures
+
+FEEDBACK: watching Mark create & execute queries may be showing off neo4j,
+          though I don't know what the class got from watching him do this when ad-hoc
+          exploring the stackoverflow data set
+
+
+SEE: https://github.com/neo4j-contrib
