@@ -83,10 +83,24 @@ function neo4j-install () {
   )
 }
 
-bake_task run:neo4j "Run neo4j (username=neo4j; password=neo4j)"
+bake_task run:neo4j "Run Neo4j (username=neo4j; password=neo4j)"
 function run:neo4j () {
-  bake_cd ./software/$(neo4j-package-dir)
+  (
+  cd ./software/$(neo4j-package-dir)
+  if [ -z "${1:-}" ]; then
+      for conf in ./conf ./conf.*; do
+          if [ -d "$conf" ]; then
+              bake_echo_green "NEO4J_CONF=$conf bake run:neo4j start"
+          fi
+      done
+  fi
+
+  # NB: NEO4J_CONF must point to a directory!  not the conf file direclty :/
+  if [ -n "${NEO4J_CONF:-}" ]; then
+      export NEO4J_CONF
+  fi
   ./bin/neo4j "$@"
+  )
 }
 
 bake_task run:neo4j-admin "Run neo4j-admin"
@@ -168,6 +182,16 @@ function class:import1 () {
   local DSET_URL="https://s3.amazonaws.com/datasets.neo4j.org/extracted.zip"
   local DSET_PATH=""
 
+  (
+    cd software
+    local pkgdir="$(neo4j-package-dir)"
+    test -d ./$pkgdir/conf.stackoverflow || cp -r ../resources/conf.stackoverflow ./$pkgdir/
+  )
+
+  bake_echo_red -n "Loading this data takes a while, are you sure you want to reload it?  (press enter)"
+  local FOO=""
+  read FOO
+
   test -f ./software/sample-datasets/extracted.zip || curl -s -o "./software/sample-datasets/extracted.zip" "$DSET_URL"
   (
     cd software/sample-datasets
@@ -189,3 +213,9 @@ function class:import1 () {
 
 }
 
+bake_task minikube:install "Install minikube: https://github.com/kubernetes/minikube"
+function minikube:install () {
+  brew cask install minikube
+  bake_echo_green "Great, now run: "
+  bake_echo_green "  minikube start"
+}

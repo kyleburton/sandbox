@@ -18,7 +18,7 @@
 # TODO[read]: "eager operator neo4j"
 #   http://www.markhneedham.com/blog/2014/10/23/neo4j-cypher-avoiding-the-eager/
 # TODO: terraform up our neo4j instance setup & cluster setup
-
+# https://github.com/neo4j-contrib/training/blob/master/cloud/guides/single-instance-manual.adoc
 Polyglot Persistence w/Neo4j
 
   Mark
@@ -303,6 +303,13 @@ FEEDBACK: watching Mark create & execute queries may be showing off neo4j,
 SEE: https://github.com/neo4j-contrib
 
 
+  CALL dbms.procedures() YIELD name
+  RETURN 'procedures' as type, head(split(name,".")) as package, count(*), collect(name) as names
+  UNION ALL
+  CALL dbms.functions() YIELD name
+  RETURN 'functions' as type, head(split(name,".")) as package, count(*), collect(name) as names;
+
+
 ################################################################################
 # 2017-10-23T17:28:55Z
 
@@ -402,6 +409,23 @@ Deploying a Neo4j Causal Cluster
 minikube - lets you run & test out kubernets on single-machine environments
 (eg: a laptop).  Q: is this like docker-compose?
 
+kops (Kubernetes Operaitons)
+  easy way to get kubernetes running on AWS
+  https://github.com/neo4j-contrib/training/blob/master/cloud/guides/k8s-on-aws.adoc
+
+NB: Mark (the instructor) is just running through the commands in the
+    k8s-on-aws document, copy and pasting them into his terminal
+
+https://github.com/kubernetes/minikube
+
+clustering uses DNS w/multiple entries to know what machines are in the Casual cluster.
+    dbms.connectors.advertised_address=neo4j-core-2.neo4j.default.svc.cluster.local
+  role is LEADER, FOLLOWER or READ_REPLICA
+  the first two are core
+
+   CALL dbms.cluster.overview()
+  YIELD id, role, addresses, groups
+ RETURN id, addresses[0], role, groups
 
 
 
