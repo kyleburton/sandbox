@@ -3,12 +3,23 @@
 source config/env.sh
 NEO4J_LOCALHOST_URL="http://localhost:7474/"
 
+NEO4J_SAMPLE_DR_WHO="http://example-data.neo4j.org/files/drwho.zip?_ga=2.152097209.1899920133.1508724655-2080012049.1508724655&_gac=1.18273355.1508724655.Cj0KCQjwg7HPBRDUARIsAMeR_0gMrjdSfPEvrp9i1gaDSnI-GrDLyPx-l3TDM5nS2iDc-6F0ZYCgycgaAqVdEALw_wcB"
+NEO4J_SAMPLE_MOVIES="http://example-data.neo4j.org/3.0-datasets/cineasts.tgz?_ga=2.114415367.1899920133.1508724655-2080012049.1508724655&_gac=1.16823627.1508724655.Cj0KCQjwg7HPBRDUARIsAMeR_0gMrjdSfPEvrp9i1gaDSnI-GrDLyPx-l3TDM5nS2iDc-6F0ZYCgycgaAqVdEALw_wcB"
+NEO4J_SAMPLE_BLGPST="http://example-data.neo4j.org/3.0-datasets/musicbrainz.tgz?_ga=2.114415367.1899920133.1508724655-2080012049.1508724655&_gac=1.16823627.1508724655.Cj0KCQjwg7HPBRDUARIsAMeR_0gMrjdSfPEvrp9i1gaDSnI-GrDLyPx-l3TDM5nS2iDc-6F0ZYCgycgaAqVdEALw_wcB"
+
 function neo4j-package-name () {
   echo "$NEO4J_PACKAGE_URL" | cut -f2 -d=
 }
 
 function neo4j-package-dir () {
   basename $(neo4j-package-name) -unix.tar.gz
+}
+
+function download_sample () {
+  local url="$1"
+  local fname="$(basename "$(echo "$1" | cut -f1 -d?)")"
+  echo "dowload_sample: $fname"
+  test -f "$fname" || curl -s -o $fname "$url"
 }
 
 bake_task neo4j-install "Download and install neo4j into ./software"
@@ -20,6 +31,15 @@ function neo4j-install () {
     test -f $package || curl "$NEO4J_PACKAGE_URL" > "$package"
     local pkgdir="$(neo4j-package-dir)"
     test -d $pkgdir || tar xzvf $package
+  )
+  (
+    cd software
+    test -d sample-datasets || mkdir sample-datasets
+    cd sample-datasets
+    download_sample "$NEO4J_SAMPLE_DR_WHO"
+    download_sample "$NEO4J_SAMPLE_MOVIES"
+    # too big :/
+    # download_sample "$NEO4J_SAMPLE_BLGPST"
   )
 }
 
@@ -45,6 +65,12 @@ bake_task run:neo4j-shell "Run neo4j-shell"
 function run:neo4j-shell () {
   bake_cd ./software/$(neo4j-package-dir)
   ./bin/neo4j-shell "$@"
+}
+
+bake_task run:cypher-shell "Run cypher"
+function run:cypher-shell () {
+  bake_cd ./software/$(neo4j-package-dir)
+  ./bin/cypher-shell -u neo4j -p password "$@"
 }
 
 bake_task browse:neo4j "Open a browser to: $NEO4J_LOCALHOST_URL"
