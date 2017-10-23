@@ -43,7 +43,29 @@ Driver via BOLT
 * Transactional, Batching & Parallelization possible
 * Unofficial for PHP and Golang
 
+./bin/neo4j-admin import
 
+* fastest method -- skips the transaction log!
+* initial import, a new database is created!
+* db is offline during import, data must be specially prepared!
+* cluster must be synchronized AFTER import!
+
+Q[guy w/Airborne hat]: when will you support multiple databases per instance
+>> NB: no schemas or multi-tenancy?
+>> working group witin cypher, 'multigraph problem'
+>> "at the db level, it's all designed for multiple databases'
+
+NB: import is safe, if the destination exists, it'll refuse unless you specify `--force`
+
+BatchInserter
+
+* initial import or update (yay)
+* application uses the batchloader API
+* one of the faster import methods & more effort than the other approaches
+
+neo4j ETL
+* offline tool
+* see: https://neo4j.com/blog/rdbms-neo4j-etl-tool/
 
 
 
