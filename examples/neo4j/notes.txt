@@ -272,3 +272,9 @@ https://github.com/jexp/neo4j-dataset-import
   Example of a custom tool for going from a custom format to csv then csv into neo4j-import
 
 
+# section 3: Drivers via Bolt
+
+* 1.4.2 [bolt protocol version] . [driver feature set] . [driver patch level]
+* https://github.com/neo4j/neo4j-java-driver :: 1.4.4
+
+https://github.com/neo4j-contrib/neo4j-apoc-procedures

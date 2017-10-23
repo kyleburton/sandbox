@@ -19,4 +19,6 @@
                  [prismatic/schema-generators            "0.1.0"]
                  [http-kit                               "2.1.18"]
                  [clojurewerkz/neocons                   "3.1.0"]
+
+                 [org.neo4j.driver/neo4j-java-driver     "1.4.4"]
                  ])

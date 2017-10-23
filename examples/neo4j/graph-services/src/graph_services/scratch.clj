@@ -5,8 +5,6 @@
    [clojurewerkz.neocons.rest.relationships :as nrl]
    [clojurewerkz.neocons.rest.cypher        :as cy]
    [graph-services.config                   :as cnf :refer [config]]
-   [clojure.tools.nrepl.server              :refer [start-server stop-server]]
-   [cider.nrepl                             :refer [cider-nrepl-handler]]
    [clojure.tools.logging                   :as log]
    [clojure.data.json                       :as json]
    [schema.core                             :as s]))
