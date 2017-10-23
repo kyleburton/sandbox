@@ -427,5 +427,12 @@ clustering uses DNS w/multiple entries to know what machines are in the Casual c
   YIELD id, role, addresses, groups
  RETURN id, addresses[0], role, groups
 
+NB: it looks like the core of the clustering is node participation via DNS,
+much of the rest of what is being shown seems to be kubernetes
 
+2017-10-23T20:00:09Z Monitoring
+  https://neo4j.com/docs/operations-manual/current/monitoring/
+  metrics.enabled=true
+  many users emit to graphite w/grafana
+  NB: neo4j only supports two ways to emit metrics: graphite or CSV files
 

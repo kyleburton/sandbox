@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# TODO[drwho]:  setup a configuration in ./resources (see the stackoverflow data set) + bake tasks for running that server
+# TODO[movies]: setup a configuration in ./resources (see the stackoverflow data set) + bake tasks for running that server
+
 source config/env.sh
 NEO4J_LOCALHOST_URL="http://localhost:7474/"
 
@@ -33,6 +36,12 @@ function neo4j-install () {
     test -f $package || curl "$NEO4J_PACKAGE_URL" > "$package"
     local pkgdir="$(neo4j-package-dir)"
     test -d $pkgdir || tar xzvf $package
+
+    bake_echo_green "after starting the server, please run:"
+    bake_echo_green ""
+    bake_echo_green "bin/neo4j-admin set-initial-password the-password"
+    bake_echo_green ""
+    bake_echo_green "to set the password for the instance"
   )
   (
     cd software
