@@ -1,0 +1,49 @@
+Polyglot Persistence w/Neo4j
+
+  Mark
+  Praveena
+
+
+Options for importing data into neo4j
+
+  http://bit.ly/_import
+   => https://docs.google.com/document/d/1dECIA-Q0qR8SLJu5WmFuR6Vl40PgnDtqb1CBvffgfL4/edit
+
+   . first dataset from this doc is a stackoverflow sample
+
+LOAD CSV via Cypher
+
+* for well formatted csv data
+* not as fast as other methods
+* works w/transactions
+
+Cypher and APOC
+
+* Awesome Procedures On Cypher
+* plugin mechanisim / procedures
+* 'CALL PROC-NAME'
+* 'FN-NAME()'
+* APOC library brings togethr a set of common tools for import, eg: iterating &
+  batching of transactions
+* Hepers for: GraphML, JDBC, XML, JSON, & others.
+
+Procedures
+
+* write you own!  In Java, or anything that can compile into a jar
+* place in plugins folder
+* these will be via the transaction log
+* fine grained access control, who can use, etc.
+
+Driver via BOLT
+
+* bolt is the protocol for connecting applications to neo4j service, custom
+  wire protocol for graph data
+* cypher queries -> stream of results
+* .NET, Java, JavaScript and Python are officially supported
+* Transactional, Batching & Parallelization possible
+* Unofficial for PHP and Golang
+
+
+
+
+
