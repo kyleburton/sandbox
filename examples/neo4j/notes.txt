@@ -3,6 +3,7 @@
 #       https://neo4j.com/blog/neo4j-real-world-performance/
 # TODO: read: https://snowplowanalytics.com/blog/2014/07/28/explorations-in-analyzing-web-event-data-in-graph-databases/
 # TODO: create an example showing how to create a procedure we can call from cypher (needs to be compiled to byte code with annotations)
+# TODO: Michael Moore GraphAdvantage - Kafka Streaming into Neo4j
 
 Polyglot Persistence w/Neo4j
 
@@ -286,3 +287,4 @@ FEEDBACK: watching Mark create & execute queries may be showing off neo4j,
 
 
 SEE: https://github.com/neo4j-contrib
+
