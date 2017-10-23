@@ -68,4 +68,77 @@ neo4j ETL
 * see: https://neo4j.com/blog/rdbms-neo4j-etl-tool/
 
 
+Cypher and load CSV
+  * https://neo4j.com/docs/cypher-refcard/current/
+
+    LOAD CSV
+    WITH HEADERS    // use first row as the header, rows are treated as a map
+    FROM "url"      // file:// url relative to $NEO4J_HOME/import or http:// (??? or https://)
+      AS row        // each line of CSV will be treated as a list of strings or map
+                    //   NB: 'row' is a name we choose for the statement
+    ...             // remainder of Cypher statement
+
+
+    [USING PERIODIC COMMIT]  // optionally batch transactions
+
+    ...
+    AS row
+    [FIELDTERMINATOR ";"] // optionally specify the delimiter
+    ...             // remainder of Cypher statement
+
+
+
+    LOAD CSV WITH HEADERS FROM "(file|http)://" AS row
+    CREATE (:Label {property: row.header})
+     MATCH (:Label {property: row.header})  // <- OR
+     MERGE (:Label {property: row.header})  // <- OR
+
+    // where :Label is the entity type eg: :ID(Person)
+
+
+Jump to http://localhost:7474/browser/, then enter into the cypher box:
+
+  :play https://guides.neo4j.com/import
+  :clear
+
+interactive tutorial / guide
+
+  LOAD CSV WITH HEADERS FROM "https://raw.githubusercontent.com/neo4j-contrib/training/master/modeling/data/flights_initial.csv" AS row
+  RETURN row
+  LIMIT 5
+
+
+
+  LOAD CSV WITH HEADERS FROM "https://raw.githubusercontent.com/neo4j-contrib/training/master/modeling/data/flights_initial.csv" AS row
+  // merge the Airport (origin and dest) since that code is highly denormalized
+  MERGE (origin:Airport {code: row.Origin})
+  MERGE (destination:Airport {code: row.Dest})
+  // NB: there is no unique identifier for a flight, so we'll attempt to make one here
+  WITH row.UniqueCarrier + row.FlightNum + "_" + row.Year + "-" + row.Month + "-" + row.DayofMonth + "_" + row.Origin + "_" + row.Dest AS flightIdentifier, row
+  MERGE (flight:Flight { id: flightIdentifier })
+  // When merging, only use the id: flightIdentifier above, when creating use he below
+  // eg: if already exists, don't change anything
+  ON CREATE SET flight.date = row.Year + "-" + row.Month + "-" + row.DayofMonth,
+                flight.airline = row.UniqueCarrier, flight.number = row.FlightNum, flight.departure = row.CRSDepTime,
+                flight.arrival = row.CRSArrTime, flight.distance = row.Distance, flight.cancelled = row.Cancelled
+  // create (ensure) two edges / relationships
+  // relationship called ORIGIN from flight to origin
+  // relationship called DESTINATION from flight to origin
+  // eg: origin <- flight -> destination
+  // NB: flight, origin an destination were 'bound' by the above MERGE statements "origin:Airport"
+  MERGE (flight)-[:ORIGIN]->(origin)
+  MERGE (flight)-[:DESTINATION]->(destination)
+
+  // Added 10063 labels, created 30061 nodes, set 80056 properties, created 19998 relationships, completed after 51447 ms.
+
+  // NB: some people got a NULL property value for code error
+  //  WITH row WHERE row.Origin <> "" AND row.Dest <> ""
+  //  WITH row WHERE not(row.Origin is null)AND not(row.Dest is null)
+  // This was b/c in the example, the instructor was not referencing the raw github url
+
+  MATCH (flight:Flight)
+  WHERE flight.distance > 500
+  RETURN flight
+
+
 
