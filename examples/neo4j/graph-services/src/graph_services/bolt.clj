@@ -5,7 +5,9 @@
    [clojure.data.json                       :as json]
    [schema.core                             :as s])
   (:import
-   [org.neo4j.driver.v1 Driver GraphDatabase AuthTokens Session StatementResult]))
+   [org.neo4j.driver.v1
+    Driver GraphDatabase AuthTokens Session StatementResult
+    Record]))
 
 (defn ^Driver make-driver []
   (GraphDatabase/driver "bolt://localhost:7687" (AuthTokens/basic "neo4j" "password")))
@@ -15,14 +17,17 @@
      (with-open [~connvar (.session driver#)]
        ~@body)))
 
-;; TODO: implement a record->map helper & use it from statement-result->vec
+(defn rec->map [^Record r]
+  ;; should we keyword ize the keys?
+  (zipmap (map keyword (.keys r))
+          (.values r)))
 
 (defn statement-result->vec [^StatementResult sr]
   (loop [sr sr
          res []]
     (cond
       (.hasNext sr)
-      (recur sr (conj res (.next sr)))
+      (recur sr (conj res (rec->map (.next sr))))
 
       :otherwise
       res)))
@@ -35,17 +40,10 @@
   (def res1
     (with-conn conn
       (->
-       (.run conn "MATCH (:User) RETURN count(*)")
+       (.run conn "MATCH (:User) RETURN count(*) AS count")
        statement-result->vec)))
 
-  (.keys res1)
-  ["count(*)"]
-
-  (.next res1)
-  
-
-  (-> config deref :neo4j)
-
+  ;; TODO: hepler that wraps up the above form into an exec-cypher!
   
 
   )
