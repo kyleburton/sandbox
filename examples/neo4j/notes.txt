@@ -1,6 +1,7 @@
 # TODO: try https://github.com/gorillalabs/neo4j-clj for the BOLT driver
 # TODO: how are we going to handle migrations tooling w/neo4j?
 #       https://neo4j.com/blog/neo4j-real-world-performance/
+# TODO: read: https://snowplowanalytics.com/blog/2014/07/28/explorations-in-analyzing-web-event-data-in-graph-databases/
 
 Polyglot Persistence w/Neo4j
 
@@ -255,5 +256,19 @@ call apoc.create.node(["Person", "Foo"], {})
 
 with ["Person", "Foo"] as labels
 call apoc.create.node(labels, {}) yield node return count(*)
+
+Perf Tips:
+
+* separate disk for input vs output
+* compress the csv files
+* more cores the better
+* separate headers from data (why??)
+
+neo4j-import parallelizes the csv import
+
+
+
+https://github.com/jexp/neo4j-dataset-import
+  Example of a custom tool for going from a custom format to csv then csv into neo4j-import
 
 
