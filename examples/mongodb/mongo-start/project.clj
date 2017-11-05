@@ -26,7 +26,6 @@
                  ;; Clj library, last change in May 2017
                  ;; http://clojuremongodb.info/
                  [com.novemberain/monger                 "3.1.0"]
-                 ;; Clj library, last change in
 
 
                  ])
