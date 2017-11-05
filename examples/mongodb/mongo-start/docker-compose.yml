@@ -1,0 +1,11 @@
+version: "2.0"
+services:
+  local-dev-mongo:
+    image: mongo:3.0.15
+    ports:
+      - 27017:27017
+    volumes:
+      - mongo-data:/data/db
+volumes:
+  mongo-data: {}
+

@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+# bake_require github.com/kyleburton/bake-recipes/docker/docker.sh
+if [ -n "${DEBUG:-}" ]; then
+  set -x
+fi
+
+bake_task init "Initialize a local development envrionment"
+function mongodb:start () {
+  docker pull mongo:3.0.15
+}
+
+bake_task mongodb "Start mongo in a docker container"
+function mongodb () {
+  local cmd="${1:-}"
+  case $cmd in
+    start)
+      shift
+      exec docker-compose up -d
+      ;;
+    stop)
+      shift
+      exec docker-compose down
+      ;;
+    shell)
+      shift
+      exec docker-compose exec local-dev-mongo mongo "$@"
+      ;;
+    help|*)
+      echo "bake mongodb help|start|stop|shell"
+      ;;
+  esac
+}
+
+bake_task dev:run "Run the clj app / repl"
+function dev:run  () {
+  lein run
+}
+
