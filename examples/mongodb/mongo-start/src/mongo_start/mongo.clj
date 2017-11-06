@@ -3,7 +3,8 @@
    [clojure.data.json      :as json]
    [clojure.string         :as string]
    [clojure.reflect        :as reflect]
-   [camel-snake-kebab.core :as csk])
+   [camel-snake-kebab.core :as csk]
+   [clojure.tools.logging  :as log])
   (:import
    [com.mongodb               MongoClient   MongoClientURI ServerAddress
     MongoClientOptions MongoClientOptions$Builder
@@ -142,14 +143,22 @@
   `(with-open [~conn-var-name (make-connection ~connect-info)]
      ~@body))
 
+(declare map->basic-db-object)
+
+(defn val->basic-db-object [v]
+  (cond
+    ;; { :$date 1378857600000 }
+    (and (map? v) (contains? v :$date)) (java.util.Date. ^long (:$date v))
+    (map? v)                            (map->basic-db-object v)
+    (seqable? v)                        (mapv val->basic-db-object v)
+    :otherwise                          v))
+
 (defn map->basic-db-object ^BasicDBObject [m]
   (reduce
    (fn [^BasicDBObject acc [k v]]
      (.append acc
               (name k)
-              (if (map? v)
-                (map->basic-db-object v)
-                v)))
+              (val->basic-db-object v)))
    (BasicDBObject.)
    m))
 
@@ -213,8 +222,6 @@
   ;; first obj in colleciton
   (with-connection [^MongoClient conn conn-info]
     (let [coll (-> conn
-                   ;; what's the difference between .getDatabase and .getDB?
-                   ;; (.getDatabase "test")
                    (.getDB "test")
                    (.getCollection "my-docs"))]
       (basic-db-object->map (.findOne coll))))
@@ -222,8 +229,6 @@
   ;; count of items in the collection
   (with-connection [^MongoClient conn conn-info]
     (let [coll (-> conn
-                   ;; what's the difference between .getDatabase and .getDB?
-                   ;; (.getDatabase "test")
                    (.getDB "test")
                    (.getCollection "my-docs"))]
       (.getCount coll)))
@@ -233,8 +238,6 @@
   ;; TODO: can we make a lazy sequence version of this?
   (with-connection [^MongoClient conn conn-info]
     (let [coll (-> conn
-                   ;; what's the difference between .getDatabase and .getDB?
-                   ;; (.getDatabase "test")
                    (.getDB "test")
                    (.getCollection "my-docs"))
           cursor (.find coll)]
@@ -244,19 +247,13 @@
   (with-connection [^MongoClient conn conn-info]
     (let [query-obj (map->basic-db-object {:name "MongoDB"})
           coll      (-> conn
-                        ;; what's the difference between .getDatabase and .getDB?
-                        ;; (.getDatabase "test")
                         (.getDB "test")
                         (.getCollection "my-docs"))]
       (cursor->items (.find coll query-obj))))
-  ;; [{:_id #object[org.bson.types.ObjectId 0x145e1cdd "59ffc79d5275602b2bd573f8"], :name "MongoDB", :type "database", :count 1, :info {:x 203, :y 102}}
-  ;;  {:_id #object[org.bson.types.ObjectId 0x7d0ef08c "59ffc8a15275602b2bd573fd"], :name "MongoDB", :type "database", :count 1, :info {:x 203, :y 102}}]
 
   ;; query using MongoDB operators.  Eg: $ne (not equal), $gt (greater than), etc
   (with-connection [^MongoClient conn conn-info]
     (let [coll (-> conn
-                   ;; what's the difference between .getDatabase and .getDB?
-                   ;; (.getDatabase "test")
                    (.getDB "test")
                    (.getCollection "my-docs"))]
       (cursor->items (.find coll (map->basic-db-object {:name {"$ne" "MongoDB"}})))))
@@ -264,11 +261,130 @@
 
   (with-connection [^MongoClient conn conn-info]
     (let [coll (-> conn
-                   ;; what's the difference between .getDatabase and .getDB?
-                   ;; (.getDatabase "test")
                    (.getDB "test")
                    (.getCollection "my-docs"))]
       (.remove coll (map->basic-db-object {:_id (ObjectId. "59ffc79d5275602b2bd573f8")}))))
+
+
+  (with-connection [^MongoClient conn conn-info]
+    (let [coll (-> conn
+                   (.getDB "test")
+                   (.getCollection "my-docs"))]
+      (.getIndexInfo coll)))
+  ;; [{"v" 1, "key" {"_id" 1}, "name" "_id_", "ns" "test.my-docs"}]
+
+  (with-connection [^MongoClient conn conn-info]
+    (let [coll (-> conn
+                   (.getDB "test")
+                   (.getCollection "my-docs"))]
+      ;; NB: 1 is ascending, -1 is descending
+      (.createIndex coll (map->basic-db-object {:name 1}))))
   
+  ;; after creating the index, we now see the following returned from .getIndexInfo:
+  ;; [{"v" 1, "key" {"_id" 1},  "name" "_id_",   "ns" "test.my-docs"}
+  ;;  {"v" 1, "key" {"name" 1}, "name" "name_1", "ns" "test.my-docs"}]
+
+  ;; create a full text index
+  ;; query with $search or $text
+  ;; http://mongodb.github.io/mongo-java-driver/2.13/getting-started/quick-tour-admin/#text-indexes:72db0d7d9b72569ab1f7da8f74305055
+  ;; (.createIndex coll (map->basic-db-object {:field-name "text"}))
+
+  ;; can also create geo indexes (2d)
+  ;; http://mongodb.github.io/mongo-java-driver/2.13/getting-started/quick-tour-admin/#geo-indexes:72db0d7d9b72569ab1f7da8f74305055
+  ;; https://docs.mongodb.com/manual/core/geospatial-indexes/
+
+
+  ;; CRUD operations?
+  ;; https://docs.mongodb.com/manual/crud/
+  (with-connection [^MongoClient conn conn-info]
+    (let [coll (-> conn
+                   (.getDB "test")
+                   (.getCollection "my-docs"))]
+      (->
+       coll
+       (.find
+        ;; 1st arg is the filter criteria aka query (where clause)
+        (map->basic-db-object {:name {"$ne" "MongoDB.xxx"}})
+        ;; 2nd arg here is the 'projection' (select clause)
+        (map->basic-db-object {:name 1 :type 1 :info 1}))
+       (.limit 5)
+       cursor->items)))
+
+
+  ;; https://stackoverflow.com/questions/9060860/how-to-check-the-available-free-space-in-mongodb
+
+
+  )
+
+
+(comment
+
+
+  ;; Lets run a test:
+  ;; * import a sample data set into collection.1
+  ;; * start a background thread that continuously reads from collection.1
+  ;; * concurrently, load the same dataset into collection.2
+  ;; * rename collection.2 to collection.1
+  (def mongo-sample-data-set-url "https://raw.githubusercontent.com/mongodb/docs-assets/primer-dataset/primer-dataset.json")
+  (def get-mongo-sample-data (memoize #(slurp mongo-sample-data-set-url)))
+
+  (def mongo-sample-data-set
+    (->>
+     (->
+      ^String (get-mongo-sample-data)
+      (.split "\n"))
+     (map #(json/read-str % :key-fn keyword))))
+
+
+  (time
+   (with-connection [^MongoClient conn conn-info]
+     (let [coll        (-> conn
+                           (.getDB "test")
+                           (.getCollection "collection.1"))
+           nrecs       (count mongo-sample-data-set)
+           mid-point   (int (/ nrecs 2))
+           first-half  (take mid-point mongo-sample-data-set)
+           second-half (drop mid-point mongo-sample-data-set)]
+       (doseq [recs (partition 10 first-half)]
+         (.insert coll (seq->basic-db-objects recs))))))
+  ;; 2124ms
+
+  (def stop (atom nil))
+  (.start
+   (Thread. (fn []
+              (with-connection [^MongoClient conn conn-info]
+                (loop []
+                  (if @stop
+                    (do
+                      (log/infof "DONE"))
+                    (let [coll (-> conn
+                                   (.getDB "test")
+                                   (.getCollection "collection.1"))]
+                      (log/infof "count=%s; first document: %s"
+                                 (.getCount coll)
+                                 (basic-db-object->map (.findOne coll)))
+
+                      (recur))))))))
+
+  (reset! stop true)
+  
+  (time
+   (with-connection [^MongoClient conn conn-info]
+     (let [coll        (-> conn
+                           (.getDB "test")
+                           (.getCollection "collection.2"))
+           nrecs       (count mongo-sample-data-set)
+           mid-point   (int (/ nrecs 2))
+           first-half  (take mid-point mongo-sample-data-set)
+           second-half (drop mid-point mongo-sample-data-set)]
+       (doseq [recs (partition 10 second-half)]
+         (.insert coll (seq->basic-db-objects recs))))))
+
+  ;; 3700 ms
+  (with-connection [^MongoClient conn conn-info]
+    (let [coll        (-> conn
+                          (.getDB "test")
+                          (.getCollection "collection.2"))]
+      (.rename coll "collection.1" true)))
 
   )
