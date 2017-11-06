@@ -1,10 +1,13 @@
 (ns mongo-start.mongo
   (:require
-   [clojure.data.json :as json]
-   [clojure.string    :as string])
+   [clojure.data.json      :as json]
+   [clojure.string         :as string]
+   [clojure.reflect        :as reflect]
+   [camel-snake-kebab.core :as csk])
   (:import
-   [com.mongodb               MongoClient   MongoClientURI ServerAddress MongoClientOptions
-    ServerAddress]
+   [com.mongodb               MongoClient   MongoClientURI ServerAddress
+    MongoClientOptions MongoClientOptions$Builder
+    ServerAddress BasicDBObject]
    [com.mongodb.client        MongoDatabase MongoCollection MongoCursor]
    [com.mongodb               Block]
    [com.mongodb.client.result DeleteResult UpdateResult]))
@@ -12,12 +15,8 @@
 ;; static com.mongodb.client.model.Filters.*;
 ;; static com.mongodb.client.model.Updates.*;
 
-;; https://stackoverflow.com/questions/29030526/mongoclient-not-respecting-connecttimeout
-;; MongoClientOptions.builder().serverSelectionTimeout(500).build()
-;; connectTimeout
-;; socketTimeout
-;; heartbeatConnectTimeout
-;; heartbeatSocketTimeout
+;; TODO: look into and support authentiation
+;; TODO: allow the databse & collection to be specified in connect-info?
 
 ;; connect-info can be any of
 ;; * string
@@ -42,22 +41,89 @@
                     (class connect-info)
                     connect-info)))))
 
+;; https://stackoverflow.com/questions/29030526/mongoclient-not-respecting-connecttimeout
+;; MongoClientOptions.builder().serverSelectionTimeout(500).build()
+(comment
+
+  ;; NB: this generates code for the body make-client-options
+  (let [setters (->>
+                 (->
+                  MongoClientOptions$Builder
+                  reflect/reflect
+                  :members)
+                 (filterv (fn [member]
+                            (and
+                             (-> member :flags :public)
+                             (= 1 (-> member :parameter-types count))))))]
+    (->>
+     setters
+     (map
+      (fn [setter]
+        ;; symbol setting form
+        (let [kwd       (-> setter :name name csk/->kebab-case keyword)
+              setter-fn (symbol (str "." (:name setter)))
+              type-hint (symbol (str "^" (-> setter :parameter-types first)))]
+          `(~'when (~'contains? ~'connect-info ~kwd)
+            (~setter-fn ~'builder ~type-hint (~kwd ~'connect-info))))))))
+
+
+
+  
+
+  )
+(defn make-client-options ^MongoClientOptions [connect-info]
+  (let [builder (com.mongodb.MongoClientOptions/builder)]
+    (when (contains? connect-info :min-connections-per-host) (.minConnectionsPerHost builder ^int (:min-connections-per-host connect-info)))
+    (when (contains? connect-info :always-use-m-beans) (.alwaysUseMBeans builder ^boolean (:always-use-m-beans connect-info)))
+    (when (contains? connect-info :min-heartbeat-frequency) (.minHeartbeatFrequency builder ^int (:min-heartbeat-frequency connect-info)))
+    (when (contains? connect-info :max-connection-idle-time) (.maxConnectionIdleTime builder ^int (:max-connection-idle-time connect-info)))
+    (when (contains? connect-info :add-server-listener) (.addServerListener builder ^com.mongodb.event.ServerListener (:add-server-listener connect-info)))
+    (when (contains? connect-info :server-selection-timeout) (.serverSelectionTimeout builder ^int (:server-selection-timeout connect-info)))
+    (when (contains? connect-info :connect-timeout) (.connectTimeout builder ^int (:connect-timeout connect-info)))
+    (when (contains? connect-info :heartbeat-socket-timeout) (.heartbeatSocketTimeout builder ^int (:heartbeat-socket-timeout connect-info)))
+    (when (contains? connect-info :add-connection-pool-listener) (.addConnectionPoolListener builder ^com.mongodb.event.ConnectionPoolListener (:add-connection-pool-listener connect-info)))
+    (when (contains? connect-info :add-cluster-listener) (.addClusterListener builder ^com.mongodb.event.ClusterListener (:add-cluster-listener connect-info)))
+    (when (contains? connect-info :heartbeat-frequency) (.heartbeatFrequency builder ^int (:heartbeat-frequency connect-info)))
+    (when (contains? connect-info :read-concern) (.readConcern builder ^com.mongodb.ReadConcern (:read-concern connect-info)))
+    (when (contains? connect-info :cursor-finalizer-enabled) (.cursorFinalizerEnabled builder ^boolean (:cursor-finalizer-enabled connect-info)))
+    (when (contains? connect-info :heartbeat-connect-timeout) (.heartbeatConnectTimeout builder ^int (:heartbeat-connect-timeout connect-info)))
+    (when (contains? connect-info :codec-registry) (.codecRegistry builder ^org.bson.codecs.configuration.CodecRegistry (:codec-registry connect-info)))
+    (when (contains? connect-info :connections-per-host) (.connectionsPerHost builder ^int (:connections-per-host connect-info)))
+    (when (contains? connect-info :ssl-context) (.sslContext builder ^javax.net.ssl.SSLContext (:ssl-context connect-info)))
+    (when (contains? connect-info :db-encoder-factory) (.dbEncoderFactory builder ^com.mongodb.DBEncoderFactory (:db-encoder-factory connect-info)))
+    (when (contains? connect-info :ssl-enabled) (.sslEnabled builder ^boolean (:ssl-enabled connect-info)))
+    (when (contains? connect-info :description) (.description builder ^java.lang.String (:description connect-info)))
+    (when (contains? connect-info :socket-factory) (.socketFactory builder ^javax.net.SocketFactory (:socket-factory connect-info)))
+    (when (contains? connect-info :local-threshold) (.localThreshold builder ^int (:local-threshold connect-info)))
+    (when (contains? connect-info :socket-keep-alive) (.socketKeepAlive builder ^boolean (:socket-keep-alive connect-info)))
+    (when (contains? connect-info :ssl-invalid-host-name-allowed) (.sslInvalidHostNameAllowed builder ^boolean (:ssl-invalid-host-name-allowed connect-info)))
+    (when (contains? connect-info :required-replica-set-name) (.requiredReplicaSetName builder ^java.lang.String (:required-replica-set-name connect-info)))
+    (when (contains? connect-info :db-decoder-factory) (.dbDecoderFactory builder ^com.mongodb.DBDecoderFactory (:db-decoder-factory connect-info)))
+    (when (contains? connect-info :max-wait-time) (.maxWaitTime builder ^int (:max-wait-time connect-info)))
+    (when (contains? connect-info :application-name) (.applicationName builder ^java.lang.String (:application-name connect-info)))
+    (when (contains? connect-info :add-command-listener) (.addCommandListener builder ^com.mongodb.event.CommandListener (:add-command-listener connect-info)))
+    (when (contains? connect-info :write-concern) (.writeConcern builder ^com.mongodb.WriteConcern (:write-concern connect-info)))
+    (when (contains? connect-info :max-connection-life-time) (.maxConnectionLifeTime builder ^int (:max-connection-life-time connect-info)))
+    (when (contains? connect-info :socket-timeout) (.socketTimeout builder ^int (:socket-timeout connect-info)))
+    (when (contains? connect-info :threads-allowed-to-block-for-connection-multiplier) (.threadsAllowedToBlockForConnectionMultiplier builder ^int (:threads-allowed-to-block-for-connection-multiplier connect-info)))
+    (when (contains? connect-info :read-preference) (.readPreference builder ^com.mongodb.ReadPreference (:read-preference connect-info)))
+    (when (contains? connect-info :add-server-monitor-listener) (.addServerMonitorListener builder ^com.mongodb.event.ServerMonitorListener (:add-server-monitor-listener connect-info)))
+    (.build builder)))
+
 (defn make-connection [connect-info]
   (cond
     (string? connect-info)
     (MongoClient. (MongoClientURI. connect-info))
 
     (map? connect-info)
-    (let [client-options        (com.mongodb.MongoClientOptions/builder)
+    (let [client-options               (make-client-options connect-info)
           [server-type server-address] (connect-info->server-address connect-info)]
-      (when (contains? connect-info :server-selection-timeout)
-        (.serverSelectionTimeout client-options (:server-selection-timeout connect-info)))
       (cond
         (= :singleton server-type)
-        (MongoClient. ^ServerAddress server-address (.build client-options))
+        (MongoClient. ^ServerAddress server-address client-options)
 
         (= :list server-type)
-        (MongoClient. ^java.util.List server-address (.build client-options))
+        (MongoClient. ^java.util.List server-address client-options)
 
         :otherwise
         (throw (RuntimeException.
@@ -75,59 +141,76 @@
   `(with-open [~conn-var-name (make-connection ~connect-info)]
      ~@body))
 
+(defn map->basic-db-object ^BasicDBObject [m]
+  (reduce
+   (fn [^BasicDBObject acc [k v]]
+     (.append acc
+              (name k)
+              (if (map? v)
+                (map->basic-db-object v)
+                v)))
+   (BasicDBObject.)
+   m))
+
+(defn seq->basic-db-objects
+  ^{:tag (Class/forName "[Lcom.mongodb.BasicDBObject;")}
+  [s]
+  (into-array BasicDBObject (map map->basic-db-object s)))
+
+(defn basic-db-object->map [obj]
+  (reduce
+   (fn [acc [k v]]
+     (assoc acc (keyword k)
+            (if (isa? (class v) BasicDBObject)
+              (basic-db-object->map v)
+              v)))
+   {}
+   obj))
+
 (comment
-  (with-connection [db {:host "localhost"
-                        :port 27017
-                        :server-selection-timeout 100}]
-    (-> db (.getDatabase "local") (.listCollectionNames) seq))
-  
-  (->
-   (com.mongodb.MongoClientOptions/builder)
-   (.serverSelectionTimeout 100)
-   .build)
-
-  (ServerAddress. "localhost" 27017)
-
-  ;; (MongoCLient. seeds :- [ServerAddress] options :- MongoClientOptions)
-  ;; (MongoCLient. server-address :- ServerAddress options :- MongoClientOptions)
-  
-  (with-connection [db "mongodb://localhost:27017"]
+  (with-connection [^MongoClient db {:host                     "localhost"
+                                     :port                     27017
+                                     :server-selection-timeout 100
+                                     :applicaiton-name         "my-test-app"}]
     (-> db (.getDatabase "local") (.listCollectionNames) seq))
 
-  (with-connection [db "mongodb://localhost:27018"]
+  (with-connection [^MongoClient db {:server-addresses [["localhost" 27017]]
+                                     :server-selection-timeout 100
+                                     :applicaiton-name         "my-test-app"}]
     (-> db (.getDatabase "local") (.listCollectionNames) seq))
 
-  ;; NB: these don't fail when the host:port don't point to a live mongo :/
-  ;; TODO: how do we get them to hard error when the mongo isn't real/reachable?
-  (MongoClient. "localhost" 27018)
+  ;; do we get an error?
+  (with-connection [^MongoClient db {:server-addresses [["localhost" 27018]]
+                                     :server-selection-timeout 100
+                                     :applicaiton-name         "my-test-app"}]
+    (-> db (.getDatabase "local") (.listCollectionNames) seq))
+  ;; yes, GREAT!
   
-  (MongoClient. (MongoClientURI. "mongodb://localhost:27018"))
 
+  (with-connection [^MongoClient conn
+                    {:server-addresses [["localhost" 27017]]
+                     :server-selection-timeout 100
+                     :applicaiton-name         "my-test-app"}]
+    (let [coll (-> conn
+                   ;; what's the difference between .getDatabase and .getDB?
+                   ;; (.getDatabase "test")
+                   (.getDB "test")
+                   (.getCollection "my-docs"))]
+      (.insert coll (seq->basic-db-objects
+                     [{:name "MongoDB"
+                       :type "database"
+                       :count 1
+                       :info {:x 203 :y 102}}]))))
 
-  (def client (->  "mongodb://localhost:27017" MongoClientURI. MongoClient.))
-
-  (.getDatabase client "test")
-
-  ;; TODO: ok, looks like this doesn't error either, which sucks :/
-  (.getDatabase client "nothing")
-
-  ;; TODO: still no error here either
-  (->
-   client
-   (.getDatabase "nothing")
-   (.getCollection "still.nothing"))
-
-
-  (seq (.listDatabases client))
-  ({"name" "local", "sizeOnDisk" 8.388608E7, "empty" false})
-
-  (->
-   client
-   (.getDatabase "local")
-   .listCollectionNames
-   seq)
-  ("startup_log" "system.indexes")
-
-  
+  (with-connection [^MongoClient conn
+                    {:server-addresses [["localhost" 27017]]
+                     :server-selection-timeout 100
+                     :applicaiton-name         "my-test-app"}]
+    (let [coll (-> conn
+                   ;; what's the difference between .getDatabase and .getDB?
+                   ;; (.getDatabase "test")
+                   (.getDB "test")
+                   (.getCollection "my-docs"))]
+      (basic-db-object->map (.findOne coll))))
 
   )

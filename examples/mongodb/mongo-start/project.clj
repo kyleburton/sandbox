@@ -18,7 +18,7 @@
                  [org.clojure/core.cache                 "0.6.5"]
                  [com.github.kyleburton/clj-etl-utils    "1.0.97"]
                  [http-kit                               "2.2.0"]
-
+                 [camel-snake-kebab                      "0.4.0"]
                  [com.rpl/specter                        "1.0.0"]
 
                  ;; NB: this is the java driver
