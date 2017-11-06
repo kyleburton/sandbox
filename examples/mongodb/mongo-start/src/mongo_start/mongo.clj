@@ -7,10 +7,11 @@
   (:import
    [com.mongodb               MongoClient   MongoClientURI ServerAddress
     MongoClientOptions MongoClientOptions$Builder
-    ServerAddress BasicDBObject]
+    ServerAddress BasicDBObject DBCursor]
    [com.mongodb.client        MongoDatabase MongoCollection MongoCursor]
    [com.mongodb               Block]
-   [com.mongodb.client.result DeleteResult UpdateResult]))
+   [com.mongodb.client.result DeleteResult UpdateResult]
+   [org.bson.types ObjectId]))
 
 ;; static com.mongodb.client.model.Filters.*;
 ;; static com.mongodb.client.model.Updates.*;
@@ -167,30 +168,37 @@
    {}
    obj))
 
+(defn cursor->items [^DBCursor cursor]
+  (loop [items []]
+    (cond
+      (not (.hasNext cursor))
+      items
+      
+      :otherwise
+      (recur (conj items (basic-db-object->map (.next cursor)))))))
+
 (comment
-  (with-connection [^MongoClient db {:host                     "localhost"
-                                     :port                     27017
-                                     :server-selection-timeout 100
-                                     :applicaiton-name         "my-test-app"}]
+  (def conn-info {:host                     "localhost"
+                  :port                     27017
+                  :server-selection-timeout 100
+                  :applicaiton-name         "my-test-app"})
+  
+  (with-connection [^MongoClient db conn-info]
     (-> db (.getDatabase "local") (.listCollectionNames) seq))
 
-  (with-connection [^MongoClient db {:server-addresses [["localhost" 27017]]
-                                     :server-selection-timeout 100
-                                     :applicaiton-name         "my-test-app"}]
+  (with-connection [^MongoClient db conn-info]
     (-> db (.getDatabase "local") (.listCollectionNames) seq))
 
   ;; do we get an error?
-  (with-connection [^MongoClient db {:server-addresses [["localhost" 27018]]
-                                     :server-selection-timeout 100
-                                     :applicaiton-name         "my-test-app"}]
+  (with-connection [^MongoClient db (assoc conn-info :server-addresses [["localhost" 27018]])]
     (-> db (.getDatabase "local") (.listCollectionNames) seq))
   ;; yes, GREAT!
   
 
-  (with-connection [^MongoClient conn
-                    {:server-addresses [["localhost" 27017]]
-                     :server-selection-timeout 100
-                     :applicaiton-name         "my-test-app"}]
+  ;; TODO: make sure we properly handle arrays, we do primitives + maps atm
+  
+  ;; insert example
+  (with-connection [^MongoClient conn conn-info]
     (let [coll (-> conn
                    ;; what's the difference between .getDatabase and .getDB?
                    ;; (.getDatabase "test")
@@ -202,15 +210,65 @@
                        :count 1
                        :info {:x 203 :y 102}}]))))
 
-  (with-connection [^MongoClient conn
-                    {:server-addresses [["localhost" 27017]]
-                     :server-selection-timeout 100
-                     :applicaiton-name         "my-test-app"}]
+  ;; first obj in colleciton
+  (with-connection [^MongoClient conn conn-info]
     (let [coll (-> conn
                    ;; what's the difference between .getDatabase and .getDB?
                    ;; (.getDatabase "test")
                    (.getDB "test")
                    (.getCollection "my-docs"))]
       (basic-db-object->map (.findOne coll))))
+
+  ;; count of items in the collection
+  (with-connection [^MongoClient conn conn-info]
+    (let [coll (-> conn
+                   ;; what's the difference between .getDatabase and .getDB?
+                   ;; (.getDatabase "test")
+                   (.getDB "test")
+                   (.getCollection "my-docs"))]
+      (.getCount coll)))
+
+
+  ;; get all the items in the collection
+  ;; TODO: can we make a lazy sequence version of this?
+  (with-connection [^MongoClient conn conn-info]
+    (let [coll (-> conn
+                   ;; what's the difference between .getDatabase and .getDB?
+                   ;; (.getDatabase "test")
+                   (.getDB "test")
+                   (.getCollection "my-docs"))
+          cursor (.find coll)]
+      (cursor->items cursor)))
+
+  ;; search by using a template, returns a cursor (result set)
+  (with-connection [^MongoClient conn conn-info]
+    (let [query-obj (map->basic-db-object {:name "MongoDB"})
+          coll      (-> conn
+                        ;; what's the difference between .getDatabase and .getDB?
+                        ;; (.getDatabase "test")
+                        (.getDB "test")
+                        (.getCollection "my-docs"))]
+      (cursor->items (.find coll query-obj))))
+  ;; [{:_id #object[org.bson.types.ObjectId 0x145e1cdd "59ffc79d5275602b2bd573f8"], :name "MongoDB", :type "database", :count 1, :info {:x 203, :y 102}}
+  ;;  {:_id #object[org.bson.types.ObjectId 0x7d0ef08c "59ffc8a15275602b2bd573fd"], :name "MongoDB", :type "database", :count 1, :info {:x 203, :y 102}}]
+
+  ;; query using MongoDB operators.  Eg: $ne (not equal), $gt (greater than), etc
+  (with-connection [^MongoClient conn conn-info]
+    (let [coll (-> conn
+                   ;; what's the difference between .getDatabase and .getDB?
+                   ;; (.getDatabase "test")
+                   (.getDB "test")
+                   (.getCollection "my-docs"))]
+      (cursor->items (.find coll (map->basic-db-object {:name {"$ne" "MongoDB"}})))))
+
+
+  (with-connection [^MongoClient conn conn-info]
+    (let [coll (-> conn
+                   ;; what's the difference between .getDatabase and .getDB?
+                   ;; (.getDatabase "test")
+                   (.getDB "test")
+                   (.getCollection "my-docs"))]
+      (.remove coll (map->basic-db-object {:_id (ObjectId. "59ffc79d5275602b2bd573f8")}))))
+  
 
   )
