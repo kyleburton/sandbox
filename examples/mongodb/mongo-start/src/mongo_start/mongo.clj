@@ -8,7 +8,8 @@
   (:import
    [com.mongodb               MongoClient   MongoClientURI ServerAddress
     MongoClientOptions MongoClientOptions$Builder
-    ServerAddress BasicDBObject DBCursor]
+    ServerAddress BasicDBObject DBCursor
+    MongoCredential]
    [com.mongodb.client        MongoDatabase MongoCollection MongoCursor]
    [com.mongodb               Block]
    [com.mongodb.client.result DeleteResult UpdateResult]
@@ -67,12 +68,9 @@
               type-hint (symbol (str "^" (-> setter :parameter-types first)))]
           `(~'when (~'contains? ~'connect-info ~kwd)
             (~setter-fn ~'builder ~type-hint (~kwd ~'connect-info))))))))
-
-
-
   
-
   )
+
 (defn make-client-options ^MongoClientOptions [connect-info]
   (let [builder (com.mongodb.MongoClientOptions/builder)]
     (when (contains? connect-info :min-connections-per-host) (.minConnectionsPerHost builder ^int (:min-connections-per-host connect-info)))
@@ -112,6 +110,10 @@
     (when (contains? connect-info :add-server-monitor-listener) (.addServerMonitorListener builder ^com.mongodb.event.ServerMonitorListener (:add-server-monitor-listener connect-info)))
     (.build builder)))
 
+;; MongoClient
+;; MongoClientOptions
+;; MongoClientOptions$Builder
+;; (com.mongodb.MongoCredential/createCredential "username" "dbname" (.toCharArray"password"))
 (defn make-connection [connect-info]
   (cond
     (string? connect-info)
@@ -150,7 +152,8 @@
     ;; { :$date 1378857600000 }
     (and (map? v) (contains? v :$date)) (java.util.Date. ^long (:$date v))
     (map? v)                            (map->basic-db-object v)
-    (seqable? v)                        (mapv val->basic-db-object v)
+    ;; (seqable? v)                        (mapv val->basic-db-object v)
+    (vector? v)                         (mapv val->basic-db-object v)
     :otherwise                          v))
 
 (defn map->basic-db-object ^BasicDBObject [m]
@@ -195,10 +198,10 @@
 
   
   (with-connection [^MongoClient db conn-info]
-    (-> db (.getDatabase "local") (.listCollectionNames) seq))
-
-  (with-connection [^MongoClient db conn-info]
-    (-> db (.getDatabase "local") (.listCollectionNames) seq))
+    (-> db
+        (.getDatabase "local")
+        (.listCollectionNames)
+        seq))
 
   ;; do we get an error?
   (with-connection [^MongoClient db (assoc conn-info :server-addresses [["localhost" 27018]])]
