@@ -19,6 +19,11 @@
 #   http://www.markhneedham.com/blog/2014/10/23/neo4j-cypher-avoiding-the-eager/
 # TODO: terraform up our neo4j instance setup & cluster setup
 # https://github.com/neo4j-contrib/training/blob/master/cloud/guides/single-instance-manual.adoc
+# TODO: read up on how to disable the UDC (Usage Data Collector) reporter, it "calls home" to neo4j
+#   https://neo4j.com/docs/operations-manual/current/configuration/usage-data-collector/
+#   https://neo4j.com/docs/operations-manual/current/reference/configuration-settings/#config_dbms.udc.enabled
+# SSL Certs: https://neo4j.com/docs/operations-manual/current/configuration/install-certificates/
+
 Polyglot Persistence w/Neo4j
 
   Mark
@@ -435,4 +440,6 @@ much of the rest of what is being shown seems to be kubernetes
   metrics.enabled=true
   many users emit to graphite w/grafana
   NB: neo4j only supports two ways to emit metrics: graphite or CSV files
+
+
 

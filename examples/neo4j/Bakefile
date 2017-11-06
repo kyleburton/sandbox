@@ -48,15 +48,20 @@ function neo4j-install () {
     test -d sample-datasets || mkdir sample-datasets
     cd sample-datasets
     download_sample "$NEO4J_SAMPLE_DR_WHO"
-    download_sample "$NEO4J_SAMPLE_MOVIES"
     # too big :/
     # download_sample "$NEO4J_SAMPLE_BLGPST"
+    cd ..
+
+    download_sample "$NEO4J_SAMPLE_MOVIES"
+    local pkgdir="$(neo4j-package-dir)"
+    test -d ./$pkgdir/conf.cineasts || cp -r ../resources/conf.cineasts ./$pkgdir/
   )
+
   (
     local project_root="$PWD"
     cd "./software/$(neo4j-package-dir)"
     for zip_fpath in $project_root/software/sample-datasets/*.zip; do
-        local dname="./data/databases/$(basename $zip_fpath .zip)"
+        local dname="./data/databases/$(basename $zip_fpath .zip).db"
         echo "unzip: $zip_fpath to $dname"
         if [ ! -d "$dname" ]; then
             mkdir "$dname"
@@ -71,7 +76,7 @@ function neo4j-install () {
     local project_root="$PWD"
     cd "./software/$(neo4j-package-dir)"
     for zip_fpath in $project_root/software/sample-datasets/*.tgz; do
-        local dname="./data/databases/$(basename $zip_fpath .tgz)"
+        local dname="./data/databases/$(basename $zip_fpath .tgz).db"
         echo "unzip: $zip_fpath to $dname"
         if [ ! -d "$dname" ]; then
             mkdir "$dname"
@@ -108,6 +113,7 @@ function run:neo4j () {
   if [ -n "${NEO4J_CONF:-}" ]; then
       export NEO4J_CONF
   fi
+  export NEO4J_HOME="$PWD"
   ./bin/neo4j "$@"
   )
 }
@@ -189,7 +195,6 @@ function class:import1 () {
   local NEO4J_DATA_PATH="$(neo4j-package-dir)/data/databases"
   local NEO4J_SAMPLE_DATA_PATH="./software/sample-datasets"
   local DSET_URL="https://s3.amazonaws.com/datasets.neo4j.org/extracted.zip"
-  local DSET_PATH=""
 
   (
     cd software
@@ -222,9 +227,9 @@ function class:import1 () {
 
 }
 
-bake_task minikube:install "Install minikube: https://github.com/kubernetes/minikube"
-function minikube:install () {
-  brew cask install minikube
-  bake_echo_green "Great, now run: "
-  bake_echo_green "  minikube start"
-}
+# bake_task minikube:install "Install minikube: https://github.com/kubernetes/minikube"
+# function minikube:install () {
+#   brew cask install minikube
+#   bake_echo_green "Great, now run: "
+#   bake_echo_green "  minikube start"
+# }

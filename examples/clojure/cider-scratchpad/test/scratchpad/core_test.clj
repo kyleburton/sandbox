@@ -1,5 +1,5 @@
 (ns scratchpad.core-test
-  (:require [clojure.test :refer :all]
+   (:require [clojure.test :refer :all]
             [scratchpad.core :refer :all]))
 
 (deftest a-test
