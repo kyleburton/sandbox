@@ -186,11 +186,13 @@
       :otherwise
       (recur (conj items (basic-db-object->map (.next cursor)))))))
 
+;; NB: this is for the locally running, no-authentication, docker based mongodb
+(def conn-info {:host                     "localhost"
+                :port                     27017
+                :server-selection-timeout 100
+                :applicaiton-name         "my-test-app"})
 (comment
-  (def conn-info {:host                     "localhost"
-                  :port                     27017
-                  :server-selection-timeout 100
-                  :applicaiton-name         "my-test-app"})
+
   
   (with-connection [^MongoClient db conn-info]
     (-> db (.getDatabase "local") (.listCollectionNames) seq))
@@ -317,74 +319,4 @@
   )
 
 
-(comment
 
-
-  ;; Lets run a test:
-  ;; * import a sample data set into collection.1
-  ;; * start a background thread that continuously reads from collection.1
-  ;; * concurrently, load the same dataset into collection.2
-  ;; * rename collection.2 to collection.1
-  (def mongo-sample-data-set-url "https://raw.githubusercontent.com/mongodb/docs-assets/primer-dataset/primer-dataset.json")
-  (def get-mongo-sample-data (memoize #(slurp mongo-sample-data-set-url)))
-
-  (def mongo-sample-data-set
-    (->>
-     (->
-      ^String (get-mongo-sample-data)
-      (.split "\n"))
-     (map #(json/read-str % :key-fn keyword))))
-
-
-  (time
-   (with-connection [^MongoClient conn conn-info]
-     (let [coll        (-> conn
-                           (.getDB "test")
-                           (.getCollection "collection.1"))
-           nrecs       (count mongo-sample-data-set)
-           mid-point   (int (/ nrecs 2))
-           first-half  (take mid-point mongo-sample-data-set)
-           second-half (drop mid-point mongo-sample-data-set)]
-       (doseq [recs (partition 10 first-half)]
-         (.insert coll (seq->basic-db-objects recs))))))
-  ;; 2124ms
-
-  (def stop (atom nil))
-  (.start
-   (Thread. (fn []
-              (with-connection [^MongoClient conn conn-info]
-                (loop []
-                  (if @stop
-                    (do
-                      (log/infof "DONE"))
-                    (let [coll (-> conn
-                                   (.getDB "test")
-                                   (.getCollection "collection.1"))]
-                      (log/infof "count=%s; first document: %s"
-                                 (.getCount coll)
-                                 (basic-db-object->map (.findOne coll)))
-
-                      (recur))))))))
-
-  (reset! stop true)
-  
-  (time
-   (with-connection [^MongoClient conn conn-info]
-     (let [coll        (-> conn
-                           (.getDB "test")
-                           (.getCollection "collection.2"))
-           nrecs       (count mongo-sample-data-set)
-           mid-point   (int (/ nrecs 2))
-           first-half  (take mid-point mongo-sample-data-set)
-           second-half (drop mid-point mongo-sample-data-set)]
-       (doseq [recs (partition 10 second-half)]
-         (.insert coll (seq->basic-db-objects recs))))))
-
-  ;; 3700 ms
-  (with-connection [^MongoClient conn conn-info]
-    (let [coll        (-> conn
-                          (.getDB "test")
-                          (.getCollection "collection.2"))]
-      (.rename coll "collection.1" true)))
-
-  )
