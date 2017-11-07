@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+# bake_require github.com/kyleburton/bake-recipes/docker/docker.sh
+
+bake_task init "local dev install"
+function init () {
+  docker pull mysql:8.0.3
+}
+
+bake_task mysql "bake mysql start|stop|shell"
+function mysql () {
+  local cmd="${1:-}"
+  case $cmd in
+    shell)
+      shift
+      exec docker exec -ti mysql-jdbc-example mysql -h localhost -u root -p -P 3306 -ppassword "$@"
+      ;;
+    start)
+      shift
+      docker rm mysql-jdbc-example || echo "ok: no container to delete"
+      exec docker run -e "MYSQL_ROOT_PASSWORD=password" -d -p 3306:3306 --name mysql-jdbc-example mysql:8.0.3 "$@"
+      ;;
+    stop)
+      shift
+      exec docker stop mysql-jdbc-example "$@"
+      ;;
+    *|help)
+      bake_echo_green "bake mysql help   # display this help"
+      bake_echo_green "bake mysql shell  # mysql commandline client sql shell (password is password)"
+      bake_echo_green "bake mysql start  # start mysql in a docker container"
+      bake_echo_green "bake mysql stop   # stop the mysql docker container"
+      exit 1
+      ;;
+  esac
+}
