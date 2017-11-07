@@ -110,6 +110,27 @@
     (when (contains? connect-info :add-server-monitor-listener) (.addServerMonitorListener builder ^com.mongodb.event.ServerMonitorListener (:add-server-monitor-listener connect-info)))
     (.build builder)))
 
+(defn conn-info->mongo-credentials ^java.util.List [conn-info]
+  (cond
+    (and
+     (contains? conn-info :username)
+     (contains? conn-info :password)
+     (contains? conn-info :database))
+    [(MongoCredential/createCredential
+      (:username conn-info)
+      (:database conn-info)
+      (.toCharArray ^String (:password conn-info)))]
+
+    (contains? conn-info :credentials)
+    (mapv (fn [entry]
+            (MongoCredential/createCredential
+             (:username entry)
+             (:database entry)
+             (.toCharArray ^String (:password entry))))
+          (:credentials conn-info))
+    :otherwise
+    (throw (RuntimeException. (format "Error: don't know how to create MongoCredential, no credentail information found in: %s"
+                                      conn-info)))))
 ;; MongoClient
 ;; MongoClientOptions
 ;; MongoClientOptions$Builder
@@ -117,17 +138,41 @@
 (defn make-connection [connect-info]
   (cond
     (string? connect-info)
-    (MongoClient. (MongoClientURI. connect-info))
+    (do
+      (log/infof "make-connection: connecting via uri connect-info=%s" connect-info)
+      (MongoClient. (MongoClientURI. connect-info)))
 
     (map? connect-info)
     (let [client-options               (make-client-options connect-info)
-          [server-type server-address] (connect-info->server-address connect-info)]
+          [server-type server-address] (connect-info->server-address connect-info)
+          creds                        (conn-info->mongo-credentials connect-info)]
+      (log/infof "make-connection: creds=%s server-type=%s server-address=%s"
+                 creds
+                 server-type
+                 server-address)
       (cond
+        (and creds (= :singleton server-type))
+        (do
+          (log/infof "make-connection[:singleton+creds]: connecting with credentails to server-address=%s" server-address)
+          ;; MongoClient
+          (MongoClient. ^ServerAddress server-address creds client-options))
+
         (= :singleton server-type)
-        (MongoClient. ^ServerAddress server-address client-options)
+        (do
+          (log/infof "make-connection[:singleton]: connecting w/o credentails to server-address=%s" server-address)
+          (MongoClient. ^ServerAddress server-address client-options))
+
+        (and creds (= :list server-type))
+        (do
+          (log/infof "make-connection[:list+creds]: connecting with credentails to server-address=%s" server-address)
+          ;; (def xx [server-address creds client-options])
+          ;; (class (nth xx 1))
+          (MongoClient. server-address creds client-options))
 
         (= :list server-type)
-        (MongoClient. ^java.util.List server-address client-options)
+        (do
+          (log/infof "make-connection[:list]: connecting w/o credentails to server-address=%s" server-address)
+          (MongoClient. ^java.util.List server-address client-options))
 
         :otherwise
         (throw (RuntimeException.
@@ -140,6 +185,7 @@
             (format "Error: don't know how to create a mongo connection out of: %s : %s"
                     (class connect-info)
                     connect-info)))))
+
 
 (defmacro with-connection [[conn-var-name connect-info] & body]
   `(with-open [~conn-var-name (make-connection ~connect-info)]
@@ -190,12 +236,12 @@
       (recur (conj items (basic-db-object->map (.next cursor)))))))
 
 ;; NB: this is for the locally running, no-authentication, docker based mongodb
-(def conn-info {:host                     "localhost"
-                :port                     27017
-                :server-selection-timeout 100
-                :applicaiton-name         "my-test-app"})
-(comment
 
+(comment
+  (def conn-info {:host                     "localhost"
+                  :port                     27017
+                  :server-selection-timeout 100
+                  :applicaiton-name         "my-test-app"})
   
   (with-connection [^MongoClient db conn-info]
     (-> db

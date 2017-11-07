@@ -28,5 +28,11 @@
                  ;; http://clojuremongodb.info/
                  [com.novemberain/monger                 "3.1.0"]
 
+                 ;; can't open our file :(
+                 ;; [de.slackspace/openkeepass              "0.6.1"]
+
+                 ;; can't open our file :(
+                 ;; [org.linguafranca.pwdb/KeePassJava2     "2.1.1"]
+
 
                  ])
