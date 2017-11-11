@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+# bake_require github.com/kyleburton/bake-recipes/docker/docker.sh
+
+bake_task init "Initialize a local dev environment"
+function init () {
+   test -f quicklisp.lisp || curl -s -o quicklisp.lisp "https://beta.quicklisp.org/quicklisp.lisp"
+   # TODO: make this idempotent
+   if [ ! -d "./.quicklisp" ]; then
+     clisp -q -q -i quicklisp.lisp -x '(quicklisp-quickstart:install :path "./.quicklisp")'
+     clisp -q -q -i quicklisp.lisp -x '(ql:add-to-init-file :path "./.quicklisp")'
+   fi
+}
+
+bake_task emacs "Run emacs with a local configuration"
+function emacs () {
+  command emacs -nw --load .emacs "$@"
+}

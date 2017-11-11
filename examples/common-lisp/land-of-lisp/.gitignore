@@ -1,0 +1,4 @@
+quicklisp.lisp
+.quicklisp/
+*.fas
+*.lib
