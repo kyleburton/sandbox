@@ -11,12 +11,11 @@ class LineItem:
         self.quantity = quantity
         self.price = price
 
-
     def total(self):
         return self.quantity * self.price
 
 
-class Order: # the Context
+class Order:  # the Context
     def __init__(self, customer, cart, promotion=None):
         self.customer = customer
         self.cart = list(cart)
@@ -37,26 +36,32 @@ class Order: # the Context
 
     def __repr__(self):
         fmt = '<Order total: {:.2f} due: {:.2f} promo:{} discount: {:.2f}>'
-        return fmt.format(self.total(), self.due(), self.promotion.__class__.__name__, self.discount())
+        return fmt.format(
+            self.total(),
+            self.due(),
+            self.promotion.__class__.__name__,
+            self.discount())
 
 
-class Promotion(ABC): # the Strategy: an abstract base class
+class Promotion(ABC):  # the Strategy: an abstract base class
     @abstractmethod
     def discount(self, order):
         """return discount as a positive dollar amount"""
 
 
-class FidelityPromo(Promotion): # first concrete Strategy
+class FidelityPromo(Promotion):  # first concrete Strategy
     def discount(self, order):
         return order.total() * 0.05 if order.customer.fidelity >= 1000 else 0
 
-class BulkItemPromo(Promotion): # second concrete Strategy
+
+class BulkItemPromo(Promotion):  # second concrete Strategy
     def discount(self, order):
         discount = 0
         for item in order.cart:
             if item.quantity >= 20:
                 discount += item.total() * 0.1
         return discount
+
 
 class LargeOrderPromo(Promotion):
     def discount(self, order):
@@ -99,13 +104,14 @@ o5 = Order(jon, cart, LargeOrderPromo())
 print("o5: {}".format(o5))
 
 
-
 ################################################################################
 # lets use functions for the Stragey pattern /kyle is a fan
 print("lets use function for the Stragey pattern")
 
+
 def fidelity_promo(order):
     return order.total() * 0.05 if order.customer.fidelity >= 1000 else 0
+
 
 def bulk_item_promo(order):
     discount = 0
@@ -129,13 +135,15 @@ cart = [
     LineItem('apple',        10,  1.5),
     LineItem('watermellon',   5,  5.0),
 ]
-print("Order(jon, cart, fidelity_promo): {}".format(Order(jon, cart, fidelity_promo)))
+print("Order(jon, cart, fidelity_promo): {}".format(
+    Order(jon, cart, fidelity_promo))
+)
 
 # promos = [bulk_item_promo, large_order_promo, fidelity_promo]
-promos = [globals()[name] 
-          for name in globals() 
-          if name.endswith('_promo') 
-          and name != 'best_promo']
+promos = [globals()[name]
+          for name in globals()
+          if name.endswith('_promo') and name != 'best_promo']
+
 
 def best_promo(order):
     return max(promo(order) for promo in promos)
@@ -147,4 +155,3 @@ print("best_promo(o): {:.2f}".format(best_promo(o)))
 o2 = Order(ann, cart, fidelity_promo)
 print("o2: {}".format(o2))
 print("best_promo(o2): {:.2f}".format(best_promo(o2)))
-
