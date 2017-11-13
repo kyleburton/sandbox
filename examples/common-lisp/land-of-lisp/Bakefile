@@ -10,6 +10,9 @@ function init () {
      clisp -q -q -i quicklisp.lisp -x '(quicklisp-quickstart:install :path "./.quicklisp")'
      clisp -q -q -i quicklisp.lisp -x '(ql:add-to-init-file :path "./.quicklisp")'
    fi
+
+   # doens't seem to work, not going to debug it now :/
+   # test -f json-reader.lisp || curl -o json-reader.lisp "https://gist.githubusercontent.com/chaitanyagupta/9324402/raw/54359d3f2d19b78c603cf011304a741410a873ae/json-reader.lisp"
 }
 
 bake_task emacs "Run emacs with a local configuration"
