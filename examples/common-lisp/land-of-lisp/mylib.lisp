@@ -77,3 +77,9 @@
 ;; (concatenate 'string "this" " " "that")      => "this that"
 ;; call-arguments-limit  => 4096 (maximum for fn's like apply)
 
+
+;; TODO support multiple arity
+(defmacro defonce (pname value)
+  `(if (boundp ',pname)
+       nil
+       (defparameter ,pname ,value)))

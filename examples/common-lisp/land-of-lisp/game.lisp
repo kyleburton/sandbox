@@ -201,6 +201,7 @@
 ;; (cdr (assoc 'living-room *edges*))
 
 (defun walk (direction)
+  ;; aka "find location for direction"
   (let ((next (find direction
 		    (cdr (assoc *location* *edges*))
 		    :key #'cadr)))
@@ -214,3 +215,88 @@
 ;; (walk 'west)
 ;; (look)
 ;; (walk 'east)
+
+(defun remove-item-from-location (item location)
+  (setf *object-locations*
+	(remove-if #'(lambda (elt)
+		       (equalp elt (list item location)))
+		   *object-locations*)))
+
+(defun place-item-at-location (item location)
+  (push (list item location) *object-locations*))
+
+(defun item-at-location-p (item location)
+  (member item
+	  (objects-at location *objects* *object-locations*)))
+
+(defun pickup (object)
+  (cond
+    ((or (equalp object 'all)
+	 (equalp object 'everything))
+     (loop for object in (objects-at *location* *objects* *object-locations*)
+	do
+	  (remove-item-from-location object *location*)
+	  (place-item-at-location    object 'body))
+     `(you are now carrying ,@(inventory)))
+    ((item-at-location-p object *location*)
+     (remove-item-from-location object *location*)
+     (place-item-at-location object 'body)
+     `(you are now carrying the ,object))
+    (t
+     '(you cannot get that.))))
+
+;; (look)
+;; (inventory)
+;; (pickup 'all)
+;; (drop 'whiskey)
+
+;; (look)
+;; (pickup 'whiskey)
+;; (look)
+;; (pickup 'bucket)
+;; (look)
+
+(defun inventory ()
+  (cons 'items- (objects-at 'body *objects* *object-locations*)))
+
+;; (inventory)
+
+;; TODO: I want to implement a drop command: needs to remove all items from 'body
+;; and place them in *location*
+
+
+;; *object-locations*
+(defun drop (object)
+  (cond
+    ((item-at-location-p object 'body)
+     (remove-item-from-location object 'body)
+     (place-item-at-location object *location*)
+     (inventory))
+    (t
+     '(you cannot drop that.))))
+
+;; (inventory)
+;; (drop 'whiskey)
+
+
+'(
+  (look)
+  (pickup 'all)
+  (inventory)
+  
+  (pickup 'whiskey)
+  (pickup 'bucket)
+  (inventory)
+  (walk 'west)
+  (drop 'whiskey)
+  (drop 'bucket)
+  (look)
+  (walk 'east)
+  (look)
+  (inventory)
+  (walk 'west)
+  (pickup 'all)
+
+  )
+
+;; TODO: use place-item-at-location & create a function that initializes the world
