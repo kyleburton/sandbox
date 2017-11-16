@@ -1,5 +1,10 @@
 (load "./.quicklisp/setup.lisp")
 
+(defmacro comment (&body body)
+  (declare (ignore body))
+  nil)
+
+
 ;; From: http://danshapero.github.io/lisp/2015/01/22/threading-macro-in-cl.html
 (defmacro -> (x &rest forms)
   (flet ((expand-form (x form)
