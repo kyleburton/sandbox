@@ -2,3 +2,7 @@ quicklisp.lisp
 .quicklisp/
 *.fas
 *.lib
+*.dot
+*.png
+\#*
+.\#*
