@@ -88,3 +88,16 @@
   `(if (boundp ',pname)
        nil
        (defparameter ,pname ,value)))
+
+
+(defun string-prefix= (s1 s2 len)
+  (string= s1 s2 :end1 len :end2 len))
+
+'(
+
+  (assert (string-prefix= "this" "that" 1))
+  (assert (not (string-prefix= "this" "that" 3)))
+  (assert (not (string-prefix= "this" nil 1)))
+  (assert (not (string-prefix= nil nil 1)))
+
+  )

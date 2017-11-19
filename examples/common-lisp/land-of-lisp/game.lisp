@@ -16,6 +16,7 @@
 ;; (describe-location 'living-room *nodes*)
 ;; => (YOU ARE IN THE LIVING-ROOM. A WIZARD IS SNORING LOUDLY ON THE COUCH.)
 
+;; TODO: allow aliases for the direction part of edges, use the first when printing the room description
 (defparameter *edges*
   '((living-room
      (garden west door)
@@ -189,4 +190,80 @@
 
   )
 
-;; TODO: use place-item-at-location & create a function that initializes the world
+(defparameter *allowed-commands*
+  '(look
+    walk
+    pickup
+    inventory))
+
+(defparameter *command-aliases*
+  '((go   walk)
+    (head walk)
+    (get  pickup)
+    (take pickup)
+    (l    look)))
+
+(defun resolve-alias (cmd)
+  (let ((entry (find cmd *command-aliases* :key #'car))) 
+    (cond
+      (entry (cadr entry))
+      (t cmd))))
+
+;; (find 'go *command-aliases* :key #'car)
+;; (resolve-alias 'pickup)
+
+(defun game-read ()
+  (let ((cmd (read-from-string (concatenate 'string "(" (read-line) ")"))))
+    (flet ((quote-it (x)
+	     (list 'quote x)))
+      (cons (resolve-alias (car cmd)) (mapcar #'quote-it (cdr cmd))))))
+
+;; TODO: other considerations for commands: some rooms or some items
+;; may have commands that are only applicable to them specifically
+;; TODO: if we do support multiple-players, each player will need an inventory ...
+;; TODO: use place-item-at-location & create code to initializes the world to it's start state
+
+(defun game-repl ()
+  (labels ((inner-repl ()
+	   (let ((cmd (game-read)))
+	     (unless (eq (car cmd) 'quit)
+	       (game-print (game-eval cmd))
+	       (inner-repl)))))
+    (game-print (look))
+    (inner-repl)))
+
+(defun game-eval (sexp)
+  (if (member (car sexp) *allowed-commands*)
+      (eval sexp)
+      `(i do not know the command ,(format nil "~a" (car sexp)) - please try one of ,@*allowed-commands*)))
+
+;; (game-eval '(thing that stuff))
+;; (game-eval '(look))
+
+(defun tweak-text (lst caps lit)
+  (when lst
+    (let ((item (car lst))
+	  (rest (cdr lst)))
+      (cond
+	((eql item #\space)
+	 (cons item (tweak-text rest caps lit)))
+	((member item '(#\! #\? #\.))
+	 (cons item (tweak-text rest t lit)))
+	(lit
+	 (cons item (tweak-text rest nil lit)))
+	(caps
+	 (cons (char-upcase item) (tweak-text rest nil lit)))
+	(t
+	 (cons (char-downcase item) (tweak-text rest nil nil)))))))
+
+(defun game-print (lst)
+  (princ
+   (coerce (tweak-text (coerce (string-trim "()" (prin1-to-string lst))
+			       'list)
+		       t
+		       nil)
+	   'string))
+  (fresh-line))
+
+
+;; (game-print '(not only does this sentence have a "comma," it also mentions the "iPad."))
