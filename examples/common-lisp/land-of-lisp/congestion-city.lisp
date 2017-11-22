@@ -1,4 +1,7 @@
-(require "mylib")
+(defpackage :com.github.kyleburton.land-of-lisp.congestion-city
+  (:use :common-lisp
+	:com.github.kyleburton.mylib))
+(in-package :com.github.kyleburton.land-of-lisp.congestion-city)
 
 (defparameter *congestion-city-nodes* nil)
 (defparameter *congestion-city-edges* nil)
@@ -179,4 +182,36 @@
 
   *player-pos*
 
+)
+
+
+(defun known-city-nodes () ;; pg 146
+  (mapcar
+   (lambda (node)
+     (if (member node *visited-nodes*)
+	 (let ((n (assoc node *congestion-city-nodes*)))
+	   (if (eql node *player-pos*)
+	       (append n '(*))
+	       n))
+	 (list node '?)))
+   (remove-duplicates
+    (append *visited-nodes*
+	    (mapcan (lambda (node)
+		      (mapcar #'car
+			      (cdr (assoc node *congestion-city-edges*))))
+		    *visited-nodes*)))))
+
+'(comment
+
+  (new-game)
+  (known-city-nodes)
+
+
+  ;; ah, is mapcan equivalent to clojure's mapcat?
+  (mapcan
+   (lambda (elt)
+     elt)
+   '((1 2 3) nil (4 5) (6 7 8 9) (10)))
+  ;; => (1 2 3 4 5 6 7 8 9 10)
+  ;; yep, it is
 )

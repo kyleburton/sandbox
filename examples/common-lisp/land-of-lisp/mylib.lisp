@@ -1,3 +1,40 @@
+(defpackage :com.github.kyleburton.mylib
+  (:use :common-lisp)
+  (:export
+   :comment
+   :->
+   :->>
+   :range
+   :defonce
+   :string-prefix=
+   :dot-name
+   :dot-label
+   :*max-label-length*
+   :nodes->dot
+   :edges->dot
+   :graph->dot
+   :dot->png
+   :graph->png
+   :uedges->dot
+   :ugraph->png))
+(in-package :com.github.kyleburton.mylib)
+
+
+'(
+  ;; can we export everything?  Or can we at least enumerate the symbols & create the exports list automatically?
+  ;; bummer, this only lists the exported ones :/
+  (let ((syms nil)
+	(pkg (find-package :com.github.kyleburton.mylib)))
+    (do-all-symbols (sym pkg)
+      (format t "comparing pkg:~a to symbol-package:~a for symbol:~a~&"
+	      pkg (symbol-package sym) sym)
+      (when (equal (symbol-package sym) pkg)
+	(setf syms (cons sym syms))))
+    syms)
+
+  )
+
+
 (load "./.quicklisp/setup.lisp")
 
 (defmacro comment (&body body)

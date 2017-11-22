@@ -1,4 +1,7 @@
-(require "mylib")
+(defpackage :com.github.kyleburton.land-of-lisp.game1
+  (:use :common-lisp
+	:com.github.kyleburton.mylib))
+(in-package :com.github.kyleburton.land-of-lisp.game1)
 
 (defparameter *nodes*
   '((living-room (you are in the living-room.  a wizard is snoring loudly on the couch.))
