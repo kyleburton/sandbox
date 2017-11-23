@@ -1,5 +1,5 @@
 (defpackage :com.github.kyleburton.mylib
-  (:use :common-lisp)
+  (:use :common-lisp :inferior-shell)
   (:export
    :comment
    :->
@@ -206,7 +206,9 @@
 		   :direction :output
 		   :if-exists :supersede)
     (funcall thunk))
-  (ext:shell (concatenate 'string "dot -Tpng -O " fname)))
+  ;; TODO: convert to or make compatible with sb-ext:run-program
+  ;; (ext:shell (concatenate 'string "dot -Tpng -O " fname))
+  (inferior-shell:run/ss `(dot "-Tpng" "-O" ,fname)))
 
 
 (defun graph->png (fname nodes edges)
@@ -215,9 +217,7 @@
    (lambda ()
      (graph->dot nodes edges))))
 
-;; (graph->png "wizard.dot" *nodes* *edges*)
-
-
+;; (graph->png "wizard.dot" *nodes* com.github.kyleburton.land-of-lisp.game1:*edges*)
 (defun uedges->dot (edges)
   ;; (print `(uedges->dot edges ,edges))
   (maplist

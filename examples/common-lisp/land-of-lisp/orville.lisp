@@ -258,9 +258,16 @@
 (comment
   (reset-game!)
 
+  (ql:update-dist "quicklisp")
+  (ql:update-client)
+
+  (ql:system-apropos "verbose")
+  (ql:quickload "verbose")
+  (ql:quickload :verbose)
+  (ql:quickload "asdf")
+
+  (asdf:asdf-version)
   )
-
-
 
 
 (defun action! (action-sym)

@@ -6,3 +6,4 @@ quicklisp.lisp
 *.png
 \#*
 .\#*
+*.fasl

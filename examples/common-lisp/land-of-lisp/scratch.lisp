@@ -1,6 +1,7 @@
 (defpackage :com.github.kyleburton.scratch
   (:use :com.github.kyleburton.mylib
-	:common-lisp))
+	:common-lisp
+	:sb-ext))
 (in-package :com.github.kyleburton.scratch)
 
 
@@ -24,3 +25,28 @@
 
 ;; (use-package 'mt)
 ;; (mt:make-thread #'thunk-1)
+
+
+
+
+
+(comment
+  (load "quicklisp.lisp")
+  (load "./.quicklisp/setup.lisp")
+  (ql:quickload :inferior-shell)
+  
+
+  (defvar *proc* (sb-ext:run-program "/bin/ls" nil))
+  (defvar *proc*
+    (let* (
+	   (proc (sb-ext:run-program "/bin/ls" nil :search t)))))
+
+  (sb-ext:process-p *proc*)
+  (sb-ext:process-input *proc*)
+  (sb-ext:process-output *proc*)
+  (sb-ext:process-error *proc*)
+
+
+  (inferior-shell:run/ss '(ls "-lFa" "./mylib.lisp"))
+
+)
