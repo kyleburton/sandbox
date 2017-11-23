@@ -296,3 +296,6 @@
   (action! 'ring-doorbell)
 
   )
+
+;; TODO: create all the edges between the rooms
+;; TODO: implement movement to change the player's location: walk, go
