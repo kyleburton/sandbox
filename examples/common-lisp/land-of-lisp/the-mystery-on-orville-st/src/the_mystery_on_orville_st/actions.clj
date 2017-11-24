@@ -2,7 +2,8 @@
   (:require
    [the-mystery-on-orville-st.data :as data]
    [clojure.string                 :as string]
-   [schema.core                    :as s]))
+   [schema.core                    :as s]
+   [clojure.tools.logging          :as log]))
 
 ;; TODO: lock the front door, make the player unlock it and open it before they can walk through it
 ;; TODO: put the puzzle into the living room description, add a custom action to finish the puzzle.
@@ -119,16 +120,6 @@
       :otherwise
       (format "Er, I don't think you can do that here or I don't know what you mean.  Try 'help' or 'look'."))))
 
-(comment
-  (-> xx)
-  ((-> xx first first :action-fn) nil (-> data/players deref vals first) "more things")
-  (do-action!
-   data/game-state
-   (-> data/players deref vals first)
-   "look")
-
-  )
-
 (s/defn look :- s/Str [game-state :- data/GameState player :- data/Player & args]
   (let [room              (data/player-location player)
         edges             (data/edges-from (:name room))
@@ -139,7 +130,7 @@
                             "")]
     (format "%s\n\nFrom here you can go to any of: %s%s"
             (string/join
-             " "
+             "\n  "
              (:description room))
             (string/join "; "
                          (mapv describe-edge edges))
@@ -190,6 +181,14 @@
    describe-action
    (-> data/rooms deref :front-porch :actions))
 
+  (the-mystery-on-orville-st.game/init!)
+
+  (command "look")
+  (command "drop keys")
+  (command "go entry-way")
+  (command "take all")
+  (command "inventory")
+  (command "drop all")
   )
 
 
@@ -198,28 +197,48 @@
         item-kw    (keyword item-descr)
         room       (data/player-location player)]
     (cond
+      (and (= :all item-kw)
+           (not (empty? (-> room :state deref :inventory))))
+      (let [items (-> room :state deref :inventory vals)]
+        (dosync
+         (doseq [item items]
+           (data/take-item-from-room! (:name item) (:name room))
+           (data/put-item-in-player-inventory! (:name item) player)))
+        (format "You picked up: %s"
+                (string/join ", " (->> items (map :name) (map name)))))
+      
       (not (data/item-is-in-room? item-kw (:name room)))
       (format "You can't pick up '%s' it doesn't seem to be here." item-descr)
 
       :otherwise
-      (do ;; TODO: use the STM and wrap this in a dosync
-        (data/take-item-from-room! item-kw (:name room))
-        (data/put-item-in-player-inventory! item-kw player)
-        (format "You've picked up the %s" item-descr)))))
+      (dosync
+       (data/take-item-from-room! item-kw (:name room))
+       (data/put-item-in-player-inventory! item-kw player)
+       (format "You've picked up the %s" item-descr)))))
 
 (s/defn drop-item :- s/Str [game-state :- data/GameState player :- data/Player & args]
   (let [item-descr (-> args first name)
         item-kw    (keyword item-descr)
         room       (data/player-location player)]
     (cond
+      (and (= :all item-kw)
+           (not (empty? (-> player :state deref :inventory))))
+      (let [items (-> player :state deref :inventory vals)]
+        (dosync
+         (doseq [item items]
+           (data/take-item-from-player-inventory! (:name item) player)
+           (data/put-item-in-room! (:name item) (:name room))))
+        (format "You dropped: %s"
+                (string/join ", " (->> items (map :name) (map name)))))
+      
       (not (data/player-has-item? player item-kw))
       (format "You can't drop '%s' you don't have it" item-descr)
 
       :otherwise
-      (do ;; TODO: use the STM and wrap this in a dosync
-        (data/take-item-from-player-inventory! item-kw player)
-        (data/put-item-in-room! item-kw (:name room))
-        (format "You've dropped the %s" item-descr)))))
+      (dosync
+       (data/take-item-from-player-inventory! item-kw player)
+       (data/put-item-in-room! item-kw (:name room))
+       (format "You've dropped the %s" item-descr)))))
 
 
 (s/defn command :- s/Str [s :- s/Str]

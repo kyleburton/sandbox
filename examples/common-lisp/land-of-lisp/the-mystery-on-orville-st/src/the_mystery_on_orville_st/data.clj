@@ -1,7 +1,8 @@
 (ns the-mystery-on-orville-st.data
   (:require
    [schema.core :as s]
-   [clojure.string :as string]))
+   [clojure.string :as string]
+   [clojure.tools.logging :as log]))
 
 (def GameState clojure.lang.Atom)
 (defonce game-state (atom {}))
@@ -44,6 +45,9 @@
    (s/required-key :description) [s/Any]
    (s/required-key :state)       s/Any
    (s/required-key :follow-fn)   s/Any})
+
+
+(declare complete-puzzle)
 
 ;; TODO: move all the data out of the code
 (def room-data
@@ -156,12 +160,21 @@
    
    {:name        :living-room
     :description ["You are in the living room"
-                  "There's a black sideboard cabinet with the largest cork-screw device you've ever seen in your life on it, a desk with a computer, keyboard, mouse and monitor"
-                  "You see a worn green couch that looks like it's both seen better days and lots of love"
-                  "There's an oval wooden coffee table with several stacks of magazines on it. There is a flat-screen TV (is there any other kind these days?) on a half-height bookshelf next to a gas fireplace"
-                  "Strangely the gas fireplace has a bed of fractured bits of glass as balast, you wonder who came up with that idea"
-                  "There's a bookshelf lined with various board games - looking it over you recognize one of the games as Mechs Vs Minions from Riot Games"
-                  "There is a sliding glass door out to the back patio."]}])
+                  "There's a black sideboard cabinet with the largest cork-screw device you've ever seen in your life on it, a desk with a computer, keyboard, mouse and monitor."
+                  "You see a worn green couch that looks like it's both seen better days and lots of love."
+                  "There's an oval wooden coffee table with several stacks of magazines on a lower shelf."
+                  "On the surface of the coffee table is a picture puzzle of a beautiful family of four, with a happy looking dog and two cats."
+                  "There are two piece missing from the puzzle, you wonder where they might be."
+                  "There is a flat-screen TV (is there any other kind these days?) on a half-height bookshelf next to a gas fireplace."
+                  "Strangely the gas fireplace has a bed of fractured bits of glass as balast, you wonder who came up with that idea."
+                  "There's a bookshelf lined with various board games - looking it over you recognize one of the games as Mechs Vs Minions from Riot Games."
+                  "There is a sliding glass door out to the back patio."]
+    :actions     {:name :complete-puzzle
+                  :aliases 
+                  {:name        :complete-puzzle
+                   :aliases     ["complete puzzle" "finish puzzle" "assemble puzzle"]
+                   :description ["Finish the puzzle"]
+                   :action-fn   #'complete-puzzle}}}])
 
 (s/defn map->Room :- Room [m]
   (merge
@@ -214,7 +227,7 @@
                                "On the keyring there's a key to the front-door, the garage, the mailbox and one you can't remember what it's to."]}
                 {:name        :missing-puzzle-piece-1
                  :description ["A puzzle piece that's mostly red."]}
-                {:name :missing-puzzle-piece-2
+                {:name        :missing-puzzle-piece-2
                  :description ["A puzzle piece that's mostly blue."]}])
 
 (s/defn map->Item :- Item [m]
@@ -224,26 +237,43 @@
     :state           (atom {:inventory {}})}
    m))
 
-(def edge-data [{:from      :front-porch
-                 :to        :entry-way
-                 :follow-fn (fn [game-state player]
-                              (format "TODO: you can only go through here if you unlock + open the door")
-                              false)}
-                {:from :entry-way       :to :front-room}
-                {:from :front-room      :to :entry-way}
-                {:from :front-room      :to :living-room}
-                {:from :front-room      :to :dining-room}
-                {:from :front-room      :to :small-hallway}
-                {:from :small-hallway   :to :sydneys-room}
-                {:from :small-hallway   :to :madisons-room}
-                {:from :small-hallway   :to :main-bathroom}
-                {:from :small-hallway   :to :living-room}
-                {:from :main-bathroom   :to :small-hallway}
-                {:from :main-bathroom   :to :living-room}
-                {:from :living-room     :to :small-hallway}
-                {:from :living-room     :to :dining-room}
-                {:from :living-room     :to :hamper-nook}
-                {:from :living-room     :to :laundry-area}])
+(def edge-data
+  (conj
+   (reduce
+    (fn [acc [from to]]
+      (conj acc
+            {:from from :to to}
+            {:from to   :to from}))
+    []
+    [[:entry-way       :front-room]
+     [:entry-way       :dining-room]
+     [:dining-room     :kitchen]
+     [:kitchen         :laundry-area]
+     [:kitchen         :living-room]
+     [:living-room     :small-hallway]
+     [:living-room     :hamper-nook]
+     [:hamper-nook     :sydneys-room]
+     [:hamper-nook     :master-bedroom]
+     [:small-hallway   :front-room]
+     [:small-hallway   :madisons-room]
+     [:small-hallway   :sydneys-room]
+     [:living-room     :back-patio]
+     [:back-patio      :front-of-garage]
+     [:back-patio      :back-yard]
+     [:main-bathroom   :small-hallway]
+     [:main-bathroom   :living-room]
+     [:small-hallway   :laundry-area]])
+   {:from      :front-porch
+    :to        :entry-way
+    :follow-fn (fn [game-state player]
+                 (format "TODO: you can only go through here if you unlock + open the door")
+                 false)}
+   {:from      :entry-way
+    :to        :front-porch
+    :follow-fn (fn [game-state player]
+                 (format "TODO: you can only go through here if you unlock + open the door")
+                 false)}))
+
 
 (s/defn map->Edge :- Edge [m]
   (merge
@@ -324,14 +354,27 @@
    (-> players deref vals first))
 
   (let [player (-> players deref vals first)]
-   (swap!
-    (:state player)
-    #(update-in
-      %
-      [:inventory]
-      dissoc nil)))
+    (swap!
+     (:state player)
+     #(update-in
+       %
+       [:inventory]
+       dissoc nil)))
 
   )
+
+
+(defn complete-puzzle [game-state player & args]
+  (let [has-all-pieces? (and (player-has-item? player :missing-puzzle-piece-1)
+                             (player-has-item? player :missing-puzzle-piece-2))]
+    (cond
+      has-all-pieces?
+      (string/join "\n  "
+                   ["You assemble the final two pieces of the puzzle and admire the completed work."
+                    "Congraulations you've solved the mystery at Orville St!"])
+      :otherwise
+      (string/join "\n  "
+                   ["Sorry, you don't seem to have all the pieces.  Try searching around the house."]))))
 
 (defn init! []
   (reset! rooms
@@ -353,7 +396,9 @@
           (->>
            edge-data
            (map map->Edge)))
-  (put-item-in-room! :keys :entry-way))
+  (put-item-in-room! :keys :entry-way)
+  (put-item-in-room! :missing-puzzle-piece-1 :madisons-room)
+  (put-item-in-room! :missing-puzzle-piece-2 :sydneys-room))
 
 
 (comment
