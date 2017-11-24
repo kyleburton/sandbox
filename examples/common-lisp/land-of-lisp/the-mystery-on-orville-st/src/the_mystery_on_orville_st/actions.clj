@@ -130,7 +130,6 @@
   (let [room              (data/player-location player)
         edges             (data/edges-from (:name room))
         items             (-> room :state deref :inventory)
-        _ (def items items)
         item-descriptions (if-not (empty? items)
                             (format "\n  You see: %s"
                                     (string/join ", " (->> items vals (map :name) (map name))))
@@ -215,8 +214,12 @@
 (comment
   (-> data/players deref vals first)
   (data/player-location (-> data/players deref vals first))
+
+  (init!)
   
   (command "look")
+  (command "take keys")
+  (command "inventory")
   (command "help")
   (command "walk nowhere")
   (command "search mailbox")

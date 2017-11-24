@@ -1,6 +1,7 @@
 (ns the-mystery-on-orville-st.data
   (:require
-   [schema.core :as s]))
+   [schema.core :as s]
+   [clojure.string :as string]))
 
 (def GameState clojure.lang.Atom)
 (defonce game-state (atom {}))
@@ -182,7 +183,13 @@
       (rand-elt ["You have nothing." "You don't seem to be carrying anything." "You're empty handed." "You're not carrying anything, why not pick something up?"])
 
       :otherwise
-      (format "TODO: you're carrying ... some stuff."))))
+      (format "You're carrying: %s"
+              (string/join ", "
+                           (->>
+                            inventory
+                            vals
+                            (map :name)
+                            (map name)))))))
 
 (def player-data [{:name            "You, yourself."
                    :description     ["You look like ... yourself."]
@@ -272,7 +279,6 @@
 (s/defn put-item-in-room! [item-kw :- s/Keyword location :- s/Keyword]
   (let [room (-> rooms deref location)
         item (-> items deref item-kw)]
-    (def room room)
     (swap!
      (:state room)
      #(update-in
@@ -280,15 +286,14 @@
        [:inventory]
        assoc (:name item) item))))
 
-(s/defn take-item-from-room! [item :- Item location :- s/Keyword]
+(s/defn take-item-from-room! [item :- s/Keyword location :- s/Keyword]
   (let [room (-> rooms deref location)]
-    (def room room)
     (swap!
      (:state room)
      #(update-in
        %
        [:inventory]
-       dissoc (:name item)))))
+       dissoc item))))
 
 (s/defn put-item-in-player-inventory! [item :- s/Keyword player :- Player]
   (swap!
@@ -296,17 +301,30 @@
    #(update-in
      %
      [:inventory]
-     assoc (:name item) item)))
+     assoc item (-> items deref item))))
 
-
+(s/defn take-item-from-player-inventory! [item :- s/Keyword player :- Player]
+  (swap!
+   (:state player)
+   #(update-in
+     %
+     [:inventory]
+     dissoc item)))
 
 (comment
+  (-> players deref vals first :state deref :inventory keys)
 
-  (put-item-in-room!
+  (put-item-in-player-inventory!
    :keys
-   :entry-way)
+   (-> players deref vals first))
 
-  (-> rooms deref :entry-way :state deref :inventory)
+  (let [player (-> players deref vals first)]
+   (swap!
+    (:state player)
+    #(update-in
+      %
+      [:inventory]
+      dissoc nil)))
 
   )
 
