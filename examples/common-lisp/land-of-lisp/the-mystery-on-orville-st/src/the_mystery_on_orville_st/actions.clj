@@ -4,6 +4,10 @@
    [clojure.string                 :as string]
    [schema.core                    :as s]))
 
+;; TODO: lock the front door, make the player unlock it and open it before they can walk through it
+;; TODO: put the puzzle into the living room description, add a custom action to finish the puzzle.
+;; TODO: finish adding edges for the house
+
 (defonce actions (atom {}))
 
 ;; actions are functions that are passed (game-state player)
@@ -125,7 +129,6 @@
 
   )
 
-
 (s/defn look :- s/Str [game-state :- data/GameState player :- data/Player & args]
   (let [room              (data/player-location player)
         edges             (data/edges-from (:name room))
@@ -204,6 +207,20 @@
         (data/put-item-in-player-inventory! item-kw player)
         (format "You've picked up the %s" item-descr)))))
 
+(s/defn drop-item :- s/Str [game-state :- data/GameState player :- data/Player & args]
+  (let [item-descr (-> args first name)
+        item-kw    (keyword item-descr)
+        room       (data/player-location player)]
+    (cond
+      (not (data/player-has-item? player item-kw))
+      (format "You can't drop '%s' you don't have it" item-descr)
+
+      :otherwise
+      (do ;; TODO: use the STM and wrap this in a dosync
+        (data/take-item-from-player-inventory! item-kw player)
+        (data/put-item-in-room! item-kw (:name room))
+        (format "You've dropped the %s" item-descr)))))
+
 
 (s/defn command :- s/Str [s :- s/Str]
   (do-action!
@@ -220,6 +237,10 @@
   (command "look")
   (command "take keys")
   (command "inventory")
+
+  (command "take keys")
+  (command "drop keys")
+  
   (command "help")
   (command "walk nowhere")
   (command "search mailbox")
@@ -264,7 +285,13 @@
                                                  "pick up"
                                                  "grab"}
                                   :description ["Pick up an item."]
-                                  :action-fn   #'take-item})))
+                                  :action-fn   #'take-item}))
+  (register-action! (map->Action {:name        :drop
+                                  :aliases     #{"drop"
+                                                 "discard"
+                                                 "put down"}
+                                  :description ["Drop an item."]
+                                  :action-fn   #'drop-item})))
 
 (comment
 

@@ -272,6 +272,11 @@
    (-> rooms deref location :state deref :inventory)
    item))
 
+(s/defn player-has-item? :- (s/maybe s/Bool) [player :- Player item :- s/Keyword]
+  (contains?
+   (-> player :state deref :inventory)
+   item))
+
 (comment
   (item-is-in-room? :keys :entry-way)
   )
