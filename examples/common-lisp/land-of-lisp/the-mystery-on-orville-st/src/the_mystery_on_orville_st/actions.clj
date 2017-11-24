@@ -1,0 +1,246 @@
+(ns the-mystery-on-orville-st.actions
+  (:require
+   [the-mystery-on-orville-st.data :as data]
+   [clojure.string                 :as string]
+   [schema.core                    :as s]))
+
+(defonce actions (atom {}))
+
+;; actions are functions that are passed (game-state player)
+;; and can manipulate either the world state or the player's state
+(def Action 
+  {(s/required-key :name)        s/Keyword
+   (s/required-key :description) [s/Str]
+   (s/required-key :action-fn)    s/Any
+   (s/required-key :aliases)     #{s/Str}})
+
+(s/defn map->Action :- Action [m]
+  m)
+
+(s/defn describe-action :- s/Str [action :- Action]
+  (format "%s (Try one of %s)"
+          (string/join " " (:description action))
+          (string/join "; " (map #(str "'" % "'") (:aliases action)))))
+
+;; (command "help")
+
+(s/defn register-action! :- s/Any [action :- Action]
+  (swap! actions assoc (:name action) action))
+
+(s/defn describe-edge :- s/Str [edge :- data/Edge]
+  (let [destination (get (deref data/rooms) (-> edge :to))]
+    (name (:name destination))))
+
+
+(s/defn available-actions :- [Action] [game-state player :- data/Player]
+  (let [room (data/player-location player)]
+    (filter
+     identity
+     (concat
+      (-> actions deref    vals)
+      (-> room    :actions vals)
+      (-> player  :actions vals)
+      ;; TODO: include actions we can perform on or with our inventory
+      ))))
+
+(comment
+  (command "look")
+
+  (available-actions
+   data/game-state
+   (-> data/players deref vals first))
+
+  (let [room (data/player-location pp)]
+    (filter
+     identity
+     (concat
+      (-> actions deref    vals)
+      (-> room    :actions vals)
+      (-> pp      :actions vals)
+      ;; TODO: include actions we can perform on or with our inventory
+      )))
+
+
+  
+  (data/set-player-location! (-> data/players deref vals first) :front-porch)
+  )
+
+(s/defn action-matches-string? :- (s/maybe s/Bool) [action :- Action input :- s/Str]
+  (some
+   (fn [alias]
+     (.startsWith (.toLowerCase input) alias))
+   (:aliases action)))
+
+(comment
+  (action-matches-string?
+   (map->Action {:name :testme :description ["the thing action"] :aliases #{"thing" "thing stuff"} :action-fn nil})
+   "thing the stuff")
+  (action-matches-string?
+   (map->Action {:name :testme :description ["the thing action"] :aliases #{"thing" "thing stuff"} :action-fn nil})
+   "do not do the thing")
+
+  )
+
+(s/defn strip-alias [action :- Action input :- s/Str]
+  ;; find the longest matching alias
+  ;; substring it off
+  ;; trim the result
+  (let [longest-alias (->>
+                       (:aliases action)
+                       (filter
+                        (fn [alias]
+                          (.startsWith (.toLowerCase input) alias)))
+                       (sort-by #(.length %))
+                       first)]
+    (->
+     input
+     (.substring (count longest-alias))
+     .trim)))
+
+(s/defn do-action! [game-state :- data/GameState player :- data/Player & args]
+  ;; args is the string the player typed in
+  ;; find an action who's alias is the beginnign of the players command
+  (let [[input & args]   args
+        actions          (available-actions game-state player)
+        matching-actions (filter #(action-matches-string? % input) actions)]
+    (cond
+      (= 1 (count matching-actions))
+      (let [action    (-> matching-actions first)
+            action-fn (:action-fn action)]
+        (action-fn
+         game-state
+         player
+         (strip-alias action input)))
+
+      :otherwise
+      (format "Er, I don't think you can do that here or I don't know what you mean.  Try 'help' or 'look'."))))
+
+(comment
+  (-> xx)
+  ((-> xx first first :action-fn) nil (-> data/players deref vals first) "more things")
+  (do-action!
+   data/game-state
+   (-> data/players deref vals first)
+   "look")
+
+  )
+
+
+(s/defn look :- s/Str [game-state :- data/GameState player :- data/Player & args]
+  (let [room  (data/player-location player)
+        edges (data/edges-from (:name room))]
+    (format "%s\nFrom here you can go to any of: %s"
+            (string/join
+             " "
+             (:description room))
+            (string/join "; "
+                         (mapv describe-edge edges)))))
+
+(comment
+
+  (let [player (-> data/players deref vals first)]
+    #_(map describe-edge (data/edges-from (data/player-location player)))
+    (data/player-location player))
+
+  (look nil (-> data/players deref vals first))
+  )
+
+(s/defn help :- s/Str [game-state :- data/GameState player :- data/Player & args]
+  (let [room (data/player-location player)]
+    (format "Ok, here's what you can do right now:\n%s\n\n"
+            (string/join "\n  "
+                         (map describe-action (available-actions game-state player))))))
+
+(s/defn walk :- s/Str [game-state :- data/GameState player :- data/Player & args]
+  (let [dest      (-> args first name)
+        dest-kw   (keyword dest)
+        dest-room (-> data/rooms deref dest-kw)]
+    (cond
+      (not dest-room)
+      (format "Sorry, you can't go to %s from here." dest)
+
+      :otherwise
+      (do
+        (data/set-player-location! player dest-kw)
+        (do-action! game-state player "look")))))
+
+
+(comment
+  (-> data/players deref vals first data/player-location)
+  (look nil (-> data/players deref vals first))
+  (walk nil (-> data/players deref vals first) :entry-way)
+  (walk nil (-> data/players deref vals first) "entry-way")
+  (walk nil (-> data/players deref vals first) :nowhere)
+  (help nil (-> data/players deref vals first))
+
+  xx
+
+  (-> data/rooms deref :front-porch :actions vals first)
+  
+  (map
+   describe-action
+   (-> data/rooms deref :front-porch :actions))
+
+  )
+
+
+(s/defn command :- s/Str [s :- s/Str]
+  (do-action!
+   data/game-state
+   (-> data/players deref vals first)
+   s))
+
+(comment
+  (-> data/players deref vals first)
+  (data/player-location (-> data/players deref vals first))
+  
+  (command "look")
+  (command "help")
+  (command "walk nowhere")
+
+  (command "walk entry-way")
+
+  (command "walk front-porch")
+
+
+  )
+
+
+(s/defn init! []
+  (register-action! (map->Action {:name        :help
+                                  :aliases     #{"help"
+                                                 "help me"
+                                                 "what can i do"
+                                                 "what can i do here"
+                                                 "what should i do"}
+                                  :description ["Get some help."]
+                                  :action-fn   #'help}))
+  (register-action! (map->Action {:name        :look
+                                  :aliases     #{"look"
+                                                 "take a look"
+                                                 "look around"
+                                                 "have a look"
+                                                 "what can i see"
+                                                 "what do i see"}
+                                  :description ["Have a look at your surroundings."]
+                                  :action-fn   #'look}))
+  (register-action! (map->Action {:name        :walk
+                                  :aliases     #{"walk"
+                                                 "go"
+                                                 "go to"
+                                                 "goto"
+                                                 "head to"}
+                                  :description ["Walk to another area"]
+                                  :action-fn   #'walk}))
+  (register-action! (map->Action {:name        :inventory
+                                  :aliases     #{"inventory"
+                                                 "what do i have"
+                                                 "what have i got"}
+                                  :description ["Take a look at what you're holding."]
+                                  :action-fn   #'walk})))
+
+(comment
+
+  (init!)
+
+  )
