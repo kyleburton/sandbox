@@ -336,12 +336,22 @@
 (s/defn put-item-in-room! [item-kw :- s/Keyword location :- s/Keyword]
   (let [room (-> rooms deref location)
         item (-> items deref item-kw)]
-    (swap!
-     (:state room)
-     #(update-in
-       %
-       [:inventory]
-       assoc (:name item) item))))
+    (cond
+      (not room)
+      (throw (RuntimeException. (format "Sorry, you can't put item:%s into room:%s, room doens't exist!"
+                                        item-kw (:name location))))
+
+      (not item)
+      (throw (RuntimeException. (format "Sorry, you can't put item:%s into room:%s, the item doens't exist!"
+                                        item-kw (:name location))))
+      
+      :otherwise
+      (swap!
+       (:state room)
+       #(update-in
+         %
+         [:inventory]
+         assoc (:name item) item)))))
 
 (s/defn take-item-from-room! [item :- s/Keyword location :- s/Keyword]
   (let [room (-> rooms deref location)]
