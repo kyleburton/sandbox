@@ -49,6 +49,7 @@
       ))))
 
 (comment
+  (the-mystery-on-orville-st.game/init!)
   (command "look")
 
   (available-actions
@@ -251,9 +252,21 @@
   (-> data/players deref vals first)
   (data/player-location (-> data/players deref vals first))
 
-  (init!)
+  (do
+    (the-mystery-on-orville-st.game/init!)
+    (data/set-player-location!
+     (-> data/players deref vals first)
+     :living-room)
+    (data/put-item-in-player-inventory!
+     :missing-puzzle-piece-1
+     (-> data/players deref vals first))
+    (data/put-item-in-player-inventory!
+     :missing-puzzle-piece-2
+     (-> data/players deref vals first)))
   
   (command "look")
+  (command "help")
+  (command "complete puzzle")
   (command "take keys")
   (command "inventory")
 

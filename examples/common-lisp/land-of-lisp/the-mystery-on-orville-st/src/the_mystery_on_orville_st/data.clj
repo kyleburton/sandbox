@@ -48,6 +48,7 @@
 
 
 (declare complete-puzzle)
+(declare search-toolbox)
 
 ;; TODO: move all the data out of the code
 (def room-data
@@ -157,6 +158,19 @@
    
    {:name        :front-of-garage
     :description ["There is a large, white garage door in front of you with a handle in the center."]}
+
+   {:name        :hallway-closet
+    :description ["You don't really want be in here, it smells bad.  There's a cat litter box sitting on the floor and there isn't really anywhere for your to stand."]}
+
+   {:name        :master-bedroom-closet
+    :description ["This is a pretty nice walk-in closet.  There are women's and men's clothes hung on hangers and a few sweaters and hats on shelves.  There are _lots_ of shoes here.  You also see a small stepping stool."]
+    :actions     {:name        :sit-on-stool
+                  :aliases     #{"sit" "sit down" "sit on the stool" "sit down on the stool"}
+                  :description ["Sit on the stool."]
+                  :action-fn   (fn [game-state player]
+                                 (string/join "\n   "
+                                              ["Sitting on the stool you realize it's pretty low to the ground and isn't all that comforable."
+                                               "After thinking to yoursel for a moment, you stand back up and decide to keep searching the house."]))}}
    
    {:name        :living-room
     :description ["You are in the living room"
@@ -169,12 +183,17 @@
                   "Strangely the gas fireplace has a bed of fractured bits of glass as balast, you wonder who came up with that idea."
                   "There's a bookshelf lined with various board games - looking it over you recognize one of the games as Mechs Vs Minions from Riot Games."
                   "There is a sliding glass door out to the back patio."]
-    :actions     {:name :complete-puzzle
-                  :aliases 
-                  {:name        :complete-puzzle
-                   :aliases     ["complete puzzle" "finish puzzle" "assemble puzzle"]
-                   :description ["Finish the puzzle"]
-                   :action-fn   #'complete-puzzle}}}])
+    :actions     {:complete-puzzle {:name        :complete-puzzle
+                                    :aliases     #{"complete puzzle" "finish puzzle" "assemble puzzle"}
+                                    :description ["Finish the puzzle"]
+                                    :action-fn   #'complete-puzzle}}}
+   {:name        :garage-interior
+    :description ["Surveying the interior of the garage, you see lots of boxes, toys, bikes, a skateboard and four spare tires for a car (not sure why those are in there)."
+                  "There is a large standing toolbox on one side in the back, behind the bicyles."]
+    :actions     {:search-toolbox {:name        :search-toolbox
+                                   :aliases     #{"search toolbox"}
+                                   :description ["Search the toolbox"]
+                                   :action-fn   #'search-toolbox}}}])
 
 (s/defn map->Room :- Room [m]
   (merge
@@ -262,7 +281,10 @@
      [:back-patio      :back-yard]
      [:main-bathroom   :small-hallway]
      [:main-bathroom   :living-room]
-     [:small-hallway   :laundry-area]])
+     [:laundry-area    :small-bathroom]
+     [:small-hallway   :hallway-closet]
+     [:master-bedroom  :master-bedroom-closet]
+     [:front-of-garage :garage-interior]])
    {:from      :front-porch
     :to        :entry-way
     :follow-fn (fn [game-state player]
@@ -375,6 +397,10 @@
       :otherwise
       (string/join "\n  "
                    ["Sorry, you don't seem to have all the pieces.  Try searching around the house."]))))
+
+(defn search-toolbox [game-state player & args]
+  (string/join "\n  "
+               ["You rummage through the toolbox though there don't seem to be any puzzle pieces here."]))
 
 (defn init! []
   (reset! rooms
