@@ -44,6 +44,7 @@
    (s/required-key :state)       s/Any
    (s/required-key :follow-fn)   s/Any})
 
+;; TODO: move all the data out of the code
 (def room-data
   [{:name        :front-porch
     :description ["You are standing on the front porch of the house."
@@ -51,7 +52,11 @@
     :actions     {:ring-doorbell {:name        :ring-doorbell
                                   :aliases     #{"ring" "ring doorbell" "ring bell"}
                                   :description ["Ring the doorbell"]
-                                  :action-fn   (fn [game-state player] (format "You ring the doorbell"))}}}
+                                  :action-fn   (fn [game-state player & args] (format "You ring the doorbell"))}
+                  :search-mailbox {:name        :search-mailbox
+                                   :aliases     #{"open mailbox" "search mailbox"}
+                                   :description ["Search the mailbox."]
+                                   :action-fn   (fn [game-state player & args] (format "You find mail for several people who don't live here.  You leave it in the mailbox."))}}}
    
    {:name        :entry-way
     :description ["You are in the entry-way."]}
@@ -164,22 +169,37 @@
     :heartbeat-hooks []
     :enter-hooks     []
     :exit-hooks      []
-    :state           (atom {})}
+    :state           (atom {:inventory {}})}
    m))
+
+(s/defn rand-elt [elts]
+  (nth elts (rand-int (count elts))))
+
+(s/defn player-inventory :- s/Str [game-state :- GameState player :- Player & args]
+  (let [inventory (-> player :state deref :inventory)]
+    (cond
+      (empty? inventory)
+      (rand-elt ["You have nothing." "You don't seem to be carrying anything." "You're empty handed." "You're not carrying anything, why not pick something up?"])
+
+      :otherwise
+      (format "TODO: you're carrying ... some stuff."))))
 
 (def player-data [{:name            "You, yourself."
                    :description     ["You look like ... yourself."]
                    :heartbeat-hooks []
-                   :actions         {}
+                   :actions         {:inventory {:name        :inventory
+                                                 :aliases     #{"inventory" "what have i got" "what do i have"}
+                                                 :description ["Take stock of what you're carrying"]
+                                                 :action-fn   #'player-inventory}}
                    :state           (atom {:location :front-porch
-                                           :inventory #{:keys}})}])
+                                           :inventory {}})}])
 
 (s/defn map->Player :- Player [m]
   (merge
    {:heartbeat-hooks []
     :actions {}
     :state   (atom {:location :front-porch
-                    :inventory #{:keys}})}
+                    :inventory {}})}
    m))
 
 (def item-data [{:name        :keys
@@ -194,7 +214,7 @@
   (merge
    {:description-fn  nil
     :heartbeat-hooks []
-    :state           (atom {})}
+    :state           (atom {:inventory {}})}
    m))
 
 (def edge-data [{:from      :front-porch
@@ -220,7 +240,7 @@
 
 (s/defn map->Edge :- Edge [m]
   (merge
-   {:state       (atom {})
+   {:state       (atom {:inventory {}})
     :description ["Strange, this edge has no description"]
     :follow-fn   nil}
    m))
@@ -232,6 +252,63 @@
 (s/defn edges-to :- [Edge] [room-name :- s/Keyword]
   (filter #(= room-name (:to %))
           @edges))
+
+(s/defn player-location :- Room [player :- Player]
+  (get @rooms (-> player :state deref :location)))
+
+(s/defn set-player-location! [player :- Player location :- s/Keyword]
+  (swap! (-> player :state)
+         assoc :location location))
+
+(s/defn item-is-in-room? :- (s/maybe s/Bool) [item :- s/Keyword location :- s/Keyword]
+  (contains?
+   (-> rooms deref location :state deref :inventory)
+   item))
+
+(comment
+  (item-is-in-room? :keys :entry-way)
+  )
+
+(s/defn put-item-in-room! [item-kw :- s/Keyword location :- s/Keyword]
+  (let [room (-> rooms deref location)
+        item (-> items deref item-kw)]
+    (def room room)
+    (swap!
+     (:state room)
+     #(update-in
+       %
+       [:inventory]
+       assoc (:name item) item))))
+
+(s/defn take-item-from-room! [item :- Item location :- s/Keyword]
+  (let [room (-> rooms deref location)]
+    (def room room)
+    (swap!
+     (:state room)
+     #(update-in
+       %
+       [:inventory]
+       dissoc (:name item)))))
+
+(s/defn put-item-in-player-inventory! [item :- s/Keyword player :- Player]
+  (swap!
+   (:state player)
+   #(update-in
+     %
+     [:inventory]
+     assoc (:name item) item)))
+
+
+
+(comment
+
+  (put-item-in-room!
+   :keys
+   :entry-way)
+
+  (-> rooms deref :entry-way :state deref :inventory)
+
+  )
 
 (defn init! []
   (reset! rooms
@@ -252,17 +329,9 @@
   (reset! edges
           (->>
            edge-data
-           (map map->Edge))))
+           (map map->Edge)))
+  (put-item-in-room! :keys :entry-way))
 
-;; (init!)
-
-
-(s/defn player-location :- Room [player :- Player]
-  (get @rooms (-> player :state deref :location)))
-
-(s/defn set-player-location! [player :- Player location :- s/Keyword]
-  (swap! (-> player :state)
-         assoc :location location))
 
 (comment
   (init!)

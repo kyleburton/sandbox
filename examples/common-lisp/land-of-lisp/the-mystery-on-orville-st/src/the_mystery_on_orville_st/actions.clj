@@ -127,16 +127,24 @@
 
 
 (s/defn look :- s/Str [game-state :- data/GameState player :- data/Player & args]
-  (let [room  (data/player-location player)
-        edges (data/edges-from (:name room))]
-    (format "%s\nFrom here you can go to any of: %s"
+  (let [room              (data/player-location player)
+        edges             (data/edges-from (:name room))
+        items             (-> room :state deref :inventory)
+        _ (def items items)
+        item-descriptions (if-not (empty? items)
+                            (format "\n  You see: %s"
+                                    (string/join ", " (->> items vals (map :name) (map name))))
+                            "")]
+    (format "%s\n\nFrom here you can go to any of: %s%s"
             (string/join
              " "
              (:description room))
             (string/join "; "
-                         (mapv describe-edge edges)))))
+                         (mapv describe-edge edges))
+            item-descriptions)))
 
 (comment
+  (command "look")
 
   (let [player (-> data/players deref vals first)]
     #_(map describe-edge (data/edges-from (data/player-location player)))
@@ -164,7 +172,6 @@
         (data/set-player-location! player dest-kw)
         (do-action! game-state player "look")))))
 
-
 (comment
   (-> data/players deref vals first data/player-location)
   (look nil (-> data/players deref vals first))
@@ -184,6 +191,21 @@
   )
 
 
+(s/defn take-item :- s/Str [game-state :- data/GameState player :- data/Player & args]
+  (let [item-descr (-> args first name)
+        item-kw    (keyword item-descr)
+        room       (data/player-location player)]
+    (cond
+      (not (data/item-is-in-room? item-kw (:name room)))
+      (format "You can't pick up '%s' it doesn't seem to be here." item-descr)
+
+      :otherwise
+      (do ;; TODO: use the STM and wrap this in a dosync
+        (data/take-item-from-room! item-kw (:name room))
+        (data/put-item-in-player-inventory! item-kw player)
+        (format "You've picked up the %s" item-descr)))))
+
+
 (s/defn command :- s/Str [s :- s/Str]
   (do-action!
    data/game-state
@@ -197,6 +219,7 @@
   (command "look")
   (command "help")
   (command "walk nowhere")
+  (command "search mailbox")
 
   (command "walk entry-way")
 
@@ -232,12 +255,13 @@
                                                  "head to"}
                                   :description ["Walk to another area"]
                                   :action-fn   #'walk}))
-  (register-action! (map->Action {:name        :inventory
-                                  :aliases     #{"inventory"
-                                                 "what do i have"
-                                                 "what have i got"}
-                                  :description ["Take a look at what you're holding."]
-                                  :action-fn   #'walk})))
+  (register-action! (map->Action {:name        :take
+                                  :aliases     #{"take"
+                                                 "pickup"
+                                                 "pick up"
+                                                 "grab"}
+                                  :description ["Pick up an item."]
+                                  :action-fn   #'take-item})))
 
 (comment
 
