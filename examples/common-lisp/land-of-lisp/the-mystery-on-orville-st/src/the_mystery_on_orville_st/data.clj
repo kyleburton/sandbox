@@ -402,6 +402,14 @@
   (string/join "\n  "
                ["You rummage through the toolbox though there don't seem to be any puzzle pieces here."]))
 
+
+(defn init-players! []
+  (reset! players
+          (->>
+           player-data
+           (map map->Player)
+           (reduce (fn [acc ent] (assoc acc (:name ent) ent)) {}))))
+
 (defn init! []
   (reset! rooms
           (->>
@@ -413,11 +421,7 @@
            item-data
            (map map->Item)
            (reduce (fn [acc ent] (assoc acc (:name ent) ent)) {})))
-  (reset! players
-          (->>
-           player-data
-           (map map->Player)
-           (reduce (fn [acc ent] (assoc acc (:name ent) ent)) {})))
+  (init-players!)
   (reset! edges
           (->>
            edge-data
