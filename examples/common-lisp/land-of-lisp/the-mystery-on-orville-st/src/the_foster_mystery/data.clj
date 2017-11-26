@@ -119,3 +119,16 @@
            (map map->Edge)))
   ;; (put-item-in-room! :lead-pipe :another-room)
   )
+
+
+;; TODO: code up our dog, Daisy, lets use a background thread and a state machine :-D
+;; what do we 
+(comment
+  ;; what behavior do we
+  {:name :daisy
+   :start-state :sitting
+   :states {:sitting {}
+            }}
+
+)
+
