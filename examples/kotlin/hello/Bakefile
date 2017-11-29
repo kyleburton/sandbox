@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+# bake_require github.com/kyleburton/bake-recipes/docker/docker.sh
+
+bake_task run "Build and run the example"
+function run () {
+  kotlinc hello.kt -d hello.jar
+  kotlin -classpath hello.jar main.HelloKt "$@"
+}
