@@ -1,0 +1,1 @@
+web: java $JVM_OPTS -cp target/uberjar/text-adventure-engine.jar clojure.main -m text-adventure-engine.core

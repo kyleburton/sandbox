@@ -1,0 +1,3 @@
+{:production true
+ :port 3027
+ :nrepl-port 4027}
