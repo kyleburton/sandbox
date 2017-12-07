@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+bake_task screen-3 "run the cider-nrepl: exec lein run"
+function screen-3 () {
+    exec lein run
+}
+
+bake_task screen-5 "run the cljs build: exec lein figwheel"
+function screen-5 () {
+    exec lein figwheel
+}
+
