@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+bake_require "src/sh/docker.sh"
+bake_require "src/sh/postgres.sh"
+
+DOCKER_POSTGRES_CONTAINER_NAME="plpgsql-examples"
+
+bake_task init "Development environment initialization"
+function init () {
+  docker pull postgres:latest
+}
+
