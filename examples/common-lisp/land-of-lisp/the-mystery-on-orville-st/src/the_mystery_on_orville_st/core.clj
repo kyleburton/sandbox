@@ -1,9 +1,10 @@
 (ns the-mystery-on-orville-st.core
   (:require
-   [clojure.tools.nrepl.server                 :refer [start-server stop-server]]
-   [cider.nrepl                                :refer [cider-nrepl-handler]]
-   [clojure.tools.logging                      :as log]
-   [schema.core                                :as s]))
+   [clojure.tools.nrepl.server :refer [start-server stop-server]]
+   [cider.nrepl                :refer [cider-nrepl-handler]]
+   [clojure.tools.logging      :as log]
+   [schema.core                :as s]
+   [clojure.data.json          :as json]))
 
 (defonce nrepl-server (atom nil))
 (defonce config (atom {:nrepl {:port 4027}}))
@@ -13,4 +14,6 @@
                         :port (-> @config :nrepl :port)
                         :handler cider-nrepl-handler))
   (log/infof "nrepl is running %s" @config)
-  (s/set-fn-validation! true))
+  (s/set-fn-validation! true)
+  (spit ".config.json"
+        (-> config deref json/write-str)))
