@@ -1,5 +1,8 @@
 package main
 
+package fun thing () {
+}
+
 fun main(args : Array<String>) {
 	for(arg in args) {
 		println("arg: $arg")
