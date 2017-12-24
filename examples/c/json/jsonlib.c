@@ -1,6 +1,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <strings.h>
 
 #include "jsonlib.h"
@@ -160,13 +161,13 @@ char* jsonlib_obj_to_new_string (json_object *obj) {
             for (size_t ii = 0; ii < obj->klen; ii++) {
                 char* kstr = jsonlib_obj_to_new_string(obj->keys[ii]);
                 rv = jsonlib_astrcat(rv, rvlen, kstr, strlen(kstr));
-                rv = jsonlib_astrcat(rv, ":");
+                rv = jsonlib_astrcat(rv, rvlen, ":", 1);
 
                 char* vstr = jsonlib_obj_to_new_string(obj->values[ii]);
                 rv = jsonlib_astrcat(rv, rvlen, vstr, strlen(vstr));
                 free(vstr);
             }
-            rv = jsonlib_astrcat(rv, "}");
+            rv = jsonlib_astrcat(rv, rvlen, "}", 1);
             break;
         case T_ARRAY:
             // "[" + join(",", to_string(elt) + "]"
@@ -196,8 +197,8 @@ void jsonlib_free_object(json_object *obj) {
         case T_NUMBER:
             break;
         case T_OBJECT:
-            jsonlib_free_object(obj->oval)
-                break;
+            jsonlib_free_object(obj->oval);
+            break;
         case T_ARRAY:
             for (size_t ii = 0; ii < obj->alen; ii++) {
                 jsonlib_free_object(obj->aval[ii]);
@@ -230,7 +231,7 @@ void test_json_to_string () {
             );
 
     char *jstext = jsonlib_obj_to_new_string(obj);
-    jsonlib_free_object(jstext);
+    free(jstext);
 }
 
 int main (int argc, char **argv ) {

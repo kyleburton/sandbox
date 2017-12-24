@@ -26,7 +26,7 @@ typedef struct json_object {
   char*                 sval;
   size_t                slen;
 
-  struct json_object*   aval;
+  struct json_object**  aval;
   size_t                alen;
 } json_object;
 
