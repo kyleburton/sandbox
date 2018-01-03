@@ -58,5 +58,15 @@ function vim () {
   command vim -u .erlang.vimrc "$@"
 }
 
+bake_task  erlang:erl "Run the erl shell"
+function erlang:erl () {
+    exec erl "$@"
+}
+
+
+bake_task  erlang:make "Build all the .erl files"
+function erlang:make () {
+    exec erl -make "$@"
+}
 
 
