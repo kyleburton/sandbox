@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+function clj-find-local-namespaces-wtih-a-main () {
+  for f in $(find src -name '*.clj' -type f); do
+      if grep -q "(defn -main" "$f"; then
+          local ns="$(grep "(ns " "$f" 2>&1 | cut -f2 -d' ')"
+          echo "$ns"
+      fi
+  done
+}
+
+
+bake_task run "Run the local example"
+function run () {
+  local nsname="${1:-}"
+
+  if [ -z "${nsname:-}" ]; then
+      bake_echo_red "Hi, you need to specify a main, try one of:"
+      for nsname in $(clj-find-local-namespaces-wtih-a-main); do
+          bake_echo_red ""
+          bake_echo_red "  bake run $nsname"
+          bake_echo_red ""
+      done
+      return 0
+  fi
+
+
+  exec clj -m "$nsname"
+}
