@@ -11,7 +11,7 @@ Note: the boolean operators and and or will always evaluate arguments on both si
 ```
 
 ```
-Equality:          =:= 
+Equality:          =:=
 Inequality:        =/=
 Pseudo Equality:   ==
 Pseudo Inequality: /=
@@ -39,6 +39,7 @@ Resources:
 * http://learnyousomeerlang.com/
 * http://stefanalfbo.github.io/blog/2013/04/23/erlang-shell-cheat-sheet/
 
+TODO: sudoku using processes: one process per cell to track state
 TODO: example connecting to an RDBMS (Postgres)
 TODO: implement a memoize function (in memory, into a process?, to disk)
 TODO: make HTTP requests, eg: call into the AWS API
