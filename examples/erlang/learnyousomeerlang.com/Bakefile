@@ -66,6 +66,7 @@ function erlang:erl () {
 
 bake_task  erlang:make "Build all the .erl files"
 function erlang:make () {
+    rm -f *.beam
     exec erl -make "$@"
 }
 

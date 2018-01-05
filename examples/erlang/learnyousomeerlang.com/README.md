@@ -2,7 +2,7 @@
 
 Repository for examples and scratchpad code for working through: http://learnyousomeerlang.com/
 
-Current Location: http://learnyousomeerlang.com/modules
+Current Location: http://learnyousomeerlang.com/syntax-in-functions
 
 Notes:
 
