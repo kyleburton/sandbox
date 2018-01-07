@@ -40,6 +40,7 @@ Resources:
 * http://stefanalfbo.github.io/blog/2013/04/23/erlang-shell-cheat-sheet/
 
 TODO: sudoku using processes: one process per cell to track state
+TODO: using the binary format + destructuring, pull png, jpeg and gif header info & print it.
 TODO: example connecting to an RDBMS (Postgres)
 TODO: implement a memoize function (in memory, into a process?, to disk)
 TODO: make HTTP requests, eg: call into the AWS API
