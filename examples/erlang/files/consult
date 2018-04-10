@@ -10,9 +10,19 @@
 %%
 
 %% Eg: ./consult this that other
+write_terms(FileName, List) ->
+    Format = fun(Term) -> io_lib:format("~tp.~n", [Term]) end,
+    Text = lists:map(Format, List),
+    file:write_file(FileName, Text).
 
 main(_Args) ->
-    {ok, Terms} = file:consult("input.erlang"),
+    FileName = "input.erlang",
+    write_terms(FileName,
+                [{person, [{name,"Mario"},  {height,"short"}]},
+                 {person, [{name,"Peach"},  {height,"average"}]},
+                 {person, [{name,"Bowser"}, {height,"huge"}]},
+                 {person, [{name,"Luigi"},  {height,"tall"}]}]),
+    {ok, Terms} = file:consult(FileName),
     lists:foreach(
       fun(Term) ->
               io:format("Term=~p~n", [Term])
