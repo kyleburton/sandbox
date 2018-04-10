@@ -1,0 +1,22 @@
+#!/usr/bin/env escript
+%% -*- erlang -*-
+%%! -smp enable -sname kburton@localhost -setcookie riotgames -pa ~/.riot.d/erlang
+%%
+%% see: http://stratus3d.com/blog/2016/07/02/escript-essentials/
+%% see: https://github.com/jcomellas/getopt
+%% see: https://stackoverflow.com/questions/6545416/escript-setting-code-path-relative-to-script-directory
+%%      true = code:add_pathz(filename:dirname(escript:script_name())
+%%                          ++ "/../dir-of-some-beams"),
+%%
+
+%% Eg: ./consult this that other
+
+main(_Args) ->
+    {ok, Terms} = file:consult("input.erlang"),
+    lists:foreach(
+      fun(Term) ->
+              io:format("Term=~p~n", [Term])
+      end,
+      Terms
+     ),
+    halt(0).

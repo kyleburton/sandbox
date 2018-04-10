@@ -1,0 +1,17 @@
+{
+    "game": "mario",
+    "characters": [
+        {
+            "name": "Mario",
+            "height": "short"
+        },
+        {
+            "name": "Luigi",
+            "height": "tall"
+        },
+        {
+            "name": "Peach",
+            "height": "average"
+        }
+    ]
+}
