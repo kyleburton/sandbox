@@ -1,0 +1,40 @@
+#!/usr/bin/env escript
+%% -*- erlang -*-
+%%! -smp enable -sname kburton@localhost -setcookie riotgames -pa ~/.riot.d/erlang
+%%
+%% see: http://stratus3d.com/blog/2016/07/02/escript-essentials/
+%% see: https://github.com/jcomellas/getopt
+%% see: https://stackoverflow.com/questions/6545416/escript-setting-code-path-relative-to-script-directory
+%%      true = code:add_pathz(filename:dirname(escript:script_name())
+%%                          ++ "/../dir-of-some-beams"),
+%%
+
+%% Eg: ./slurp this that other
+
+readlines(FileName) ->
+    {ok, Device} = file:open(FileName, [read]),
+    try
+        get_all_lines(Device)
+    after
+        file:close(Device)
+    end.
+
+get_all_lines(Device) ->
+    case io:get_line(Device, "") of
+        eof  ->
+            [];
+        Line ->
+            Line ++ get_all_lines(Device)
+    end.
+
+main(Args) ->
+    FileName = "input.json",
+    {ok, Data} = file:read_file(FileName),
+    io:format("Contents of ~p is ~p bytes~n", [FileName, byte_size(Data)]),
+    Lines = binary:split(Data, <<"\n">>, [global]),
+    lists:foreach(
+      fun(Line) ->
+              io:format("  LINE: ~p~n", [Line])
+      end,
+      Lines),
+    halt(0).
