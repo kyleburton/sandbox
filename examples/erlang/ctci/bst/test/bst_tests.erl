@@ -16,14 +16,14 @@ setup() ->
     ok.
 
 teardown(_) ->
-    ok.
+    ok.
 
-        int_cmp(A, B) when A > B ->
-                    -1;
-        int_cmp(A, B) when A == B ->
-                    0;
-        int_cmp(A, B) when A < B ->
-                    1.
+int_cmp(A, B) when A > B ->
+    -1;
+int_cmp(A, B) when A == B ->
+    0;
+int_cmp(A, B) when A < B ->
+    1.
 
 
 length_test() ->
