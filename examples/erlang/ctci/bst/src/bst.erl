@@ -16,37 +16,19 @@ length(T) ->
       end,
       0).
 
-%% pre_order_traverse({bst, _CmpFn, Top}, F, Acc) ->
-%%     pre_order_traverse2(Top, F, Acc).
-%% 
-%% pre_order_traverse2(none, _F, Acc) ->
-%%     Acc;
-%% pre_order_traverse2({none, Val, none}, F, Acc) ->
-%%     F(Val, Acc);
-%% pre_order_traverse2({Left, Val, none}, F, Acc) ->
-%%     Acc2 = pre_order_traverse2(Left, F, Acc),
-%%     F(Val, Acc2);
-%% pre_order_traverse2({none, Val, Right}, F, Acc) ->
-%%     Acc2 = F(Val, Acc),
-%%     pre_order_traverse2(Right, F, Acc2);
-%% pre_order_traverse2({Left, Val, Right}, F, Acc) ->
-%%     Acc2 = pre_order_traverse2(Left, F, Acc),
-%%     Acc3 = F(Val, Acc2),
-%%     pre_order_traverse2(Right, F, Acc3).
-
 pre_order_traverse({bst, _CmpFn, Top}, F, Acc) ->
     pre_order_traverse2(Top, F, Acc).
 
-pre_order_visit(none, _F, Acc) ->
+apply_visitor(none, _F, Acc) ->
   Acc;
-pre_order_visit(Val, F, Acc) ->
+apply_visitor(Val, F, Acc) ->
   F(Val, Acc).
 
 pre_order_traverse2(none, _F, Acc) ->
     Acc;
 pre_order_traverse2({Left, Val, Right}, F, Acc) ->
     Acc2 = pre_order_traverse2(Left, F, Acc),
-    Acc3 = pre_order_visit(Val, F, Acc2),
+    Acc3 = apply_visitor(Val, F, Acc2),
     pre_order_traverse2(Right, F, Acc3).
 
 
