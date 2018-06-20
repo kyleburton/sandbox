@@ -13,6 +13,7 @@ bst_test_() ->
 
 
 setup() ->
+    rand:seed(os:timestamp()),
     ok.
 
 teardown(_) ->
@@ -26,9 +27,10 @@ int_cmp(A, B) when A < B ->
     1.
 
 random_tree(CmpFn, Elts) ->
-    Elts2 = [X || {_, X} <- lists:sort([{random:uniform(), N} || N <- Elts])],
+    Elts2 = [X || {_, X} <- lists:sort([{rand:uniform(), N} || N <- Elts])],
+    %% ?debugFmt("Elts2=~p; Elts=~p", [Elts2, Elts]),
     T = bst:new(CmpFn),
-    lists:foldl(fun (E, T) -> bst:add(E, T) end, T, Elts2).
+    lists:foldl(fun (E, T0) -> bst:add(E, T0) end, T, Elts2).
 
 length_test() ->
     T = bst:new(fun int_cmp/2),
@@ -41,7 +43,7 @@ length_test() ->
 pre_order_traverse_test() ->
     Nums = lists:seq(1,10),
     T = random_tree(fun int_cmp/2, Nums),
-    ?debugFmt("T=~p", [T]),
+    %% ?debugFmt("T=~p", [T]),
     Nums2 = bst:pre_order_traverse(
               T,
               fun (N, Acc) -> [N | Acc] end,
@@ -50,10 +52,25 @@ pre_order_traverse_test() ->
 
 post_order_traverse_test() ->
     Nums = lists:seq(1,10),
-    T = lists:foldl(fun (N, T0) -> bst:add(N, T0) end, bst:new(fun int_cmp/2), Nums),
-    ?debugFmt("tree: T=~p", [T]),
+    T = random_tree(fun int_cmp/2, Nums),
+    %% T = lists:foldl(fun (N, T0) -> bst:add(N, T0) end, bst:new(fun int_cmp/2), Nums),
+    %% ?debugFmt("tree: T=~p", [T]),
     Nums2 = bst:post_order_traverse(
               T,
               fun (N, Acc) -> [N | Acc] end,
               []),
     ?assertEqual(lists:reverse(Nums), Nums2).
+
+in_order_traverse_test() ->
+    Nums = lists:seq(1,10),
+    T = random_tree(fun int_cmp/2, Nums),
+    %% T = lists:foldl(fun (N, T0) -> bst:add(N, T0) end, bst:new(fun int_cmp/2), Nums),
+    %% ?debugFmt("tree: T=~p", [T]),
+    Nums2 = bst:in_order_traverse(
+              T,
+              fun (N, Acc) -> [N | Acc] end,
+              []),
+    %% can we assert an ordering here if the tree is randomly constructed?
+    ?assertEqual(length(Nums), length(Nums2)).
+
+

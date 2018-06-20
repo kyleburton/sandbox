@@ -4,7 +4,8 @@
          length/1,
          add/2,
          pre_order_traverse/3,
-         post_order_traverse/3
+         post_order_traverse/3,
+         in_order_traverse/3
         ]).
 
 new(CmpFn) ->
@@ -41,9 +42,20 @@ post_order_traverse({bst, _CmpFn, Top}, F, Acc) ->
 post_order_traverse2(none, _F, Acc) ->
     Acc;
 post_order_traverse2({Left, Val, Right}, F, Acc) ->
-    Acc2 = pre_order_traverse2(Right, F, Acc),
+    Acc2 = post_order_traverse2(Right, F, Acc),
     Acc3 = apply_visitor(Val, F, Acc2),
     post_order_traverse2(Left, F, Acc3).
+
+
+in_order_traverse({bst, _CmpFn, Top}, F, Acc) ->
+    in_order_traverse2(Top, F, Acc).
+
+in_order_traverse2(none, _F, Acc) ->
+    Acc;
+in_order_traverse2({Left, Val, Right}, F, Acc) ->
+    Acc2 = apply_visitor(Val, F, Acc),
+    Acc3 = in_order_traverse2(Right, F, Acc2),
+    in_order_traverse2(Left, F, Acc3).
 
 
 
