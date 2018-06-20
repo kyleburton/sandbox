@@ -3,7 +3,9 @@
 -export([new/1,
          length/1,
          add/2,
-         pre_order_traverse/3]).
+         pre_order_traverse/3,
+         post_order_traverse/3
+        ]).
 
 new(CmpFn) ->
     {bst, CmpFn, none}.
@@ -16,13 +18,14 @@ length(T) ->
       end,
       0).
 
-pre_order_traverse({bst, _CmpFn, Top}, F, Acc) ->
-    pre_order_traverse2(Top, F, Acc).
 
 apply_visitor(none, _F, Acc) ->
   Acc;
 apply_visitor(Val, F, Acc) ->
   F(Val, Acc).
+pre_order_traverse({bst, _CmpFn, Top}, F, Acc) ->
+    pre_order_traverse2(Top, F, Acc).
+
 
 pre_order_traverse2(none, _F, Acc) ->
     Acc;
@@ -30,6 +33,17 @@ pre_order_traverse2({Left, Val, Right}, F, Acc) ->
     Acc2 = pre_order_traverse2(Left, F, Acc),
     Acc3 = apply_visitor(Val, F, Acc2),
     pre_order_traverse2(Right, F, Acc3).
+
+
+post_order_traverse({bst, _CmpFn, Top}, F, Acc) ->
+    post_order_traverse2(Top, F, Acc).
+
+post_order_traverse2(none, _F, Acc) ->
+    Acc;
+post_order_traverse2({Left, Val, Right}, F, Acc) ->
+    Acc2 = pre_order_traverse2(Right, F, Acc),
+    Acc3 = apply_visitor(Val, F, Acc2),
+    post_order_traverse2(Left, F, Acc3).
 
 
 
