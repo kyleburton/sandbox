@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+bake_task build "build all the examples"
+function build () {
+  gcc -std=c99 -Wall prompt.c -o prompt
+  gcc prompt2.c -std=c99 -Wall -L/usr/lib -I/usr/include -lreadline -o prompt2
+}
