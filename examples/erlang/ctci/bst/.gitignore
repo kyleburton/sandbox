@@ -1,0 +1,7 @@
+*~
+.#*
+\#*#
+.eunit/
+.rebar/
+ebin/
+deps/

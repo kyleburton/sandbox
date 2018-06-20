@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+bake_task compile
+function compile () {
+  rebar compile
+}
+
+bake_task run-tests
+function run-tests () {
+  rebar skip_deps=true eunit
+}
+
+bake_task repl
+function repl () {
+  erl -pa ebin deps/*/ebin
+}

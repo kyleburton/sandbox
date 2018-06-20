@@ -1,0 +1,12 @@
+{application, bst,
+ [
+  {description, ""},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {mod, { bst_app, []}},
+  {env, []}
+ ]}.
