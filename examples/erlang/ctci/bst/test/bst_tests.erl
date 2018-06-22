@@ -13,8 +13,9 @@ bst_test_() ->
 
 
 setup() ->
-    rand:seed(os:timestamp()),
-    ok.
+  <<I1:32/unsigned-integer, I2:32/unsigned-integer, I3:32/unsigned-integer>> = crypto:strong_rand_bytes(12),
+  rand:seed(exsplus, {I1, I2, I3}),
+  ok.
 
 teardown(_) ->
     ok.
