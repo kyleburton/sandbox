@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+bake_task init
+function init () {
+  rebar get-deps
+}
+
+bake_task compile
+function compile () {
+  rebar compile
+}
+
+bake_task run-tests
+function run-tests () {
+  rebar skip_deps=true eunit
+}
+
+bake_task repl
+function repl () {
+  erl -pa ebin deps/*/ebin
+}
+
+bake_task gen-dotty
+function gen-dotty () {
+  rebar skip_deps=true eunit
+  for f in *.dot; do
+    local pngname="$(basename "$f" .dot).png"
+    dot -Tpng -o "$pngname" "$f"
+  done
+}
+

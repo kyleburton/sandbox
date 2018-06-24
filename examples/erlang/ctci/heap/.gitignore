@@ -1,0 +1,10 @@
+*~
+.#*
+\#*#
+.eunit/
+.rebar/
+ebin/
+deps/
+*.png
+*.dot
+out.txt
