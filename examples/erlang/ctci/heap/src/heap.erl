@@ -104,9 +104,8 @@ position_pairs(Buff, Pos, LPos, RPos, Acc0) ->
   end.
 
 to_dotty(#heap{buff=Buff} = H) ->
-  Pairs0 = [{array:get(L, Buff), array:get(R, Buff)} || {L,R} <- position_pairs(H)],
-  io:format("Pairs0=~p~n", [Pairs0]),
-  Pairs1 = [io_lib:format("\"~p\" -> \"~p\"", [L,R]) || {L,R} <- Pairs0],
+  Pairs0 = [{L, array:get(L, Buff), R,array:get(R, Buff)} || {L,R} <- position_pairs(H)],
+  Pairs1 = [io_lib:format("\"~p=~p\" -> \"~p=~p\"", [Lp, L, Rp, R]) || {Lp, L, Rp, R} <- Pairs0],
   "digraph {\n" ++
   string:join(Pairs1, ";\n  ") ++
   "\n}\n".
