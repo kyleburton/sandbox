@@ -21,19 +21,15 @@ teardown(_) ->
   ok.
 
 
-max_int_cmp(A, B) when A > B ->
-  -1;
-max_int_cmp(A, B) when A == B ->
-  0;
-max_int_cmp(A, B) when A < B ->
-  1.
-
-min_int_cmp(A, B) when A > B ->
+min_int_cmp(A, B) when A < B ->
   -1;
 min_int_cmp(A, B) when A == B ->
   0;
-min_int_cmp(A, B) when A < B ->
+min_int_cmp(A, B) when A > B ->
   1.
+
+max_int_cmp(A, B) ->
+  min_int_cmp(A,B) * -1.
 
 random_heap(CmpFn, Elts) ->
   Elts2 = [X || {_, X} <- lists:sort([{rand:uniform(), N} || N <- Elts])],
@@ -81,16 +77,20 @@ print_test() ->
   
   ok.
 
+randlist(Size) ->
+  %% trunc()
+  [trunc(rand:uniform()*100) || _X <- lists:seq(1, Size)].
 
 dotty_test() ->
-  % H0 = random_heap(fun max_int_cmp/2, lists:seq(1, 13)),
-  % Data = heap:to_dotty(H0),
-  % file:write_file("dotty_test.dot", Data).
-  lists:foreach(fun gen_dotty/1, lists:seq(1, 15)).
+  lists:foreach(fun gen_dotty/1, lists:seq(1, 15)),
+  %% 1 = 2.
+  ok.
 
 gen_dotty(N) ->
   H0 = random_heap(fun max_int_cmp/2, lists:seq(1, N)),
+  %% H0 = random_heap(fun max_int_cmp/2, randlist(N)),
   Data = heap:to_dotty(H0),
   Fname = io_lib:format("../dotty_test-~2..0B.dot", [N]),
   ?debugFmt("Fname=~s", [Fname]),
-  file:write_file(Fname, Data).
+  file:write_file(Fname, Data),
+  ?debugFmt("wrote N=~p; Fname=~s; size=~p", [N, Fname, heap:length(H0)]).

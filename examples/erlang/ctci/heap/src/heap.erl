@@ -3,6 +3,7 @@
 -export([new/1,
          length/1,
          insert/2,
+         pop/1,
          reduce/3]).
 
 -export([position_pairs/1,
@@ -102,11 +103,28 @@ position_pairs(Buff, Pos, LPos, RPos, Acc0) ->
       Acc0
   end.
 
-to_dotty(#heap{} = H) ->
-  Pairs = [io_lib:format("\"~p\" -> \"~p\"", [L,R]) || {L,R} <- position_pairs(H)],
+to_dotty(#heap{buff=Buff} = H) ->
+  Pairs0 = [{array:get(L, Buff), array:get(R, Buff)} || {L,R} <- position_pairs(H)],
+  io:format("Pairs0=~p~n", [Pairs0]),
+  Pairs1 = [io_lib:format("\"~p\" -> \"~p\"", [L,R]) || {L,R} <- Pairs0],
   "digraph {\n" ++
-  string:join(Pairs, ";\n  ") ++
+  string:join(Pairs1, ";\n  ") ++
   "\n}\n".
 
+
+down_heap(0, _CmpFn, Buff) ->
+  Buff;
+down_heap(Pos, CmpFn, Buff) ->
+  %% compare Pos to it's children, if in the correct order, we're done
+  %% otherwise swap with the lesser child
+  Buff.
+
+pop(#heap{buff=Buff0, cmp_fn=CmpFn} = H) ->
+  TopVal = array:get(0, Buff0),
+  LastVal = array:get(array:size(Buff0) - 1, Buff0),
+  Buff1 = array:set(0, LastVal, Buff0),
+  Buff2 = array:resize(array:size(Buff0) - 1, Buff1),
+  Buff3 = down_heap(0, CmpFn, Buff2),
+  {TopVal, H#heap{buff=Buff3}}.
 
 
