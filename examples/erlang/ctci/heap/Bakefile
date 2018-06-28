@@ -23,9 +23,15 @@ function repl () {
 bake_task gen-dotty
 function gen-dotty () {
   rebar skip_deps=true eunit
+  render-dotty
+}
+
+bake_task render-dotty
+function render-dotty () {
   for f in *.dot; do
     local pngname="$(basename "$f" .dot).png"
     dot -Tpng -o "$pngname" "$f"
   done
 }
+
 
