@@ -1,4 +1,5 @@
 // https://gist.github.com/karthick18/1234187
+// https://lwn.net/Articles/178199/
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,28 +23,51 @@ int copy_via_splice(int fdin, int fdout, off_t len) {
   }
 
   off_t left_to_read = len;
-  while (left_to_read > 0) {
-    num_read = splice(fdin, &in_off, pipefds[1], NULL, len, 0);
-    if (-1 == num_read) {
-      printf("splice error! error=%d / %s\n", errno, strerror(errno));
-      return -1;
+  off_t left_to_write = 0;
+
+  // NB: I'm not sure if tracking the read vs written separately is strictly
+  // necessary it's there in case splice/2 happens to be asymmetrical betwween
+  // the number of bytes read vs the number written (eg the write is less than
+  // the read).  I'm also unsure if it's valid for both of the splice/2 calls
+  // to process zero bytes during a given iteration of the loop when neither of
+  // the file are in non blocking mode.  Though I suppose I could check for -1
+  // and EAGAIN ... that might make copy_via_splice more robust against the fds
+  // being in blocking or non-blocking mode.
+
+  while (left_to_read > 0 || left_to_read > 0) {
+    int either_read_or_wrote = 0;
+
+    if (left_to_read > 0) {
+      num_read = splice(fdin, &in_off, pipefds[1], NULL, len, 0);
+      if (-1 == num_read) {
+        printf("splice error! error=%d / %s\n", errno, strerror(errno));
+        return -1;
+      }
+
+      left_to_write += num_read;
+      left_to_read -= num_read;
+      either_read_or_wrote |= 1;
     }
 
-    // NB: can the write write less than the read?  If that's the case then
-    // we'd need to accunt for that with a loop to drain the pipe to the
-    // output.
-    num_written = splice(pipefds[0], NULL, fdout, &out_off, num_read, 0);
-    if (-1 == num_written) {
-      printf("splice error! error=%d / %s\n", errno, strerror(errno));
-      return -1;
+    if (left_to_write > 0) {
+      num_written = splice(pipefds[0], NULL, fdout, &out_off, left_to_write, 0);
+      if (-1 == num_written) {
+        printf("splice error! error=%d / %s\n", errno, strerror(errno));
+        return -1;
+      }
+
+      if (left_to_write != num_written) {
+        printf("NB: pipe still needs to be drained: left_to_write=%ld != num_written=%ld\n", left_to_write, num_written);
+      }
+
+      left_to_write -= num_written;
+      either_read_or_wrote |= 2;
     }
 
-    if (num_read != num_written) {
-      printf("splice error! num_read=%ld != num_written=%ld\n", num_read, num_written);
+    if (!either_read_or_wrote) {
+      printf("Error: looks like there was data left to read (left_to_read=%ld) or write (left_to_write=%ld) though nothing was read or written in the loop\n", left_to_read, left_to_write);
       return -1;
     }
-
-    left_to_read -= num_read;
   }
 
   return len;
