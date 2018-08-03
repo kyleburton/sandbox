@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+bake_task build "Compile the C code"
+function build () {
+  gcc -Wall -o splice-cat splice-cat.c
+}
+
+bake_task run "Run (after building) the splice example"
+function run () {
+  build
+  test -f this || head -n 1000 /usr/share/dict/words > this
+  ./splice-cat this that
+}

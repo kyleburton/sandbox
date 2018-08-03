@@ -78,8 +78,29 @@ print_test() ->
     ok.
 
 randlist(Size) ->
-    %% trunc()
     [trunc(rand:uniform()*100) || _X <- lists:seq(1, Size)].
+
+uniq_randlist(Size) ->
+    uniq_randlist(Size*10, Size).
+
+uniq_randlist(MaxVal, Size) ->
+    uniq_randlist(MaxVal, Size, [], sets:new()).
+
+uniq_randlist(_MaxVal, 0, Acc, _Seen) ->
+    Acc;
+uniq_randlist(MaxVal, Size, Acc, Seen) 
+  when MaxVal > Size ->
+    V = trunc(rand:uniform()*MaxVal),
+    case sets:is_element(V, Seen) of
+        true ->
+            uniq_randlist(MaxVal, Size, Acc, Seen);
+        false ->
+            uniq_randlist(MaxVal, Size - 1, [V|Acc], sets:add_element(V, Seen))
+    end;
+uniq_randlist(MaxVal, Size, Acc, Seen) ->
+    %% NB: if MaxVal is < Size this process cannot terminate.
+    %% if they're equal 
+    throw(invalid_maxval).
 
 dotty_test() ->
     lists:foreach(fun gen_dotty/1, lists:seq(1, 15)),
@@ -164,3 +185,7 @@ pop_visual_test() ->
 
     ok.
 
+
+%% minheap_order_test() ->
+%%     L1 = heap:to_list(random_heap(fun max_int_cmp/2, randlist(15))),
+%%     L2 = heap:to_list(random_heap(fun max_int_cmp/2, randlist(15))),

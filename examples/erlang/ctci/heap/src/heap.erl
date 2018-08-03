@@ -179,4 +179,14 @@ pop(#heap{buff=Buff0, cmp_fn=CmpFn} = H) ->
             {TopVal, H#heap{buff=down_heap(0, CmpFn, Buff2)}}
     end.
 
+to_list(#heap{} = H) ->
+    to_list(H, []).
 
+to_list(#heap{buff=Buff} = H0, Acc) ->
+    case array:size(Buff) =:= 0 of
+        true ->
+            lists:reverse(Acc);
+        false ->
+            {Elt, H1} = pop(H0),
+            to_list(H1, [Elt|Acc])
+    end.

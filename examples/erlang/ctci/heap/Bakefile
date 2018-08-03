@@ -17,7 +17,7 @@ function run-tests () {
 
 bake_task repl
 function repl () {
-  erl -pa ebin deps/*/ebin
+  erl -pa ebin deps/*/ebin -pa .eunit/
 }
 
 bake_task gen-dotty
