@@ -41,13 +41,12 @@ length_test() ->
     ?assertEqual(0, heap:length(H)),
     H2 = heap:insert(33, H),
     ?assertEqual(1, heap:length(H2)).
-%% ?debugFmt("H2=~p", [H2]).
 
 reduce_test() ->
     H = random_heap(fun max_int_cmp/2, lists:seq(1, 15)),
     Sum = heap:reduce(
             fun (Val, Acc) ->
-                    ?debugFmt("reduce_test#fn: Val=~p", [Val]),
+                    %% ?debugFmt("reduce_test#fn: Val=~p", [Val]),
                     Val + Acc
             end,
             0,
@@ -57,23 +56,23 @@ reduce_test() ->
 print_test() ->
     H0 = random_heap(fun max_int_cmp/2, []),
     P0 = heap:position_pairs(H0),
-    ?debugFmt("H0=~p; P0=~p", [array:to_list(H0#heap.buff), P0]),
+    %% ?debugFmt("H0=~p; P0=~p", [array:to_list(H0#heap.buff), P0]),
 
     H1 = random_heap(fun max_int_cmp/2, [1]),
     P1 = heap:position_pairs(H1),
-    ?debugFmt("H1=~p; P1=~p", [array:to_list(H1#heap.buff), P1]),
+    %% ?debugFmt("H1=~p; P1=~p", [array:to_list(H1#heap.buff), P1]),
 
     H2 = random_heap(fun max_int_cmp/2, [1, 2]),
     P2 = heap:position_pairs(H2),
-    ?debugFmt("H2=~p; P2=~p", [array:to_list(H2#heap.buff), P2]),
+    %% ?debugFmt("H2=~p; P2=~p", [array:to_list(H2#heap.buff), P2]),
 
     H3 = random_heap(fun max_int_cmp/2, [1, 2, 3]),
     P3 = heap:position_pairs(H3),
-    ?debugFmt("H3=~p; P3=~p", [array:to_list(H3#heap.buff), P3]),
+    %% ?debugFmt("H3=~p; P3=~p", [array:to_list(H3#heap.buff), P3]),
 
     H4 = random_heap(fun max_int_cmp/2, lists:seq(1, 15)),
     P4 = heap:position_pairs(H4),
-    ?debugFmt("H4=~p; P4=~p", [array:to_list(H4#heap.buff), P4]),
+    %% ?debugFmt("H4=~p; P4=~p", [array:to_list(H4#heap.buff), P4]),
 
     ok.
 
@@ -113,9 +112,7 @@ gen_dotty(N) ->
 
 heap_to_dot_file(Fname, H) ->
     Data = heap:to_dotty(H),
-    ?debugFmt("Fname=~s", [Fname]),
-    file:write_file(Fname, Data),
-    ?debugFmt("wrote Fname=~s; size=~p", [Fname, heap:length(H)]).
+    file:write_file(Fname, Data).
 
 
 enable_tracing(Specs) ->
@@ -127,11 +124,11 @@ enable_tracing(Specs) ->
 %% https://stackoverflow.com/questions/34658714/how-to-debug-erlang-code-during-rebar3-eunit
 %% eunit:test(your_test_module,[verbose]).
 enable_traces([{M,F} | Rest]) ->
-    ?debugFmt("ENABLE TRACING: ~p:~p", [M, F]),
+    %% ?debugFmt("ENABLE TRACING: ~p:~p", [M, F]),
     dbg:tpl(M, F, [cx]),
     enable_traces(Rest);
 enable_traces([M| Rest]) ->
-    ?debugFmt("ENABLE TRACING: ~p:*", [M]),
+    %% ?debugFmt("ENABLE TRACING: ~p:*", [M]),
     dbg:tpl(M, [cx]),
     enable_traces(Rest);
 enable_traces([]) ->
@@ -146,25 +143,25 @@ pop_test() ->
     %% {Val, HEmpty2} = heap:pop(),
     H1 = random_heap(fun max_int_cmp/2, [137]),
     ?assertEqual(1, heap:length(H1)),
-    ?debugFmt("pre-pop: H1=~p", [H1]),
+    %% ?debugFmt("pre-pop: H1=~p", [H1]),
     {Val, H2} = heap:pop(H1),
-    ?debugFmt("post-pop: H2=~p", [H2]),
+    %% ?debugFmt("post-pop: H2=~p", [H2]),
     ?assertEqual(0, heap:length(H2)),
     ?assertEqual(137, Val),
 
     H3 = random_heap(fun max_int_cmp/2, [11, 22]),
     ?assertEqual(2, heap:length(H3)),
-    ?debugFmt("pre-pop: H3=~p", [H3]),
+    %% ?debugFmt("pre-pop: H3=~p", [H3]),
     {Val2, H4} = heap:pop(H3),
-    ?debugFmt("post-pop: H4=~p", [H4]),
+    %% ?debugFmt("post-pop: H4=~p", [H4]),
     ?assertEqual(1, heap:length(H4)),
     ?assertEqual(22, Val2),
 
     H5 = random_heap(fun max_int_cmp/2, [11, 22, 33]),
     ?assertEqual(3, heap:length(H5)),
-    ?debugFmt("pre-pop: H3=~p", [H5]),
+    %% ?debugFmt("pre-pop: H3=~p", [H5]),
     {Val3, H6} = heap:pop(H5),
-    ?debugFmt("post-pop: H4=~p", [H6]),
+    %% ?debugFmt("post-pop: H4=~p", [H6]),
     ?assertEqual(2, heap:length(H6)),
     ?assertEqual(33, Val3),
     ok.
@@ -175,7 +172,7 @@ pop_visual_test() ->
                               BFname = io_lib:format("../pop_test-before-~2..0B.dot", [N]),
                               heap_to_dot_file(BFname, H1),
                               {Val, H2} = heap:pop(H1),
-                              ?debugFmt("pop_test: N=~p Val=~p", [N, Val]),
+                              %% ?debugFmt("pop_test: N=~p Val=~p", [N, Val]),
                               AFname = io_lib:format("../pop_test-after-~2..0B.dot", [N]),
                               heap_to_dot_file(AFname, H2),
                               H2
@@ -186,6 +183,10 @@ pop_visual_test() ->
     ok.
 
 
-%% minheap_order_test() ->
-%%     L1 = heap:to_list(random_heap(fun max_int_cmp/2, randlist(15))),
-%%     L2 = heap:to_list(random_heap(fun max_int_cmp/2, randlist(15))),
+minheap_order_test() ->
+    %% enable_tracing([heap, heap_tests]),
+    H1 = random_heap(fun max_int_cmp/2, randlist(15))
+    L1 = heap:pop_to_list(H1),
+    L1 = lists:sort(L1),
+    L2 = heap:pop_to_list(random_heap(fun max_int_cmp/2, randlist(15))),
+    L2 = lists:sort(L2).

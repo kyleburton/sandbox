@@ -4,7 +4,8 @@
          length/1,
          insert/2,
          pop/1,
-         reduce/3]).
+         reduce/3,
+         pop_to_list/1]).
 
 -export([position_pairs/1,
          to_dotty/1]).
@@ -92,9 +93,9 @@ position_pairs(Buff, Pos) ->
     position_pairs(Buff, Pos, left_pos(Pos), right_pos(Pos), []).
 
 position_pairs(Buff, Pos, LPos, RPos, Acc0) ->
-    io:format("position_pairs: Buff=~p", [Buff]),
-    io:format("position_pairs: Pos=~p; LPos=~p; RPos=~p; size=~p~n",
-              [Pos, LPos, RPos, array:size(Buff)]),
+    %% io:format("position_pairs: Buff=~p", [Buff]),
+    %% io:format("position_pairs: Pos=~p; LPos=~p; RPos=~p; size=~p~n",
+    %%           [Pos, LPos, RPos, array:size(Buff)]),
     case {LPos < array:size(Buff), RPos < array:size(Buff)} of
         {true, true} ->
             Acc1 = [{Pos, LPos} | Acc0],
@@ -119,7 +120,7 @@ to_dotty(#heap{buff=Buff} = H) ->
         "\n}\n".
 
 swap(P1, P2, Buff0) ->
-    io:format("~p:swap: P1=~p; P2=~p; Buff0=~p~n", [?MODULE, P1, P2, Buff0]),
+    %% io:format("~p:swap: P1=~p; P2=~p; Buff0=~p~n", [?MODULE, P1, P2, Buff0]),
     Tmp = array:get(P1, Buff0),
     Buff1 = array:set(P1, array:get(P2, Buff0), Buff0),
     array:set(P2, Tmp, Buff1).
@@ -131,10 +132,10 @@ swap(P1, P2, Buff0) ->
 %% if the node has one child, compare & swap if necessary
 %% if the node has two children, swap w/least child & recurse
 down_heap(Pos, CmpFn, Buff) ->
-    io:format("~p:down_heap: Pos=~p; Buff=~p~n", [?MODULE, Pos, Buff]),
+    %% io:format("~p:down_heap: Pos=~p; Buff=~p~n", [?MODULE, Pos, Buff]),
     {Lpos, Lvalid} = left_pos(Pos, Buff),
     {Rpos, Rvalid} = right_pos(Pos, Buff),
-    io:format("~p:down_heap: L={~p,~p} R={~p,~p}~n", [?MODULE, Lpos,Lvalid, Rpos,Rvalid]),
+    %% io:format("~p:down_heap: L={~p,~p} R={~p,~p}~n", [?MODULE, Lpos,Lvalid, Rpos,Rvalid]),
     case {Lvalid, Rvalid} of 
         {false, false} ->
             Buff;
@@ -164,7 +165,7 @@ down_heap(Pos, CmpFn, Buff) ->
 %% R = array:get(right_pos(Pos), Buff),
 
 pop(#heap{buff=Buff0, cmp_fn=CmpFn} = H) ->
-    io:format("~p:pop: Buff0=~p~n", [?MODULE, Buff0]),
+    %% io:format("~p:pop: Buff0=~p~n", [?MODULE, Buff0]),
     case array:size(Buff0) of
         0 ->
             throw(empty_heap);
@@ -179,14 +180,14 @@ pop(#heap{buff=Buff0, cmp_fn=CmpFn} = H) ->
             {TopVal, H#heap{buff=down_heap(0, CmpFn, Buff2)}}
     end.
 
-to_list(#heap{} = H) ->
-    to_list(H, []).
+pop_to_list(#heap{} = H) ->
+    pop_to_list(H, []).
 
-to_list(#heap{buff=Buff} = H0, Acc) ->
+pop_to_list(#heap{buff=Buff} = H0, Acc) ->
     case array:size(Buff) =:= 0 of
         true ->
             lists:reverse(Acc);
         false ->
             {Elt, H1} = pop(H0),
-            to_list(H1, [Elt|Acc])
+            pop_to_list(H1, [Elt|Acc])
     end.
