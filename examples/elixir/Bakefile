@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+bake_task install "install"
+function install () {
+  # following along from: "https://elixir-lang.org/install.html"
+  local esl_deb_url="https://packages.erlang-solutions.com/erlang-solutions_1.0_all.deb"
+  local esl_deb_file="$(basename "$esl_deb_url")"
+  test -d software || mkdir software
+  (
+  cd software
+  test -f "$esl_deb_file" || curl "$esl_deb_url" > "$esl_deb_file"
+  test -f /etc/apt/sources.list.d/erlang-solutions.list || sudo dpkg -i "$esl_deb_file"
+  sudo apt-get install esl-erlang
+  sudo apt-get update
+  # Install the Erlang/OTP platform and all of its applications: 
+  # Install Elixir: sudo apt-get install elixir
+  sudo apt-get install elixir
+  )
+}
