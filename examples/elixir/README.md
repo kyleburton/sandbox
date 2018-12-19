@@ -16,3 +16,13 @@ Topics
 Notes
 
 * Elixir requires at least Erlang/OTP 20
+
+
+TODO:
+
+* What does it look like to have a single project that mixes Erlang and Elixir in the same repo, will the build tooling compile erlang as well?
+* interoperability Elixir to Erlang & Back
+* hit up the github apis?
+* webapp for configuration management?
+* can we wrap lastpass as well?
+
