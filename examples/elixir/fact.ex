@@ -70,32 +70,56 @@ defmodule Guard do
 end
 
 
-defmodule Defaults do
-  def func(p1, p2 \\ 2, p3 \\ 3, p4) do
-    [p1, p2, p3, p4]
+# defmodule Defaults do
+#   def func(p1, p2 \\ 2, p3 \\ 3, p4) do
+#     [p1, p2, p3, p4]
+#   end
+
+#   def func(p1, p2) do
+#     [p1, p2]
+#   end
+
+#   # def f2(a, b \\ :defualt) do
+#   #   {:first, a, b}
+#   # end
+
+#   # def f2(a, 99) do
+#   #   {:second, a, 99}
+#   # end
+# end
+
+
+defmodule Chop do
+  def guess(actual, lower..upper) do
+    mid = lower + div(upper - lower, 2)
+    IO.puts "Is it #{mid}"
+    Chop.check(actual, mid, lower, upper)
   end
 
-  def func(p1, p2) do
-    [p1, p2]
+  def check(_, _, x, x) do
+    IO.puts "Error: range is empty!"
+    :failed
+  end
+  
+  def check(_, x, x, _) do
+    IO.puts "Error: at lower!"
+    :failed
+  end
+  
+  def check(_, x, _, x) do
+    IO.puts "Error: at upper!"
+    :failed
+  end
+  
+  def check(actual, mid, _lower, _uppper) when actual == mid do
+    actual
   end
 
-  # def f2(a, b \\ :defualt) do
-  #   {:first, a, b}
-  # end
-
-  # def f2(a, 99) do
-  #   {:second, a, 99}
-  # end
-end
-
-
-defmodule Guess do
-  def guess(actual, a..a) do
-    IO.puts "It is: #{actual}"
-    {:answer: actual}
+  def check(actual, mid, _lower, upper) when actual > mid do
+    Chop.guess(actual, mid..upper)
   end
 
-  def guess(actual, range) do
-    minval..maxval = range
+  def check(actual, mid, lower, _upper) when actual < mid do
+    Chop.guess(actual, lower..mid)
   end
 end
