@@ -1,9 +1,9 @@
 (ns scratchpad.core
   (:require
-   [clojure.tools.nrepl.server                 :refer [start-server stop-server]]
-   [cider.nrepl                                :refer [cider-nrepl-handler]]
-   [clojure.tools.logging                      :as log]
-   [schema.core                                :as s]))
+   [nrepl.server                  :refer [start-server start-server]]
+   [cider.nrepl                   :refer [cider-nrepl-handler]]
+   [clojure.tools.logging         :as log]
+   [schema.core                   :as s]))
 
 (defonce nrepl-server (atom nil))
 (defonce config (atom {:nrepl {:port 4011}}))
