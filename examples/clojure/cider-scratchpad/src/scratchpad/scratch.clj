@@ -13,6 +13,35 @@
    [org.jsoup Jsoup]))
 
 
+
+(comment
+
+  (def versions
+    (->
+     "https://raw.githubusercontent.com/cognitect-labs/aws-api/master/latest-releases.edn"
+     slurp
+     read-string))
+
+  (spit
+   "foo.foo"
+   (vec
+    (concat
+     [(-> versions :api first)
+      (-> versions :endpoints first)]
+     (-> versions :services))))
+
+  (with-open [wtr (io/writer "foo.foo")]
+    (doseq [ent (vec
+                 (concat
+                  [(-> versions :api first)
+                   (-> versions :endpoints first)]
+                  (-> versions :services)))]
+      (.write wtr (str ent))
+      (.write wtr "\n")))
+
+  )
+
+
 (defonce words-file "/usr/share/dict/words")
 (def num-words (memoize (fn []
                           (with-open [rdr (io/reader words-file)]
