@@ -114,7 +114,7 @@
    {:full-name "k", :email "", :id -1, :props {:q:4 "F"}}
    {:full-name "Zi", :email "", :id -1, :props {:fR1 ""}})
 
-  
+
   )
 
 
@@ -225,13 +225,13 @@
 (comment
 
   (specter/setval [specter/MAP-KEYS specter/NAMESPACE] (str *ns*) any-map)
-  
+
   (specter/transform [specter/ALL :a even?] inc [{:a 1} {:a 2 :b 1} {:a 4}])
-  
-  ;; [{:a 1} {:a 3, :b 1} {:a 5}]  
-  
+
+  ;; [{:a 1} {:a 3, :b 1} {:a 5}]
+
   ;; => [{:a 1} {:a 3, :b 1} {:a 5}]
-  
+
 
 )
 
@@ -277,8 +277,8 @@
                     chars)]
     (mapv #(-> % char str) nums))
 
-  
-  
 
+
+  (+ 3 1)
 
 )

@@ -20,6 +20,7 @@ setup() ->
 teardown(_) ->
     ok.
 
+%%----------------------------------------------------------------------
 
 min_int_cmp(A, B) when A < B ->
     -1;
@@ -31,10 +32,13 @@ min_int_cmp(A, B) when A > B ->
 max_int_cmp(A, B) ->
     min_int_cmp(A,B) * -1.
 
+shuffle_list(Elts) ->
+    [X || {_, X} <- lists:sort([{rand:uniform(), N} || N <- Elts])].
+
 random_heap(CmpFn, Elts) ->
-    Elts2 = [X || {_, X} <- lists:sort([{rand:uniform(), N} || N <- Elts])],
-    H = heap:new(CmpFn),
-    lists:foldl(fun (E, H0) -> heap:insert(E, H0) end, H, Elts2).
+    heap:from_list(CmpFn, shuffle_list(Elts)).
+
+%%----------------------------------------------------------------------
 
 length_test() ->
     H = heap:new(fun max_int_cmp/2),
@@ -77,7 +81,11 @@ print_test() ->
     ok.
 
 randlist(Size) ->
+<<<<<<< Updated upstream
     [trunc(rand:uniform()*100) || _X <- lists:seq(1, Size)].
+=======
+    [trunc(rand:uniform()*1000) || _X <- lists:seq(1, Size)].
+>>>>>>> Stashed changes
 
 uniq_randlist(Size) ->
     uniq_randlist(Size*10, Size).
@@ -134,7 +142,6 @@ enable_traces([M| Rest]) ->
 enable_traces([]) ->
     ok.
 
-
 pop_test() ->
     %% enable_tracing([heap]),
 
@@ -167,6 +174,7 @@ pop_test() ->
     ok.
 
 pop_visual_test() ->
+<<<<<<< Updated upstream
     H0  = random_heap(fun max_int_cmp/2, randlist(15)),
     H0a = lists:foldl(fun(N, H1) ->
                               BFname = io_lib:format("../pop_test-before-~2..0B.dot", [N]),
@@ -179,9 +187,65 @@ pop_visual_test() ->
                       end,
                       H0,
                       lists:seq(1, 5)),
+=======
+    NumElts = 15,
+    H0  = random_heap(fun max_int_cmp/2, randlist(NumElts)),
+    H0a = lists:foldl(
+            fun(N, H1) ->
+                    BFname = io_lib:format("../pop_test-~2..0B-00before.dot", [N]),
+                    heap_to_dot_file(BFname, H1),
+                    {Val, H2} = heap:pop(H1),
+                    ?debugFmt("pop_test: N=~p Val=~p", [N, Val]),
+                    AFname = io_lib:format("../pop_test-~2..0B-01after.dot", [N]),
+                    heap_to_dot_file(AFname, H2),
+                    H2
+            end,
+            H0,
+            lists:seq(1, NumElts)),
+    FFname = io_lib:format("../pop_test-XX-99final.dot", []),
+    heap_to_dot_file(FFname, H0a),
+    ok.
+>>>>>>> Stashed changes
 
+krb_test() ->
+    H0  = random_heap(fun max_int_cmp/2, [3,7,5,9,1]),
+    ?debugFmt("H0=~p", [heap:to_list(H0)]),
+    {Val, H1} = heap:pop(H0),
+    ?debugFmt("H1=~p", [heap:to_list(H1)]),
+    {Val, H2} = heap:pop(H1),
+    ?debugFmt("H2=~p", [heap:to_list(H2)]),
+    {Val, H3} = heap:pop(H2),
+    ?debugFmt("H3=~p", [heap:to_list(H3)]),
+    {Val, H4} = heap:pop(H3),
+    ?debugFmt("H4=~p", [heap:to_list(H4)]).
+
+%% ok, the heaps are semi-ordered, so after popping the MAX value
+%% we take the last value, place it at the top and then do a 'down heap'
+%% that doens't mean that the last value is the MIN value as the heap
+%% is partially ordered so there is on gauranttee this is the MIN value
+
+
+
+krb2_test() ->
+    NumElts = 3,
+    H0  = heap:from_list(fun max_int_cmp/2, [122,26,8]),
+    H0a = lists:foldl(
+            fun(N, H1) ->
+                    BFname = io_lib:format("../pop_test-~2..0B-00before.dot", [N]),
+                    heap_to_dot_file(BFname, H1),
+                    {Val, H2} = heap:pop(H1),
+                    ?debugFmt("pop_test: N=~p Val=~p", [N, Val]),
+                    AFname = io_lib:format("../pop_test-~2..0B-01after.dot", [N]),
+                    heap_to_dot_file(AFname, H2),
+                    H2
+            end,
+            H0,
+            lists:seq(1, NumElts)),
+    FFname = io_lib:format("../pop_test-XX-99final.dot", []),
+    heap_to_dot_file(FFname, H0a),
     ok.
 
+<<<<<<< Updated upstream
 
 minheap_order_test() ->
     %% enable_tracing([heap, heap_tests]),
@@ -190,3 +254,10 @@ minheap_order_test() ->
     L1 = lists:sort(L1),
     L2 = heap:pop_to_list(random_heap(fun max_int_cmp/2, randlist(15))),
     L2 = lists:sort(L2).
+=======
+order_test() ->
+    Elts = [26,122,8],
+    H0 = heap:from_list(fun max_int_cmp/2, shuffle_list(Elts)),
+    L = heap:to_ordered_list(H0),
+    ?assertEqual(lists:sort(Elts), L).
+>>>>>>> Stashed changes

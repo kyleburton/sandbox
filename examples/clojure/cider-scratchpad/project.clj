@@ -5,12 +5,19 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :main ^:skip-aot scratchpad.core
   :global-vars  {*warn-on-reflection* true}
-  :dependencies
-  [[org.clojure/clojure                    "1.10.0"]
-   [org.clojure/tools.logging              "0.4.1"]
-   ;; [org.clojure/tools.nrepl                "0.2.13"]
-   [nrepl                                  "0.5.3"]
-   [cider/cider-nrepl                      "0.20.0"]
+  :dependencies [[org.clojure/clojure                   "1.10.0"]
+                 [org.clojure/tools.logging              "0.4.1"]
+                 [org.clojure/tools.nrepl                "0.5.3"]
+                 [cider/cider-nrepl                      "0.20.0"]
+                 [ch.qos.logback/logback-classic         "1.2.3"]
+                 [org.clojure/data.json                  "0.2.6"]
+                 [prismatic/schema                       "1.1.7"]
+                 [clj-time                               "0.14.2"]
+                 [org.clojure/core.cache                 "0.6.5"]
+                 [com.github.kyleburton/clj-etl-utils    "1.0.98"]
+                 [prismatic/schema-generators            "0.1.1"]
+                 [http-kit                               "2.2.0"]
+                 [com.rpl/specter                        "1.0.5"]
 
    [ch.qos.logback/logback-classic         "1.2.3"]
    [org.clojure/data.json                  "0.2.6"]

@@ -1,6 +1,8 @@
 -module(heap).
 
 -export([new/1,
+         from_list/2,
+         to_list/1,
          length/1,
          insert/2,
          pop/1,
@@ -15,6 +17,8 @@
 new(CmpFn) ->
     #heap{cmp_fn=CmpFn}.
 
+from_list(CmpFn, Elts) ->
+    lists:foldl(fun (E, H0) -> heap:insert(E, H0) end, heap:new(CmpFn), Elts).
 
 length(#heap{buff=Buff}) ->
     array:size(Buff).
@@ -57,6 +61,9 @@ parent_pos(Pos) ->
         false ->
             (Pos-2) div 2
     end.
+
+to_list(#heap{buff=Buff}) ->
+    array:to_list(Buff).
 
 up_heap(0, _CmpFn, Buff) ->
     Buff;
@@ -115,7 +122,7 @@ position_pairs(Buff, Pos, LPos, RPos, Acc0) ->
 to_dotty(#heap{buff=Buff} = H) ->
     Pairs0 = [{L, array:get(L, Buff), R,array:get(R, Buff)} || {L,R} <- position_pairs(H)],
     Pairs1 = [io_lib:format("\"~p=~p\" -> \"~p=~p\"", [Lp, L, Rp, R]) || {Lp, L, Rp, R} <- Pairs0],
-    "digraph {\n" ++
+    "digraph {\n  " ++
         string:join(Pairs1, ";\n  ") ++
         "\n}\n".
 
@@ -135,8 +142,13 @@ down_heap(Pos, CmpFn, Buff) ->
     %% io:format("~p:down_heap: Pos=~p; Buff=~p~n", [?MODULE, Pos, Buff]),
     {Lpos, Lvalid} = left_pos(Pos, Buff),
     {Rpos, Rvalid} = right_pos(Pos, Buff),
+<<<<<<< Updated upstream
     %% io:format("~p:down_heap: L={~p,~p} R={~p,~p}~n", [?MODULE, Lpos,Lvalid, Rpos,Rvalid]),
     case {Lvalid, Rvalid} of 
+=======
+    io:format("~p:down_heap: L={~p,~p} R={~p,~p}~n", [?MODULE, Lpos,Lvalid, Rpos,Rvalid]),
+    case {Lvalid, Rvalid} of
+>>>>>>> Stashed changes
         {false, false} ->
             Buff;
         {true, false} ->
@@ -153,7 +165,7 @@ down_heap(Pos, CmpFn, Buff) ->
                     down_heap(Lpos, CmpFn, swap(Pos, Lpos, Buff));
                 0 ->
                     Buff;
-                1 -> 
+                1 ->
                     down_heap(Rpos, CmpFn, swap(Pos, Rpos, Buff))
             end
     end.
@@ -183,6 +195,7 @@ pop(#heap{buff=Buff0, cmp_fn=CmpFn} = H) ->
 pop_to_list(#heap{} = H) ->
     pop_to_list(H, []).
 
+<<<<<<< Updated upstream
 pop_to_list(#heap{buff=Buff} = H0, Acc) ->
     case array:size(Buff) =:= 0 of
         true ->
@@ -191,3 +204,14 @@ pop_to_list(#heap{buff=Buff} = H0, Acc) ->
             {Elt, H1} = pop(H0),
             pop_to_list(H1, [Elt|Acc])
     end.
+=======
+%% TODO: to ordered list
+to_ordered_list(#heap{buff=Buff} = H) ->
+    to_ordered_list(H, array:size(Buff), []).
+
+to_ordered_list(_H, 0, Acc) ->
+    lists:reverse(Acc);
+to_ordered_list(H0, Len, Acc) ->
+    {V, H1} = pop(H0),
+    to_ordered_list(H1, array:size(H1#heap.buff), [V|Acc]).
+>>>>>>> Stashed changes

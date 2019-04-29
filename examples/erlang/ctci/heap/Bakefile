@@ -2,27 +2,31 @@
 
 bake_task init
 function init () {
-  rebar get-deps
+  rebar get-deps "$@"
 }
 
 bake_task compile
 function compile () {
-  rebar compile
+  rebar compile "$@"
 }
 
 bake_task run-tests
 function run-tests () {
-  rebar skip_deps=true eunit
+  rebar skip_deps=true eunit "$@"
 }
 
 bake_task repl
 function repl () {
+<<<<<<< Updated upstream
   erl -pa ebin deps/*/ebin -pa .eunit/
+=======
+  erl -pa ebin deps/*/ebin "$@"
+>>>>>>> Stashed changes
 }
 
 bake_task gen-dotty
 function gen-dotty () {
-  rebar skip_deps=true eunit
+  rebar skip_deps=true eunit "$@"
   render-dotty
 }
 
