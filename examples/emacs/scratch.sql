@@ -24,3 +24,6 @@ VALUES
 
 
 SELECT * FROM etest;
+
+
+SELECT now();
