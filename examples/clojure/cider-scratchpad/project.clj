@@ -7,8 +7,8 @@
   :global-vars  {*warn-on-reflection* true}
   :dependencies [[org.clojure/clojure                   "1.10.0"]
                  [org.clojure/tools.logging              "0.4.1"]
-                 [org.clojure/tools.nrepl                "0.5.3"]
-                 [cider/cider-nrepl                      "0.20.0"]
+                 [org.clojure/tools.nrepl                "0.2.13"]
+                 [cider/cider-nrepl                      "0.21.1"]
                  [ch.qos.logback/logback-classic         "1.2.3"]
                  [org.clojure/data.json                  "0.2.6"]
                  [prismatic/schema                       "1.1.7"]
