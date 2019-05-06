@@ -1,0 +1,12 @@
+version: "2"
+services:
+  ubuntu-debug:
+    container_name: ubuntu-debug
+    image: "ubuntu:18.04"
+    network_mode: "host"
+    volumes:
+      - ./:/app
+    security_opt:
+      - seccomp:unconfined
+    cap_add:
+      - SYS_PTRACE
