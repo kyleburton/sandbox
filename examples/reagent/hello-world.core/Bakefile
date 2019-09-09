@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+bake_task build-and-watch
+function build-and-watch () {
+    lein run -m figwheel.main -b dev
+}
+
+
+bake_task prod.build
+function prod.build () {
+    rm -rf ./target/public
+    # clojure -m figwheel.main --optimizations whitespace --build-once prod
+    # lein run -m figwheel.main --optimizations whitespace --build-once prod
+    lein run -m figwheel.main --optimizations advanced --build-once prod
+}
