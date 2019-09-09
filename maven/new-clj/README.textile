@@ -1,8 +1,0 @@
-h1. new-mvn-clj
-
-Create new maven projects for your Clojure projects from the command line.
-
-h2. Features
-
-Creates default pom.xml file, lays down default directory strucutre, including an empty main, a repl script, a runner script and a slime/emacs include snippet.
-
