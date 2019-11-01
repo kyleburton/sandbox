@@ -7,6 +7,7 @@
    [scratchpad.heap               :as heap]
    [clojure.java.io               :as io]
    [schema.core                   :as s]
+   [clojure.math.combinatorics    :as combo]
    [com.rpl.specter               :as specter])
   (:import
    [scratchpad.heap BinHeap]
@@ -233,7 +234,7 @@
   ;; => [{:a 1} {:a 3, :b 1} {:a 5}]
 
 
-)
+  )
 
 
 (comment
@@ -247,17 +248,17 @@
   (def doc (lp/make-parser content))
 
   (def table-content
-   (lp/extract
-    doc
-    [[:ft "<table class=\"wikitable sortable"]]
-    [[:ft "</table>"]]))
+    (lp/extract
+     doc
+     [[:ft "<table class=\"wikitable sortable"]]
+     [[:ft "</table>"]]))
 
   (def rows
-   (..
-    (Jsoup/parse table-content)
-    (select "table.wikitable")
-    (get 0)
-    (select "tr")))
+    (..
+     (Jsoup/parse table-content)
+     (select "table.wikitable")
+     (get 0)
+     (select "tr")))
 
   (def header (.get rows 0))
 
@@ -280,5 +281,76 @@
 
 
   (+ 3 1)
+
+  )
+
+
+(comment
+
+  ;; practicing a bit with the content in:
+  ;;     https://clojure.org/guides/threading_macros
+
+  ;; butlast? how have I never seen you before? NICE!
+  (butlast [1 2 3])
+  ;; (1 2)
+
+  )
+
+
+(defn describe-number [nn]
+  (cond-> []
+    (odd? nn)  (conj "odd")
+    (even? nn) (conj "even")
+    (pos? nn)  (conj "positive")
+    (neg? nn)  (conj "negative")))
+
+(comment
+
+  (describe-number 0)   ;; ["even"]
+  (describe-number 3)   ;; ["odd" "positive"]
+  (describe-number 2)   ;; ["even" "positive"]
+  (describe-number -3)  ;; ["odd" "negative"]
+  (describe-number -2)  ;; ["even" "negative"]
+  (describe-number Integer/MAX_VALUE)  ;; ["odd" "positive"]
+  (describe-number Integer/MIN_VALUE)  ;; ["even" "negative"]
+  (describe-number Long/MAX_VALUE)     ;; ["odd" "positive"]
+  (describe-number Long/MIN_VALUE)     ;; ["even" "negative"]
+
+  (describe-number Double/MAX_VALUE) ;; BOOM
+
+
+)
+
+
+
+(comment
+
+
+  (slurp "/home/kyle/x.x")
+  (def col-data "--  table_schema |      table_name       |      column_name\n-- --------------+-----------------------+------------------------\n--  tix          | payments_raw          | schedule_date\n--  tix          | payments_raw          | payout_date\n--  tix          | expenses_raw          | expense_date\n--  tix          | additional_income_raw | additional_income_date\n--  tix          | sales_raw             | sale_date\n--  tix          | sales_raw             | fulfilled_date\n--  tix          | sales_raw             | paid_date\n--  tix          | sales_raw             | cancellation_date\n--  tix          | sales                 | sale_date\n--  tix          | sales                 | fulfilled_date\n--  tix          | sales                 | paid_date\n--  tix          | sales                 | cancellation_date\n--  tix          | charges_raw           | charge_date\n--  tix          | charges               | charge_date\n--  tix          | additional_income     | additional_income_date\n--  tix          | expenses              | expense_date\n--  tix          | payments              | schedule_date\n--  tix          | payments              | payout_date\n\n")
+
+  (def tz-cols
+   (as-> col-data it
+     (.split ^String it "\n")
+     (filter #(not (.contains ^String % "_raw")) it)
+     (vec it)
+     (drop 2 it)
+     (mapv #(vec (.split ^String % "\\s*\\|\\s*")) it)
+     (mapv #(cons "tix" (drop 1 %)) it)))
+
+  (with-open [wtr (io/writer (io/file "/home/kyle/y.y"))]
+    (doseq [[schema tname cname] tz-cols]
+      (.write wtr (format "ALTER TABLE %-25s ALTER COLUMN %-25s SET DATA TYPE timestamp without time zone;\n"
+                          (format "%s.%s" schema tname) cname))))
+
+)
+
+
+
+
+(comment
+  (def digits [1 1 2 2])
+  (combo/permutations digits)
+
 
 )

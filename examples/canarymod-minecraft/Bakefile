@@ -3,8 +3,8 @@
 bake_require github.com/kyleburton/bake-recipies/emacs/cider.sh
 
 INSTAL_PATH=/cygdrive/c/Users/kyle/AppData/Roaming/.minecraft
-# MINECRAFT_SERVER_JAR_URL="https://s3.amazonaws.com/Minecraft.Download/versions/1.8.3/minecraft_server.1.8.3.jar"
-MINECRAFT_SERVER_JAR_URL="https://s3.amazonaws.com/Minecraft.Download/versions/1.11.1/minecraft_server.1.11.1.jar"
+MINECRAFT_VERSION="1.14.4"
+MINECRAFT_SERVER_JAR_URL="https://launcher.mojang.com/v1/objects/3dc3d84a581f14691199cf6831b71ed1296a9fdf/server.jar"
 BAKCUP_DIR="$HOME/local/minecraft"
 CANARYMOD_VERSION="1.2.0"
 CANARYMOD_JAR="CanaryMod-$CANARYMOD_VERSION.jar"
@@ -59,8 +59,8 @@ function restore () {
 
 bake_task minecraft_install "Download the vanilla Minecraft Server JAR"
 function minecraft_install () {
-  local jfile="$(basename $MINECRAFT_SERVER_JAR_URL)"
-  test -f  $jfile || wget $MINECRAFT_SERVER_JAR_URL
+  local jfile="minecraft-server-$MINECRAFT_VERSION.jar"
+  test -f  $jfile || curl -o "$jfile" "$MINECRAFT_SERVER_JAR_URL"
 }
 
 
