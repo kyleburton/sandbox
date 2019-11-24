@@ -344,13 +344,3 @@
                           (format "%s.%s" schema tname) cname))))
 
 )
-
-
-
-
-(comment
-  (def digits [1 1 2 2])
-  (combo/permutations digits)
-
-
-)
