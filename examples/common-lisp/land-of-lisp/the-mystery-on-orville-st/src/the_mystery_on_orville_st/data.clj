@@ -32,9 +32,9 @@
 
 
 (def Player
-  {(s/required-key :name)            (s/either s/Str s/Keyword) ;; symbol or string?  must be unique if we're going to support multiple simultaneous players 
+  {(s/required-key :name)            (s/either s/Str s/Keyword) ;; symbol or string?  must be unique if we're going to support multiple simultaneous players
    (s/required-key :actions)         {s/Keyword s/Any} ;; TODO: should be an Action
-   (s/required-key :description)     [s/Str] ;; if description-fn is nil, fall back to the default description fn using this string 
+   (s/required-key :description)     [s/Str] ;; if description-fn is nil, fall back to the default description fn using this string
    (s/required-key :heartbeat-hooks) [s/Any]
    (s/required-key :state)           clojure.lang.Atom})
 
@@ -58,26 +58,26 @@
     :actions     {:ring-doorbell {:name        :ring-doorbell
                                   :aliases     #{"ring" "ring doorbell" "ring bell"}
                                   :description ["Ring the doorbell"]
-                                  :action-fn   (fn [game-state player & args] (format "You ring the doorbell"))}
+                                  :action-fn   (fn [game-state player & args] (format "You ring the doorbell, no one comes to the door.  Perhaps no one is home?  The door appears to be unlocked..."))}
                   :search-mailbox {:name        :search-mailbox
                                    :aliases     #{"open mailbox" "search mailbox"}
                                    :description ["Search the mailbox."]
                                    :action-fn   (fn [game-state player & args] (format "You find mail for several people who don't live here.  You leave it in the mailbox."))}}}
-   
+
    {:name        :entry-way
     :description ["You are in the entry-way."]}
-   
+
    {:name        :front-room
     :description ["You are in the front room."
                   "This room has a large window through which you can see the sidewalk and Orville St."
                   "There is a desk with a computer, keyboard, mouse and two monitors."
                   "You see a piano, a couch, chair, some boxes and two bookshelves."]}
-   
+
    {:name        :small-hallway
     :description ["You are in a small hallway that connects the living room, the bathroom, Madison's room and Sydneys' room."
                   "There is also a small closet who's door is ajar."
                   "A strange, foul oder eminates from the closet ..."]}
-   
+
    {:name        :madisons-room
     :description ["You are standing in a bedroom."
                   "There is a large bunkbed with an avalanche of stuffed animals covering the top bunk."
@@ -85,7 +85,7 @@
                   "There are shelves of legos, baskets of legos, various objects built from legos, piles of loose legos, "
                   "unopened lego kits ... you have a hunch that whomever lives in this room, they like legos."
                   "There is a large bookshelf and a closet who's door will not shut because it is blocked with various things."]}
-   
+
    {:name        :sydneys-room
     :description ["You are standing in a bedroom."
                   "There is a large raised bed with a ladder leading up to it."
@@ -97,12 +97,12 @@
                   "There is a closet who's door is closed"
                   "There is another bed, that can convert between a bench and a bed - it's currently a bed and it's obvious from the disheveled nature that this is where our room's occupant sleeps"
                   "You realize there is also a Guinnie Pig cage next to the door you entered from with Sydney's two Guinnie Pigs: Mr Nibbles and Gus-Gus."]}
-   
+
    {:name        :dining-room
     :description ["You are in the dining room"
                   "There is a black rectangualr dining room table with four chairs around it"
                   "There is a small bench with a basket of ... flashlights?  Yep, it's a basket of flashlights. *shrug* *me neither*  Next to the small bench rests Daisy's food and water bowls."]}
-   
+
    {:name        :kitchen
     :description ["This is the kitchen"
                   "There is a long counter along the wall and a pretty substantial island that contains the range top, microwave oven and oven"
@@ -110,27 +110,27 @@
                   "There is a refridgerator that has a freezer, a sink and a dish rack"
                   "There's a toaster, an electric kettle and a Ninja (tm) blender on the main counter"
                   "There is a nice vase of flowers on at the end of the island nearest the trash can."]}
-   
+
    {:name        :laundry-area
     :description ["You're standing in the laundry nook next to the refridgerator"
                   "There is an over/under washer and dryer here"
                   "There's a small bathroom with a pocket door opposite the washer/dryer."]}
-   
+
    {:name        :small-bathroom
     :description ["You've managed to wedge yourself into an exteremely small bathroom"
                   "You're not sure if you can turn around"
-                  "There is a sink tha'ts not much larger than a romance novel, a toilet, a trash can (that you relize you've got one foot in) and some shelves with spare rolls of toilet paper and boxes of tissues"
+                  "There is a sink that's not much larger than a romance novel, a toilet, a trash can (that you relize you've got one foot in) and some shelves with spare rolls of toilet paper and boxes of tissues"
                   "Under the sink are two small doors."]}
 
    {:name        :main-bathroom
     :description ["This is the main bathroom, there are two sinks and a shower."
                   "There are some drawers beneath the sinks and a small closet."
                   "A shower curtain is pushed to one side in front of the tub and there are various bottles of shampoo, conditioner and soap on a small shelf."]}
-   
+
    {:name        :hamper-nook
     :description ["You're in a small, squared off nook that contains a linen closet and a pull out hamper."
                   "From here you can to go the master bedroom, Sydney's room or back into the living room."]}
-   
+
    {:name        :master-bedroom
     :description ["This is the master bedroom"
                   "There are two dressers, one with a TV on it, a hamper, a coat rack"
@@ -140,14 +140,14 @@
                   "There is a poster of three children on a beach, staring at a giant that seems to be formed from clouds on the horizon"
                   "Its a nice picture"
                   " There is a half-full laundy basket and piles of clean folded clothes on the bed."]}
-   
+
    {:name        :back-patio
     :description ["You stand on the concrete pad which forms the back patio"
                   "There is a stainless steel propane grill, which has a cover on it"
                   "There is a round table with four chairs around it and two additional Adirandack chairs"
                   "There is a skateboard and some dog toys"
                   " You can see the garage as well as the back yard from here."]}
-   
+
    {:name        :back-yard
     :description ["Overgrown is the first thing that come to mind as you survey the back yard"
                   "There is a 6' cinderblock wall surrounding the yard"
@@ -155,7 +155,7 @@
                   "There are several oranges on the ground, one of which you notice is wiggling"
                   "As you look more closely, two small eyes and a nose peek up at you and a rat scurry's away to the corner of the yard and escapes through a small crack in the wall to the apartment complex beyond"
                   "There is a potting cart with a few empty pots and other gardening equipment."]}
-   
+
    {:name        :front-of-garage
     :description ["There is a large, white garage door in front of you with a handle in the center."]}
 
@@ -171,7 +171,7 @@
                                  (string/join "\n   "
                                               ["Sitting on the stool you realize it's pretty low to the ground and isn't all that comforable."
                                                "After thinking to yoursel for a moment, you stand back up and decide to keep searching the house."]))}}
-   
+
    {:name        :living-room
     :description ["You are in the living room"
                   "There's a black sideboard cabinet with the largest cork-screw device you've ever seen in your life on it, a desk with a computer, keyboard, mouse and monitor."
@@ -344,7 +344,7 @@
       (not item)
       (throw (RuntimeException. (format "Sorry, you can't put item:%s into room:%s, the item doens't exist!"
                                         item-kw (:name location))))
-      
+
       :otherwise
       (swap!
        (:state room)

@@ -18,7 +18,8 @@
 
     [org.clojure/clojure                     "1.10.1"]
     [org.clojure/tools.logging                "0.4.1"]
-    [org.clojure/tools.nrepl                 "0.2.13"]
+    ;; [org.clojure/tools.nrepl                 "0.2.13"]
+    [nrepl/nrepl                              "0.6.0"]
     [org.clojure/core.async                 "0.4.500"]
     [cider/cider-nrepl                       "0.21.1"]
     [ch.qos.logback/logback-classic           "1.2.3"]
