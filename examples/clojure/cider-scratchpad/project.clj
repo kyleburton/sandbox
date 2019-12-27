@@ -8,6 +8,7 @@
   :dependencies [[org.clojure/clojure                   "1.10.0"]
                  [org.clojure/tools.logging              "0.4.1"]
                  [org.clojure/tools.nrepl                "0.2.13"]
+                 ;; 0.22.4
                  [cider/cider-nrepl                      "0.21.1"]
                  [ch.qos.logback/logback-classic         "1.2.3"]
                  [org.clojure/data.json                  "0.2.6"]
