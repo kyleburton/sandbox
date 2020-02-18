@@ -1,5 +1,5 @@
 [package]
-name = "reqwest-sandbox"
+name    = "reqwest-sandbox"
 version = "0.1.0"
 authors = ["Kyle Burton <kyle.burton@gmail.com>"]
 edition = "2018"
@@ -7,5 +7,7 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-reqwest = { version = "0.10", features = ["json"] }
-tokio = { version = "0.2", features = ["full"] }
+reqwest         = { version = "0.10", features = ["json"] }
+tokio           = { version = "0.2",  features = ["full"] }
+rustc-serialize = { version = "0.3.24" }
+serde_json      = { version = "1.0.48" }
