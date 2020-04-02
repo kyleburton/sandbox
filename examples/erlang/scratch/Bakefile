@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+bake_task compile "Comple the local erl files"
+function compile () {
+  erlc *.erl
+}
+
+bake_task erl ""
+function erl () {
+  command erl "$@"
+}
