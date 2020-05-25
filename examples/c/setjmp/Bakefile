@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+bake_task build
+function build () {
+  gcc -Wall -o ex1 ex1.c
+  gcc -Wall -o ex2 ex2.c
+}
