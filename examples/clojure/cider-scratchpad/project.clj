@@ -5,8 +5,8 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :main ^:skip-aot scratchpad.core
   :global-vars  {*warn-on-reflection* true}
-  :dependencies [[org.clojure/clojure                   "1.10.0"]
-                 [org.clojure/tools.logging              "0.4.1"]
+  :dependencies [[org.clojure/clojure                    "1.10.1"]
+                 [org.clojure/tools.logging              "1.1.0"]
                  [org.clojure/tools.nrepl                "0.2.13"]
                  ;; 0.22.4
                  [cider/cider-nrepl                      "0.21.1"]
