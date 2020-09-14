@@ -10,8 +10,8 @@
     (-> args first (= "orville"))
     (game/init!)
 
-    (-> args first (= "game2"))
-    (game2/init!)
+    ;; (-> args first (= "game2"))
+    ;; (game2/init!)
 
     :otherwise
     (do
