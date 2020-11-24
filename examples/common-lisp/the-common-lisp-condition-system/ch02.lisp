@@ -10,8 +10,6 @@
 
 (defvar *hooks* '())
 
-(defvar *csgo-launched-p* nil)
-
 (defun ensure-csgo-launched (person)
   (when (member :csgo person)
     (unless *csgo-launched-p*
@@ -20,6 +18,9 @@
 
 (defun call-person (person)
   (format t ";; Calling ~A.~%" (first person)))
+
+
+(defvar *csgo-launched-p* nil)
 
 (defun call-people ()
   (setf *csgo-launched-p* nil)
@@ -155,3 +156,10 @@
                      (after-call  ,#'call-girlfriend-again))))
       (call-people3)))
   )
+
+
+
+;; Local Variables:
+;; inferior-lisp-program: "sbcl"
+;; eval: (paredit-mode)
+;; End:
