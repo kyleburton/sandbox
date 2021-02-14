@@ -4,7 +4,7 @@ bake_require github.com/kyleburton/bake-recipes/emacs/cider.sh
 
 bake_task run_emacs
 function run_emacs () {
-  emacs -nw -q -l $HOME/.bake/packages/github.com/kyleburton/bake-recipies/files/emacs/.emacs "$@"
+  emacs -nw -q -l "$HOME/.bake/packages/github.com/kyleburton/bake-recipies/files/emacs/.emacs" "$@"
 }
 
 bake_task open_file
@@ -20,7 +20,14 @@ function open_file () {
 
 bake_task render_graph
 function render_graph () {
-  local dotfile="${1:-$(ls -t -1 *.dot | head -n 1)}"
-  local pngfile="$(basename $dotfile .dot).png"
+  local dotfile pngfile
+  dotfile="${1:-$(ls -t -1 *.dot | head -n 1)}"
+  pngfile="$(basename "$dotfile" .dot).png"
   dot "$dotfile" -Tpng > "$pngfile" && open_file "$pngfile"
+}
+
+
+bake_task nrepl
+function nrepl () {
+  clojure -Sdeps '{:deps {nrepl/nrepl {:mvn/version "0.6.0"} cider/cider-nrepl {:mvn/version "0.25.5"}}}' -m nrepl.cmdline --middleware '["cider.nrepl/cider-middleware"]'
 }
