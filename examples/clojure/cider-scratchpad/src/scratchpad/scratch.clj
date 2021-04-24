@@ -16,6 +16,32 @@
 
 
 (comment
+  (log/infof "test log.info: %s" (java.util.Date.))
+
+  (combo/permutations [:apple :orange :banana])
+  ((:apple :orange :banana)
+   (:apple :banana :orange)
+   (:orange :apple :banana)
+   (:orange :banana :apple)
+   (:banana :apple :orange)
+   (:banana :orange :apple))
+
+  (sort [:apple :orange :banana])
+  (:apple :banana :orange)
+
+  (combo/permutation-index [:apple :banana :orange])
+  0
+
+  (combo/permutation-index [:apple :orange :banana])
+  1
+
+  (combo/permutation-index [:orange :banana :apple])
+  5
+
+
+)
+
+(comment
 
   (def versions
     (->
