@@ -5,6 +5,7 @@
  *
  */
 public class SwitchBasedEventLoop {
+    public static java.util.Scanner inp;
     public enum Locations {
         FRONT_PORCH,
         ENTRYWAY,
@@ -12,25 +13,32 @@ public class SwitchBasedEventLoop {
         LIVING_ROOM,
     }
 
-    public static void checkQuit(String action) {
+    public static String checkQuit(String action) {
         if (action.equals("quit") || action.equals("exit") || action.equals("q")) {
             System.out.println("ok, goodbye and thanks for playing!");
             System.exit(0);
         }
+
+        return action;
     }
+
+    public static String getPlayerInput(String prompt) {
+        System.out.print(prompt);
+        System.out.print("\n> ");
+        return checkQuit(inp.nextLine());
+    }
+
 
     public static void main (String [] args) {
         Locations playerLocation = Locations.FRONT_PORCH;
-        java.util.Scanner inp = new java.util.Scanner(System.in);
+        inp = new java.util.Scanner(System.in);
         String action;
 
         while (true) {
             switch (playerLocation) {
                 case FRONT_PORCH:
                     System.out.println("");
-                    System.out.println("You find yoruself standing the front door to a house, you see a doorbell and a welcome mat.");
-                    action = inp.nextLine();
-                    checkQuit(action);
+                    action = getPlayerInput("You find yoruself standing the front door to a house, you see a doorbell and a welcome mat.");
                     if (action.equals( "ring bell") || action.equals("ring doorbell") || action.equals("ring")) {
                         System.out.println("you ring the bell, the door mysteriously swings open and you step in side ...");
                         playerLocation = Locations.ENTRYWAY;
@@ -42,9 +50,7 @@ public class SwitchBasedEventLoop {
                     break;
                 case ENTRYWAY:
                     System.out.println("");
-                    System.out.println("You're in the entryway of the house, you can see a door to your right that leads into the den, and the living room.  You can go into the den (den, door, right, north) or the living room (living room, forward, west).");
-                    action = inp.nextLine();
-                    checkQuit(action);
+                    action = getPlayerInput("You're in the entryway of the house, you can see a door to your right that leads into the den, and the living room.  You can go into the den (den, door, right, north) or the living room (living room, forward, west).");
                     if (action.equals("den")) {
                         System.out.println("you step down a few stairs and into the den ...");
                         playerLocation = Locations.DEN;
