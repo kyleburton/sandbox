@@ -27,8 +27,14 @@ public class Scan {
 
     // requirement D
     System.out.println("b^2-4ac=" + (bSquared - fourAC));
-    double sqrtFourAC = Math.sqrt(Math.abs(bSquared - fourAC));
+    //double sqrtFourAC = Math.sqrt(Math.abs(bSquared - fourAC));
+    double sqrtFourAC = Math.sqrt(bSquared - fourAC);
     System.out.println("sqrtFourAC=" + sqrtFourAC);
+
+    if (Double.isNaN(sqrtFourAC)) {
+      System.out.println("oops, discriminant is negative!");
+      return;
+    }
 
     double denom = 2 * inputA;
 
