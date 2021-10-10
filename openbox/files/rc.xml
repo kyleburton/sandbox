@@ -261,11 +261,13 @@
       <action name="FocusToBottom"/>
       <action name="Unfocus"/>
     </keybind>
+    <!-- NB: cider's inspector uses alt-space / M-space / A-Space, lets disable that for openbox
     <keybind key="A-space">
       <action name="ShowMenu">
         <menu>client-menu</menu>
       </action>
     </keybind>
+    -->
     <!-- Take a screenshot of the current window with gnome-screenshot when Alt+Print are pressed -->
     <keybind key="A-Print">
       <action name="Execute">
@@ -797,7 +799,7 @@
   # order that they appear in this list
 
 
-    # each rule element can be left out or set to 'default' to specify to not 
+    # each rule element can be left out or set to 'default' to specify to not
     # change that attribute of the window
 
     <decor>yes</decor>
