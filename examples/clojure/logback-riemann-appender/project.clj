@@ -10,5 +10,5 @@
     [org.clojure/clojure            "1.5.1"]
     [com.aphyr/riemann-java-client  "0.2.8"]
     [ch.qos.logback/logback-classic "1.0.13"]
-    [org.clojure/tools.logging      "0.2.6"]
+    [org.clojure/tools.logging      "1.2.1"]
   ])

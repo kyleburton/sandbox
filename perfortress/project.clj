@@ -12,7 +12,7 @@
   :main ^:skip-aot perfortress.repl
   :dependencies [[org.clojure/clojure                    "1.8.0"]
                  [com.perforce/p4java                    "2015.2.1312871"]
-                 [org.clojure/tools.logging              "0.3.1"]
+                 [org.clojure/tools.logging              "1.2.1"]
                  [ch.qos.logback/logback-classic         "1.0.13"]
                  [org.clojure/data.json                  "0.2.6"]
                  [prismatic/schema                       "1.0.5"]

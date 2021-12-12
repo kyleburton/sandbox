@@ -6,7 +6,7 @@
   :main ^:skip-aot single-page-app.core
   :dependencies [
                  [org.clojure/clojure "1.5.1"]
-                 [org.clojure/tools.logging "0.3.0"]
+                 [org.clojure/tools.logging "1.2.1"]
                  [http-kit "2.1.16"]
                  [compojure "1.1.8"]
                  [ring "1.3.0"]

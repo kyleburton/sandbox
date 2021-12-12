@@ -21,7 +21,7 @@
                  [venantius/accountant "0.1.7"
                   :exclusions [org.clojure/tools.reader]]
 
-                 [org.clojure/tools.logging              "0.3.1"]
+                 [org.clojure/tools.logging              "1.2.1"]
                  [org.clojure/tools.nrepl                "0.2.12"]
                  [cider/cider-nrepl                      "0.10.2"]
                  [ch.qos.logback/logback-classic         "1.0.13"]

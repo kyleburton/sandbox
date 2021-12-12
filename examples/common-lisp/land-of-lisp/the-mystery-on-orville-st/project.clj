@@ -6,7 +6,7 @@
   :main ^:skip-aot the-mystery-on-orville-st.core
   :dependencies [
     ;; [org.clojure/clojure                    "1.10.1"]
-    ;; [org.clojure/tools.logging              "0.5.0"]
+    ;; [org.clojure/tools.logging              "1.2.1"]
     ;; [org.clojure/tools.nrepl                "0.2.13"]
     ;; [cider/cider-nrepl                      "0.21.1"]
     ;; [ch.qos.logback/logback-classic         "1.2.3"]

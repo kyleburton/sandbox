@@ -8,7 +8,7 @@
   :dependencies [
                  [org.clojure/clojure                    "1.9.0-beta4"]
                  [org.clojure/spec.alpha                 "0.1.143"]
-                 [org.clojure/tools.logging              "0.4.0"]
+                 [org.clojure/tools.logging              "1.2.1"]
                  [org.clojure/tools.nrepl                "0.2.12"]
                  ;; [cider/cider-nrepl                      "0.15.1"]
                  [cider/cider-nrepl                      "0.16.0-SNAPSHOT"]

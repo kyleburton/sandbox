@@ -18,7 +18,7 @@
                  [org.clojure/clojure        "1.8.0"]
                  [org.clojure/clojurescript  "1.9.946" :scope "provided"]
                  [org.clojure/tools.cli      "0.3.5"]
-                 [org.clojure/tools.logging  "0.4.0"]
+                 [org.clojure/tools.logging  "1.2.1"]
                  [org.clojure/tools.reader   "1.1.0"]
                  [org.webjars.bower/tether   "1.4.0"]
                  [org.webjars/bootstrap      "4.0.0-alpha.5"]
