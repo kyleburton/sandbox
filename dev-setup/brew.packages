@@ -10,5 +10,3 @@ sbcl
 clisp
 jq
 lastpass-cli --with-pinetry
-graphviz
-awscli

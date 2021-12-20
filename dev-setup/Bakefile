@@ -2,7 +2,7 @@
 #set -x
 bake_push_libdir $(bake_bakefile_dir)/src/sh
 bake_require erlang
-#bake_require git@github.com:kyleburton/bake-recipies.git emacs/cider.sh
+bake_require_git https://github.com/kyleburton/bake-recipies.git emacs/cider.sh
 
 source src/sh/python.sh
 source src/sh/oracle-java.sh
@@ -34,25 +34,5 @@ function add_path () {
 
 bake_task install-all "Install all the goodies."
 function install-all () {
-  # erlang-install-all
-
-  # https://docs.aws.amazon.com/corretto/latest/corretto-11-ug/generic-linux-install.html
-  if [[ ! -e /usr/bin/java ]]; then
-    echo "INSTALL: corretto"
-    echo "pre-running sudo ls so it's not swallwed by redirection ..."
-    sudo ls
-    wget -O- https://apt.corretto.aws/corretto.key | sudo apt-key add -
-    sudo add-apt-repository 'deb https://apt.corretto.aws stable main'
-    sudo apt-get update; sudo apt-get install -y java-11-amazon-corretto-jdk
-  fi
-
-  echo "INSTALL: clojure"
-  ( cd software
-    local install_file="linux-install-1.10.3.822.sh"
-    if [[ ! -e "$install_file" ]]; then
-      curl -O "https://download.clojure.org/install/${install_file}"
-      chmod +x "./${install_file}"
-      sudo "./${install_file}"
-    fi
-  )
+  erlang-install-all
 }

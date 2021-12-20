@@ -1,0 +1,131 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+test -n "${DEBUG:-}" && set -x
+
+VBOX_PATH="/cygdrive/c/Program Files/Oracle/VirtualBox/VBoxManage.exe"
+VBOX_IP=""
+
+function is-cygwin {
+  [[ $(uname -o) == "Cygwin" ]]
+}
+
+function vbox-ip-addr {
+  if [[ -z "$VBOX_IP" ]]; then
+    # NB: I'm unsure if it's possible to get the IP address of the VM w/o guest additions being already
+    # installed in the vm ...
+    # VBOX_IP="$("$VBOX_PATH" list bridgedifs | grep IPAddress | awk '{print $2}' | sed 's/\r//')"
+    VBOX_IP="$("$VBOX_PATH"  guestproperty enumerate automate-dev-setup | grep IP | tr , \\n | grep value: | awk '{print $2}')"
+  fi
+  echo -n "$VBOX_IP"
+}
+
+function vbox-bootstrap {
+  local ipaddr do_bootstrap
+  do_bootstrap=""
+  ipaddr="$(vbox-ip-addr)"
+
+  while [[ ${1:-} == -* ]]; do
+    case "${1:-}" in
+      --skip-bootstrap)
+        shift
+        do_bootstrap="no"
+        ;;
+      *)
+        echo "ERROR: unrecognized opiton: ${1:-}"
+        shift
+        ;;
+    esac
+  done
+
+  echo "NOTE: guest additions must already be installed in the running virtualbox vm"
+  echo ""
+
+  if [[ $do_bootstrap == yes ]]; then
+    echo "nc -l -p 2222 | bash"
+    echo "bash $HOME/local-bootstrap.sh"
+    echo ""
+    echo "press enter to continue"
+    read input
+    cat ./files/setup/vbox-local-bootstrap.sh | nc "$ipaddr" 2222
+  fi
+
+  echo "..copying over .ssh"
+  rsync -avz $HOME/.ssh "kyle@$(vbox-ip-addr):"
+  rsync -avz ./files/setup/vbox-local-bootstrap.sh "kyle@$(vbox-ip-addr):"
+
+  echo "..do git clone"
+  ssh "kyle@$(vbox-ip-addr)" "bash vbox-local-bootstrap.sh part2"
+
+
+  echo "..run local bootstrap"
+}
+
+function cmd.vbox {
+  local cmd vmname input
+  cmd="${1:-}"
+
+  case "$cmd" in
+    bootstrap)
+      shift
+      vbox-bootstrap "$@"
+      ;;
+    ip)
+      echo "$(vbox-ip-addr)"
+      ;;
+    ls)
+      shift
+      vmname="${1:-}"
+      if [[ -n "$vmname" ]]; then
+        "$VBOX_PATH" showvminfo "$vmname"
+        "$VBOX_PATH" guestproperty enumerate "$vmname"
+        "$VBOX_PATH" guestproperty get "$vmname" "/VirtualBox/GuestInfo/Net/0/V4/IP"
+      else
+        "$VBOX_PATH" list runningvms
+      fi
+      ;;
+    help)
+        "$VBOX_PATH" "$@"
+      ;;
+    *)
+      echo "setup vbox ..."
+      echo "  vbox ls       bootstrap ip list running virtualbox vms"
+      ;;
+  esac
+}
+
+function cmd.snapshot {
+  echo "snapshot - take a local snapshot of any newly installed software (apt or homebrew)"
+}
+
+function cmd.install {
+  echo "install - bring the local system up to date with any new changes or additions"
+  echo "[install] concatenate bash sources ..."
+  echo "[install] clone git repos ... "
+}
+
+function main {
+  local cmd
+    cmd="${1:-}"
+
+  case "$cmd" in
+    install)
+      shift
+      cmd.install "$@"
+      ;;
+    snapshot)
+      shift
+      cmd.snapshot "$@"
+      ;;
+    vbox)
+      shift
+      cmd.vbox "$@"
+      ;;
+    *)
+      echo "setup install|snapshot|vbox"
+      ;;
+  esac
+}
+
+main "$@"
