@@ -22,16 +22,44 @@ function vbox-ip-addr {
 }
 
 function vbox-bootstrap {
-  local ipaddr
+  local ipaddr do_bootstrap
+  do_bootstrap=""
   ipaddr="$(vbox-ip-addr)"
+
+  while [[ ${1:-} == -* ]]; do
+    case "${1:-}" in
+      --skip-bootstrap)
+        shift
+        do_bootstrap="no"
+        ;;
+      *)
+        echo "ERROR: unrecognized opiton: ${1:-}"
+        shift
+        ;;
+    esac
+  done
+
   echo "NOTE: guest additions must already be installed in the running virtualbox vm"
   echo ""
-  echo "nc -l -p 2222 | bash"
-  echo "bash $HOME/local-bootstrap.sh"
-  echo ""
-  echo "press enter to continue"
-  read input
-  cat ./files/setup/vbox-local-bootstrap.sh | nc "$ipaddr" 2222
+
+  if [[ $do_bootstrap == yes ]]; then
+    echo "nc -l -p 2222 | bash"
+    echo "bash $HOME/local-bootstrap.sh"
+    echo ""
+    echo "press enter to continue"
+    read input
+    cat ./files/setup/vbox-local-bootstrap.sh | nc "$ipaddr" 2222
+  fi
+
+  echo "..copying over .ssh"
+  rsync -avz $HOME/.ssh "kyle@$(vbox-ip-addr):"
+  rsync -avz ./files/setup/vbox-local-bootstrap.sh "kyle@$(vbox-ip-addr):"
+
+  echo "..do git clone"
+  ssh "kyle@$(vbox-ip-addr)" "bash vbox-local-bootstrap.sh part2"
+
+
+  echo "..run local bootstrap"
 }
 
 function cmd.vbox {
