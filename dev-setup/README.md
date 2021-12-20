@@ -32,3 +32,15 @@ DONE: install pyenv
 DONE: install python 3.6.0
 DONE: install java
 DONE: install leiningen
+
+
+# VirtualBox / Ubuntu Settings
+
+```
+Memory 16 GB
+Display | Screen | Video Memory          128MB
+Display | Screen | Graphics Controller   VMSVGA
+Storage | 64 GB
+Netowrk | Attached To | Breidged Adapter
+
+```
