@@ -1,0 +1,7 @@
+# lines starting with a hash are comments
+# lines starting with a % will be run as a shell script to install packages 
+vim-nox
+build-essential
+dkms
+virtualbox-guest-additions-iso
+screen
