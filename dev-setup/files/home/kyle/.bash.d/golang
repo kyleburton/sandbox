@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+#if command go >/dev/null 2>&1; then
+  export GOPATH="${GOPATH:-$HOME/code/go}"
+  export PATH="$PATH:$GOPATH/bin"
+#fi

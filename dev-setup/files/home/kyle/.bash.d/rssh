@@ -1,0 +1,193 @@
+#!/usr/bin/env bash
+
+__rssh_basedir="$HOME/.ssh/environments"
+
+if [ -e "$__rssh_basedir/default/agent.env" ]; then
+  source "$__rssh_basedir/default/agent.env" >/dev/null 2>&1
+fi
+
+function __rssh_init () {
+  if [ ! -d "$__rssh_basedir" ]; then
+    mkdir -p "$__rssh_basedir"
+    chmod 700 "$__rssh_basedir"
+  fi
+}
+
+function __rssh_envpath_for_env () {
+  local envname="$1"
+  echo "$__rssh_basedir/$envname"
+}
+
+function __rssh_envfile_for_env () {
+  local envname="$1"
+  echo "$__rssh_basedir/$envname/agent.env"
+}
+
+function __rssh_list_envs () {
+  for f in $(echo $__rssh_basedir/*); do
+    echo "$(basename $f)"
+  done
+}
+
+function __rssh_keyfiles_for_env () {
+  local envname="$1"
+  local envpath="$(__rssh_envpath_for_env "$envname")"
+  for f in $envpath/*.pem $envpath/*.pub; do
+      if [ -e "$f" ]; then
+          echo "$f"
+      fi
+  done
+}
+
+function __rssh_list () {
+  local envnames="${1:-$(__rssh_list_envs)}"
+
+  for envname in $envnames; do
+    for f in $(__rssh_keyfiles_for_env "$envname"); do
+        echo "$envname: $f"
+    done
+  done
+}
+
+function __rssh_agent_is_running () {
+  ssh-add -l >/dev/null 2>&1
+  if [ "$?" -eq "2" ]; then
+    return 1
+  fi
+
+  return 0
+}
+
+function __rssh_stop_env () {
+  local envname="$1"
+  local envfile="$(__rssh_envfile_for_env $envname)"
+  source "$envfile"
+  if [ -n "$SSH_AGENT_PID" ]; then
+      echo "Stopping agent: $envname : $SSH_AGENT_PID"
+      kill "$SSH_AGENT_PID"
+  fi
+}
+
+function __rssh_compute_prviate_keyfile () {
+  local keyfile="$1"
+  echo "${keyfile%.pub}"
+}
+
+function __rssh_initialize_env () {
+  local envname="$1"
+  local envfile="$(__rssh_envfile_for_env $envname)"
+
+  if [ ! -d "$(dirname $envfile)" ]; then
+    mkdir -p "$(dirname $envfile)"
+  fi
+
+  ssh-agent > "$envfile"
+  source "$envfile"
+
+  for key in $(__rssh_keyfiles_for_env "$envname"); do
+    local keyf="$(basename $key)"
+    local keyfile="$(dirname $key)/$(__rssh_compute_prviate_keyfile "$keyf")"
+    # echo "$envname: keyf=$keyf keyfile=$keyfile"
+    if [ -e "$keyfile" ]; then
+      echo "add key: $keyfile"
+      ssh-add "$keyfile"
+    fi
+  done
+}
+
+function __rssh_set_env () {
+  local envname="$1"
+
+  echo "The current ssh environment is: ${RSSH_ENV:-none}"
+  if [ -z "$envname" ]; then
+    for envname in $(__rssh_list_envs); do
+      echo "  rssh set $envname"
+    done
+    return 1
+  fi
+
+  local envfile="$(__rssh_envfile_for_env "$envname")"
+
+  echo "Switching from ${RSSH_ENV:-none} to $envname"
+  export RSSH_ENV="$envname"
+  if [ ! -e "$envfile" ]; then
+    echo "No such environment: $envname / $envfile"
+    echo -n "Would you like to create one? (y/n): "
+    read ANSWER
+    if [ "$ANSWER" != "y" ]; then
+      return 0
+    else
+      __rssh_initialize_env "$envname"
+      return 0
+    fi
+  fi
+
+  source "$envfile"
+  if ! __rssh_agent_is_running; then
+    echo "$envname is not running, starting it"
+    __rssh_initialize_env "$envname"
+    return 0
+  fi
+}
+
+function _rssh.complete () {
+  local cword cur envs
+  _get_comp_words_by_ref -n : -c cur cword
+
+  commands="env set init reinit ls"
+  if [[ "$cword" -eq "1" ]]; then
+    mapfile -t COMPREPLY < <(compgen -W "$commands" -- "$cur")
+    return
+  fi
+
+  envs="$(for f in $(ls -d $HOME/.ssh/environments/*); do basename "$f"; done)"
+  if [[ "$cword" -eq "2" ]]; then
+    mapfile -t COMPREPLY < <(compgen -W "$envs" -- "$cur")
+    return
+  fi
+
+  mapfile -t COMPREPLY < <(compgen -o default -- "$cur")
+}
+
+
+function rssh () {
+  local cmd="$1"
+  __rssh_init
+
+  if [ -z "$cmd" ]; then
+    cmd="help"
+  fi
+
+  case "$1" in
+    env|set)
+      shift
+      __rssh_set_env "$@"
+      ;;
+    init)
+      shift
+      __rssh_initialize_env "${2:-$RSSH_ENV}"
+      ;;
+    reinit)
+      shift
+      __rssh_stop_env "${2:-$RSSH_ENV}"
+      __rssh_initialize_env "${2:-$RSSH_ENV}"
+      ;;
+    ls)
+      shift
+      __rssh_list "$@"
+      ;;
+    *)
+      echo "rssh (set|ls|init|help)"
+      echo ""
+      echo "Manage multiple ssh-agent environments."
+      echo ""
+      echo "  set <envname>      Set the current shell environment"
+      echo "  ls                 List your ssh enviornments"
+      echo "  init <envname>     Load keys for envname (default=$RSSH_ENV)"
+      echo "  reinit <envname>   Kill and re-initialize the agent (default=$RSSH_ENV)"
+      echo ""
+      ;;
+  esac
+}
+
+complete -F _rssh.complete rssh

@@ -1,0 +1,134 @@
+#!/usr/bin/env bash
+
+# TODO: command line completion for this tooling
+
+
+function __rclone.open_url () {
+  local url="$1"
+  xdg-open "$url"
+}
+
+# TODO: how would we like branches to work? eg:
+#         rclone https://github.com/pallets/flask/tree/1.1.x
+#       would we like that to checkout the branch if the local repo is clean?
+function __rclone.git-urlish-to-git-url () {
+  local urlish="${1}"
+
+  # https://github.com/fengsp/flask-session
+  if [[ "$urlish" =~ ^https://([^/]+)/([^/]+)/([^/]+)$ ]]; then
+    # https://github.com/fengsp/flask-session/blob/master/flask_session/sessions.py
+    echo "git@${BASH_REMATCH[1]}:${BASH_REMATCH[2]}/${BASH_REMATCH[3]}.git"
+    return 0
+  fi
+
+  if [[ "$urlish" =~ ^https://([^/]+)/([^/]+)/([^/]+)/.*$ ]]; then
+    # https://github.com/fengsp/flask-session/blob/master/flask_session/sessions.py
+    echo "git@${BASH_REMATCH[1]}:${BASH_REMATCH[2]}/${BASH_REMATCH[3]}.git"
+    return 0
+  fi
+
+  if [[ "$urlish" =~ git@.* ]]; then
+    echo "$urlish"
+    return 0
+  fi
+
+  echo ""
+  return 1
+}
+
+function __rclone.git-url-to-local-path () {
+  local git_url="$1"
+
+  #                    git@github.com:pallets/flask.git
+  if [[ "$git_url" =~ ^git@([^:]+):([^/]+)/(.+)\.git$ ]]; then
+    echo "$HOME/code/${BASH_REMATCH[1]}/${BASH_REMATCH[2]}/${BASH_REMATCH[3]}"
+    return 0
+  fi
+
+  echo ""
+  return 1
+}
+
+function __rclone.git-url-to-github-url () {
+  local git_url="$1"
+
+  if [[ "$git_url" =~ ^git@([^:]+):([^/]+)/(.+)\.git$ ]]; then
+    # git@github.com:lawrencexia/ticket-webapp.git
+    echo "https://${BASH_REMATCH[1]}/${BASH_REMATCH[2]}/${BASH_REMATCH[3]}"
+    return 0
+  fi
+
+  echo ""
+  return 1
+}
+
+
+################################################################################
+
+function __rclone.cmd.git-clone-dwim () {
+  local urlish="$1"
+
+  local git_url="$(__rclone.git-urlish-to-git-url "$urlish")"
+  if [[ -z "$git_url" ]]; then
+    echo "ERROR: don't know how to convert '$urlish' into a git url"
+    return 1
+  fi
+
+  local local_path="$(__rclone.git-url-to-local-path "$git_url")"
+  if [[ -z "$local_path" ]]; then
+    echo "ERROR: don't know how to convert '$git_url' into a local path"
+    return 1
+  fi
+
+  if [[ -d "$local_path" ]]; then
+    echo "$git_url already exists in $local_path..."
+    cd "$local_path"
+    return 0
+  fi
+
+  git clone "$git_url" "$local_path"
+  if [[ -d "$local_path" ]]; then
+    cd "$local_path"
+  fi
+}
+
+function __rclone.cmd.git-open () {
+  local action="${1:-}"
+  case "$action" in
+    # TODO: rclone open pr|pull|pull-request
+    # TODO: rclone open wiki
+    # git rev-parse --abbrev-ref HEAD
+    *)
+      local git_url="$(git config --get remote.origin.url)"
+      if [[ -z "$git_url" ]]; then
+        echo "Error: unable to get remote.origin.url"
+        return 1
+      fi
+
+      local gh_url="$(__rclone.git-url-to-github-url $git_url)"
+      if [[ -z "$gh_url" ]]; then
+        echo "Error: unable to convert $git_url to a github url"
+        return 1
+      fi
+
+      echo "open: $git_url => $gh_url"
+      __rclone.open_url "$gh_url"
+      ;;
+  esac
+  return 0
+}
+
+function rclone () {
+  local cmd="${1:-}"
+
+  case "$cmd" in
+    open)
+      shift
+      __rclone.cmd.git-open "$@"
+      ;;
+    *)
+      __rclone.cmd.git-clone-dwim "$@"
+      ;;
+  esac
+}
+

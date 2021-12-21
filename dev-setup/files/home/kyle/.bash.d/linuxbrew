@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+if [ -e "$HOME/.linuxbrew/bin" ]; then
+  # `brew doctor` recommends brew's bin be first on the path
+  export PATH="$HOME/.linuxbrew/bin:$HOME/.linuxbrew/sbin:$PATH$PATH"
+  # this is a recommendation from `brew doctor` on Linux
+  # NB: setting XDG_DATA_DIRS seems to break my x/ldm login on Ubuntu!
+  # export XDG_DATA_DIRS="/home/kyle/.linuxbrew/share:$XDG_DATA_DIRS"
+fi
+

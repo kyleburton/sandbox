@@ -1,0 +1,36 @@
+[user]
+  email = kyle.burton@gmail.com
+	name = Kyle Burton
+
+[core]
+        excludesfile = /home/kburton/.gitignore
+
+[color]
+        ui = auto
+        diff = auto
+        status = auto
+        interactive = auto
+[alias]
+        st = status
+        au = add -u
+        pt = add --patch
+        ci = commit -v
+        cia = commit -am
+        br = branch
+        co = checkout
+        df = diff
+        dfw = diff -w
+        dfc = diff --cached
+        dfcw = diff --cached -w
+        lg = log -p
+        # "Pull Origin Branch"
+	      pob = !"git pull --rebase origin $(git rev-parse --abbrev-ref HEAD)"
+        # "PUBlish"
+        pub = !"git push origin $(git rev-parse --abbrev-ref HEAD)"
+        # "Stash, Pull, Pop"
+        spp = !"git stash save && git pull --rebase origin $(git rev-parse --abbrev-ref HEAD) && git stash pop"
+        # "REbase and PUBlish"
+        repub = !git pob && git pub
+        lg = log -p
+        cfg = config --global
+        cim = commit -m
