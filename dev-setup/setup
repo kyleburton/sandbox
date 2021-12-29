@@ -145,6 +145,14 @@ function cmd.install {
   grep -v '^%' ./files/setup/brew.packages | grep -v '^#' | xargs brew install
 
   echo "[install] clone git repos ... "
+  (
+  cd ~/code/github.com/kyleburton
+  git clone git@github.com:kyleburton/krbemacs.git
+  if [[ ! -L ~/.emacs ]]; then
+    mv ~/.emacs ~/.dist.emacs
+    ln -s $HOME/code/github.com/kyleburton/.emacs ~/
+  fi
+  )
   echo "[install] concatenate bash sources ..."
 }
 

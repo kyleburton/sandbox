@@ -309,6 +309,9 @@
     <keybind key="A-Home">
       <action name="ToggleMaximize"/>
     </keybind>
+    <keybind key="C-F2">
+      <action name="ToggleMaximize"/>
+    </keybind>
     <keybind key="A-Right">
       <action name="ToggleMaximize">
         <direction>horizontal</direction>
