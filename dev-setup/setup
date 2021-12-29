@@ -104,22 +104,46 @@ function cmd.install-chrome {
     echo "[install] install chrome ..."
     (
     cd ./software
-    wget "https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb"
+    test -f ./google-chrome-stable_current_amd64.deb || wget "https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb"
     sudo apt install ./google-chrome-stable_current_amd64.deb
     )
   fi
 }
 
 function cmd.install {
-  test -d ./software || mkdir ./software 
+  test -d ./software || mkdir ./software
 
   echo "install - bring the local system up to date with any new changes or additions"
   set -x
   grep -v '^%' ./files/setup/apt.packages | grep -v '^#' | xargs sudo apt-get install -y
 
   cmd.install-chrome
+  rsync -avz ./files/home/kyle/ ~/
+
+  if [[ ! -d ~/.vim/bundle/Vundle.vim ]]; then
+    git clone https://github.com/VundleVim/Vundle.vim.git ~/.vim/bundle/Vundle.vim
+  fi
+  vim +PluginInstall +qall
+
+  if [[ ! -d ~/.profile.d ]]; then
+    git clone git@github.com:kyleburton/profile.git ~/.profile.d
+  fi
+
+  for repo in bake; do
+    set -x
+    if [[ ! -d "$HOME/code/github.com/kyleburton/$repo" ]]; then
+      git clone "git@github.com:kyleburton/$repo.git" "$HOME/code/github.com/kyleburton/$repo"
+    fi
+  done
+
   echo "[install] install homebrew ..."
+  bash ./files/setup/brew-install.sh
+
   echo "[install] install homebrew packages ..."
+  PATH="$PATH:/home/linuxbrew/.linuxbrew/bin"
+  export PATH
+  grep -v '^%' ./files/setup/brew.packages | grep -v '^#' | xargs brew install
+
   echo "[install] clone git repos ... "
   echo "[install] concatenate bash sources ..."
 }
