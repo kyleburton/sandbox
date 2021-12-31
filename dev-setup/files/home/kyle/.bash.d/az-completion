@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+function __krb_az_complete {
+  local cword cur azcmds azworkspaces
+  _get_comp_words_by_ref -n : -c cur cword
+
+  azworkspaces="web lambda cider admin api-tests"
+  azcmds="all shutdown stop reset urls ${azworkspaces}"
+
+  if [[ "$cword" -eq "1" ]]; then
+    COMPREPLY=($(compgen -W "$azcmds" "${COMP_WORDS[1]}"))
+    return
+  fi
+
+  if [[ "$cword" -eq "2" ]]; then
+    case "${COMP_WORDS[1]}" in
+      shutdown|stop|reset)
+        COMPREPLY=($(compgen -W "$azworkspaces" "${COMP_WORDS[2]}"))
+        ;;
+      *)
+        # do nothing
+        ;;
+    esac
+    return
+  fi
+}
+
+complete -F __krb_az_complete az

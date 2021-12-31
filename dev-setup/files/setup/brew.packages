@@ -3,3 +3,5 @@ ag
 leiningen
 emacs
 npm
+docker-compose
+asdf

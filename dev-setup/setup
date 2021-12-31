@@ -95,6 +95,18 @@ function cmd.vbox {
   esac
 }
 
+function cmd.diff {
+  echo "[diff] ~/.bash.d"
+  git diff --no-index ~/.bash.d ./files/home/kyle/.bash.d
+
+  for fname in .bashrc .dictrc .editrc .gemrc .gitconfig .gitignore .profile .screenrc .tmux.conf .vimrc .config/openbox/rc.xml; do
+    echo "[diff] $fname"
+    git diff --no-index "$HOME/$fname" "./files/home/kyle/$fname"
+  done
+
+
+}
+
 function cmd.snapshot {
   echo "snapshot - take a local snapshot of any newly installed software (apt or homebrew)"
 }
@@ -145,12 +157,15 @@ function cmd.install {
   echo "[install] clone git repos ... "
   (
   cd ~/code/github.com/kyleburton
-  test -f krbemacs || git clone git@github.com:kyleburton/krbemacs.git
+  test -d krbemacs || git clone git@github.com:kyleburton/krbemacs.git
   # if [[ ! -L ~/.emacs ]]; then
   #   test -f ~/.emacs && mv ~/.emacs ~/.dist.emacs
   #   ln -s $HOME/code/github.com/kyleburton/krbemacs/.emacs ~/
   # fi
   )
+  echo "[install] asdf packages ..."
+  echo "          ... asdf install golang"
+  echo "          ... asdf install terraform"
   echo "[install] concatenate bash sources ..."
 }
 
@@ -170,6 +185,10 @@ function main {
     vbox)
       shift
       cmd.vbox "$@"
+      ;;
+    diff)
+      shift
+      cmd.diff "$@"
       ;;
     *)
       echo "setup install|snapshot|vbox"
