@@ -114,7 +114,6 @@ function cmd.install {
   test -d ./software || mkdir ./software
 
   echo "install - bring the local system up to date with any new changes or additions"
-  set -x
   grep -v '^%' ./files/setup/apt.packages | grep -v '^#' | xargs sudo apt-get install -y
 
   cmd.install-chrome
@@ -130,7 +129,6 @@ function cmd.install {
   fi
 
   for repo in bake; do
-    set -x
     if [[ ! -d "$HOME/code/github.com/kyleburton/$repo" ]]; then
       git clone "git@github.com:kyleburton/$repo.git" "$HOME/code/github.com/kyleburton/$repo"
     fi
@@ -147,11 +145,11 @@ function cmd.install {
   echo "[install] clone git repos ... "
   (
   cd ~/code/github.com/kyleburton
-  git clone git@github.com:kyleburton/krbemacs.git
-  if [[ ! -L ~/.emacs ]]; then
-    mv ~/.emacs ~/.dist.emacs
-    ln -s $HOME/code/github.com/kyleburton/.emacs ~/
-  fi
+  test -f krbemacs || git clone git@github.com:kyleburton/krbemacs.git
+  # if [[ ! -L ~/.emacs ]]; then
+  #   test -f ~/.emacs && mv ~/.emacs ~/.dist.emacs
+  #   ln -s $HOME/code/github.com/kyleburton/krbemacs/.emacs ~/
+  # fi
   )
   echo "[install] concatenate bash sources ..."
 }
