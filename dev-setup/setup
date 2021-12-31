@@ -164,9 +164,14 @@ function cmd.install {
   # fi
   )
   echo "[install] asdf packages ..."
-  echo "          ... asdf install golang"
-  echo "          ... asdf install terraform"
+  for plugin in golang terraform; do
+    echo "          ... asdf plugin add $plugin"
+    asdf plugin add "$plugin"     || :
+    asdf install "$plugin" latest || :
+    asdf global "$plugin" latest
+  done
   echo "[install] concatenate bash sources ..."
+  echo "[install] COMPLETED - Happy Coding!"
 }
 
 function main {
