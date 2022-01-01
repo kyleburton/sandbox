@@ -5,3 +5,4 @@ emacs
 npm
 docker-compose
 asdf
+jq

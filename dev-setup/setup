@@ -128,6 +128,9 @@ function cmd.install {
   echo "install - bring the local system up to date with any new changes or additions"
   grep -v '^%' ./files/setup/apt.packages | grep -v '^#' | xargs sudo apt-get install -y
 
+  sudo groupadd docker || :
+  sudo usermod -aG docker kyle || :
+
   cmd.install-chrome
   rsync -avz ./files/home/kyle/ ~/
 
@@ -170,6 +173,13 @@ function cmd.install {
     asdf install "$plugin" latest || :
     asdf global "$plugin" latest
   done
+
+  # TODO: make this idempotent - godoc
+  go install -v golang.org/x/tools/cmd/godoc@latest
+  # TODO: make this idempotent - godef
+  # TODO: fix the deprecation warning - godef
+  go get github.com/rogpeppe/godef
+
   echo "[install] concatenate bash sources ..."
   echo "[install] COMPLETED - Happy Coding!"
 }
