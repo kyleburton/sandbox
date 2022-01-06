@@ -39,7 +39,7 @@
   5
 
 
-)
+  )
 
 (comment
 
@@ -345,7 +345,7 @@
   (describe-number Double/MAX_VALUE) ;; BOOM
 
 
-)
+  )
 
 
 
@@ -353,20 +353,48 @@
 
 
   (slurp "/home/kyle/x.x")
-  (def col-data "--  table_schema |      table_name       |      column_name\n-- --------------+-----------------------+------------------------\n--  tix          | payments_raw          | schedule_date\n--  tix          | payments_raw          | payout_date\n--  tix          | expenses_raw          | expense_date\n--  tix          | additional_income_raw | additional_income_date\n--  tix          | sales_raw             | sale_date\n--  tix          | sales_raw             | fulfilled_date\n--  tix          | sales_raw             | paid_date\n--  tix          | sales_raw             | cancellation_date\n--  tix          | sales                 | sale_date\n--  tix          | sales                 | fulfilled_date\n--  tix          | sales                 | paid_date\n--  tix          | sales                 | cancellation_date\n--  tix          | charges_raw           | charge_date\n--  tix          | charges               | charge_date\n--  tix          | additional_income     | additional_income_date\n--  tix          | expenses              | expense_date\n--  tix          | payments              | schedule_date\n--  tix          | payments              | payout_date\n\n")
+  (def col-data "...")
 
   (def tz-cols
-   (as-> col-data it
-     (.split ^String it "\n")
-     (filter #(not (.contains ^String % "_raw")) it)
-     (vec it)
-     (drop 2 it)
-     (mapv #(vec (.split ^String % "\\s*\\|\\s*")) it)
-     (mapv #(cons "tix" (drop 1 %)) it)))
+    (as-> col-data it
+      (.split ^String it "\n")
+      (filter #(not (.contains ^String % "_raw")) it)
+      (vec it)
+      (drop 2 it)
+      (mapv #(vec (.split ^String % "\\s*\\|\\s*")) it)
+      (mapv #(cons "tix" (drop 1 %)) it)))
 
   (with-open [wtr (io/writer (io/file "/home/kyle/y.y"))]
     (doseq [[schema tname cname] tz-cols]
       (.write wtr (format "ALTER TABLE %-25s ALTER COLUMN %-25s SET DATA TYPE timestamp without time zone;\n"
                           (format "%s.%s" schema tname) cname))))
 
-)
+  )
+
+
+(defn rand-double []
+  (.nextDouble (java.util.Random.)))
+
+(defn rand-grade []
+  (+ 1 (* 3 (rand-double))))
+
+
+
+
+(comment
+  (with-open [wtr (io/writer "Foo.java")]
+    (doseq [[fname lname]
+            [["Robert" "Plant"]
+             ["David"  "Lee-Roth"]
+             ["Phill"  "Collins"]
+             ["David"  "Byrne"]]]
+      (.write wtr (format "this.studentList.add(new Student(\"%s\", \"%s\", %.2f, %.2f, %.2f, %.2f, %.2f));\n"
+                          fname
+                          lname
+                          (rand-grade)
+                          (rand-grade)
+                          (rand-grade)
+                          (rand-grade)
+                          (rand-grade)))))
+
+  )
