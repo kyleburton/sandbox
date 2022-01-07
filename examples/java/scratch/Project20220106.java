@@ -1,6 +1,7 @@
 // javac Project20220106.java  && java Project20220106
 
 import java.util.Random;
+import algorithm.OrderedNums;
 
 
 /*
@@ -42,6 +43,14 @@ public class Project20220106 {
         System.out.println("The List is " + myList.length + " elements:");
         for (int ii = 0; ii < myList.length; ++ii ) {
             System.out.println(" [" + ii + "] = " + myList[ii]);
+        }
+
+        OrderedNums nn = new OrderedNums();
+        int [] myList2 = nn.getList();
+
+        System.out.println("The OrderedNums list is " + myList2.length + " elements:");
+        for (int ii = 0; ii < myList2.length; ++ii ) {
+            System.out.println(" [" + ii + "] = " + myList2[ii]);
         }
     }
 }
