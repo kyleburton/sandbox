@@ -1,1 +1,3 @@
 . /home/linuxbrew/.linuxbrew/opt/asdf/libexec/asdf.sh
+ASDF_DOWNLOAD_PATH="$HOME/.asdf/downloads"
+export ASDF_DOWNLOAD_PATH

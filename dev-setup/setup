@@ -103,8 +103,6 @@ function cmd.diff {
     echo "[diff] $fname"
     git diff --no-index "$HOME/$fname" "./files/home/kyle/$fname"
   done
-
-
 }
 
 function cmd.snapshot {
@@ -167,13 +165,15 @@ function cmd.install {
   # fi
   )
   echo "[install] asdf packages ..."
-  for plugin in golang terraform; do
+  for plugin in golang terraform nodejs; do
     echo "          ... asdf plugin add $plugin"
     asdf plugin add "$plugin"     || :
     asdf install "$plugin" latest || :
-    asdf global "$plugin" latest
+    asdf global "$plugin" latest || asdf global "$plugin" $(asdf list "$plugin" | tail -n 1) || :
   done
 
+  # . /home/linuxbrew/.linuxbrew/opt/asdf/libexec/asdf.sh
+  # asdf local "golang" latest || asdf local "golang" $(asdf list golang | tail -n 1) || :
   # TODO: make this idempotent - godoc
   go install -v golang.org/x/tools/cmd/godoc@latest
   # TODO: make this idempotent - godef
@@ -206,7 +206,7 @@ function main {
       cmd.diff "$@"
       ;;
     *)
-      echo "setup install|snapshot|vbox"
+      echo "setup install|diff|snapshot|vbox"
       ;;
   esac
 }
