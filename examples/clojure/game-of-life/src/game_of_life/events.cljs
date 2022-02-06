@@ -7,15 +7,18 @@
 
 (re-frame/reg-event-db
  ::initialize-db
- (fn-traced [_ _]
-   db/default-db))
+ (fn-traced
+  [_ _]
+  (db/generate-default-db)))
 
 (re-frame/reg-event-fx
-  ::navigate
-  (fn-traced [_ [_ handler]]
-   {:navigate handler}))
+ ::navigate
+ (fn-traced
+  [_ [_ handler]]
+  {:navigate handler}))
 
 (re-frame/reg-event-fx
  ::set-active-panel
- (fn-traced [{:keys [db]} [_ active-panel]]
-   {:db (assoc db :active-panel active-panel)}))
+ (fn-traced
+  [{:keys [db]} [_ active-panel]]
+  {:db (assoc db :active-panel active-panel)}))

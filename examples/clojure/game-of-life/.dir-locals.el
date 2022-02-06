@@ -6,8 +6,8 @@
                   ("vendor/bootstrap"
                    "js/compiled"
                    "target/stale"))
-  (ffip-project-root       . "~/code/snapclean.me/artzonewestla.com/artzone-web")
-  (krb-ag-search-directory . "~/code/snapclean.me/artzonewestla.com/artzone-web")
+  (ffip-project-root       . "~/code/github.com/kyleburton/sandbox/examples/clojure/game-of-life")
+  (krb-ag-search-directory . "~/code/github.com/kyleburton/sandbox/examples/clojure/game-of-life")
   (eval . (progn
             (require 'find-file-in-project)
             ;; NB: the find command indicated that anything ending with a '/'
