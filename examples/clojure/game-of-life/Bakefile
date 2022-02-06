@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -Euo pipefail
+
+bake_task run_dev "Run the development server"
+function run_dev {
+  npx shadow-cljs watch app browser-test karma-test
+}
+
+bake_task web_build_release "Build the cljs website in release mode."
+function web_build_release {
+  npm run release
+}
+
