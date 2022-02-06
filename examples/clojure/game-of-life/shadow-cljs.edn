@@ -1,4 +1,4 @@
-{:nrepl {:port 8777}
+{:nrepl {:port 8779}
 
  :jvm-opts ["-Xmx1G"]
 
@@ -22,9 +22,13 @@
  :build-defaults
  {:build-hooks [(shadow-git-inject.core/hook)]}
 
+ :http
+ {:port 9632
+  :host "localhost"}
+
  :dev-http
- {8280 "resources/public"
-  8290 "target/browser-test"}
+ {8282 "resources/public"
+  8292 "target/browser-test"}
 
  :builds
  {:app
