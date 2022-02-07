@@ -49,6 +49,12 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (re-frame/reg-event-fx
+ ::gol-reset
+ (fn-traced
+  [{:keys [db]} [_]]
+  {:db (db/grid db (db/reset-grid (:grid db)))}))
+
+(re-frame/reg-event-fx
  ::gol-new-random
  (fn-traced
   [{:keys [db]} [_]]

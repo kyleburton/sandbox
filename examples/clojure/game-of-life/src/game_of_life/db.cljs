@@ -18,6 +18,17 @@
 
   )
 
+(defn reset-grid [grid]
+  (let [height    (:height grid)
+        width     (:width grid)
+        cells     (or (:cells grid) (make-array nil height width))]
+    (doseq [yy (range height)
+            xx (range width)]
+      (aset cells yy xx nil))
+    (assoc grid
+           :cells cells
+           :generation 0}) 0)))
+
 (defn generate-grid [grid-specs]
   (let [height    (:height grid-specs)
         width     (:width grid-specs)
@@ -40,7 +51,10 @@
                     (* height width)
                     @num-alive
                     @num-dead)
-    (assoc (dissoc grid-specs :prev-cells) :cells cells)))
+    (assoc
+     (dissoc grid-specs :prev-cells)
+     :cells cells
+     :generation 0)))
 
 (defn generate-default-db []
   {:name     "Game of Life"

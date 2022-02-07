@@ -66,6 +66,10 @@
                            (re-frame/dispatch [::events/gol-new-random])
                            (js/setTimeout (fn [] (canvas/render-gol-canvas)) 0))}
       "Randomize"]
+     [:button {:on-click (fn []
+                           (re-frame/dispatch [::events/gol-reset])
+                           (js/setTimeout (fn [] (canvas/render-gol-canvas)) 0))}
+      "Reset"]
      [:span "Height"
       [:input {:type      "text"
                :value     (-> grid deref :height)
