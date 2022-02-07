@@ -16,3 +16,8 @@
  ::grid
  (fn [db _]
    (:grid db)))
+
+(re-frame/reg-sub
+ ::ui-state
+ (fn [db _]
+   (:ui-state db)))

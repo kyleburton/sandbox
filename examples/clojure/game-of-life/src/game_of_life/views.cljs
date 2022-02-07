@@ -1,103 +1,103 @@
 (ns game-of-life.views
   (:require
-   [re-frame.core :as re-frame]
+   [re-frame.core       :as re-frame]
    [game-of-life.styles :as styles]
    [game-of-life.config :as config]
    [game-of-life.events :as events]
    [game-of-life.routes :as routes]
-   [game-of-life.subs :as subs]
+   [game-of-life.subs   :as subs]
+   [game-of-life.canvas :as canvas]
+   [reagent.core        :as reagent]
    re-frame.db))
 
 ;; https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life
+(defonce chicken (atom nil))
 
-(def cell-size 10)
-(def line-size 1)
-
-(defn draw-cell [ctx yy xx]
-  (let [cell-size 10
-        yy        (+ yy (* cell-size yy))
-        xx        (+ xx (* cell-size xx))]
-    (js/console.log "[INFO|game-of-life.views/draw-cell]: [%o %o] => [%o %o]" yy xx
-                    (+ cell-size yy)
-                    (+ cell-size xx))
-    (.rect ctx yy xx cell-size cell-size)))
-
-(comment
-  (let [canvas (.getElementById js/document "grid")
-        ctx    (.getContext canvas "2d")]
-    (.clearRect ctx 0 0 (* 11 100) (* 11 100))
-    (set! (.-fillStyle ctx) "rgb(255,255,255)")
-    (.beginPath ctx)
-    (draw-cell ctx 0 0)
-    (draw-cell ctx 1 1)
-    (draw-cell ctx 2 2)
-    (draw-cell ctx 3 3)
-    (.fill ctx))
-
-
-
-  )
-
-(defn test-grid []
-  (let [grid   (-> re-frame.db/app-db deref :grid)
-        height (:height grid)
-        width  (:width grid)
-        canvas (.getElementById js/document "grid")
-        ctx    (.getContext canvas "2d")]
-    (js/console.log "[INFO|game-of-life.views/test-grid]: height=%o; width=%o" height width)
-    ;; (set! (.-fillStyle ctx) "rgb(0,0,0)")
-    ;; (.beginPath ctx)
-    ;; (.rect ctx 0 0 height width)
-    ;; (.fill ctx)
-    (.clearRect ctx 0 0 height width)
-    (set! (.-fillStyle ctx) "rgb(255,255,255)")
-    (js/console.log "[INFO|game-of-life.views/test-grid]: fillStyle=%o" (.-fillStyle ctx))
-    (doseq [yy (range height)
-            xx (range width)
-            :let [cell (aget (:cells grid) yy xx)]]
-      (when (= 1 cell)
-        (js/console.log "[INFO|game-of-life.views/test-grid]: filling [%o %o]" xx yy)
-        (.beginPath ctx)
-        (draw-cell ctx yy xx)
-        (.fill ctx)))))
-
-(comment
-  (test-grid)
-  )
+(defn on-click-canvas [evt]
+  (let [grid        (js/document.getElementById "grid")
+        offset-left (.-offsetLeft grid)
+        client-left (.-clientLeft grid)
+        elm-left    (+ offset-left client-left)
+        offset-top  (.-offsetTop grid)
+        client-top  (.-clientTop grid)
+        elm-top     (+ offset-top client-top)
+        xx          (- (.-pageY evt) elm-top)
+        yy          (- (.-pageX evt) elm-left)
+        cell-xx     (int (/ xx (+ canvas/line-size canvas/cell-size)))
+        cell-yy     (int (/ yy (+ canvas/line-size canvas/cell-size)))]
+    (js/console.log "[INFO|game-of-life.views/on-click-canvas]: %o grid.offsetLeft=%o; grid.clientLeft=%o; grid.offsetTop=%o; grid.clientTop=%o; cell=%o" [yy xx]
+                    (.-offsetLeft grid)
+                    (.-clientLeft grid)
+                    (.-offsetTop grid)
+                    (.-clientTop grid)
+                    [cell-yy cell-xx])
+    (re-frame/dispatch [::events/toggle-cell cell-yy cell-xx])
+    (js/setTimeout (fn [] (canvas/render-gol-canvas)) 0)))
 
 (defn render-grid []
   (let [grid (re-frame/subscribe [::subs/grid])]
-    (js/console.log "[INFO|game-of-life.views/render-grid]: grid=%o" @grid)
-    [:canvas {:width  (+ line-size (* (+ cell-size line-size) (:width @grid)))
-              :height (+ line-size (* (+ cell-size line-size) (:height @grid)))
-              :id     "grid"
-              :style  {:background "#000"}}]))
+    [:canvas {:width    (+ canvas/line-size (* (+ canvas/cell-size canvas/line-size) (:width @grid)))
+              :height   (+ canvas/line-size (* (+ canvas/cell-size canvas/line-size) (:height @grid)))
+              :on-click on-click-canvas
+              :id       "grid"
+              :style    {:background "#000"}}]))
+
+(defn render-grid-controls []
+  (let [grid         (re-frame/subscribe [::subs/grid])
+        ui-state     (re-frame/subscribe [::subs/ui-state])
+        can-go-back? (-> grid deref :prev-cells nil? not)]
+    (js/console.log "[INFO|game-of-life.views/render-grid-controls]: can-go-back?=%o" can-go-back?)
+    [:div
+     [:div "Generation: " (:generation @grid)]
+     [:button {:on-click #(canvas/render-gol-canvas)} "Draw"]
+     [:button {:on-click (fn []
+                           (re-frame/dispatch [::events/gol-go-back])
+                           (js/setTimeout (fn [] (canvas/render-gol-canvas)) 0))
+               :disabled (not can-go-back?)}
+      "Back"]
+     [:button {:on-click (fn []
+                           (re-frame/dispatch [::events/gol-step])
+                           (js/setTimeout (fn [] (canvas/render-gol-canvas)) 0))}
+      "Step"]
+     (if (-> ui-state deref :running)
+       [:button {:on-click #(re-frame/dispatch [::events/gol-stop])}  "Stop"]
+       [:button {:on-click #(re-frame/dispatch [::events/gol-start])} "Start"])
+     [:button {:on-click (fn []
+                           (re-frame/dispatch [::events/gol-new-random])
+                           (js/setTimeout (fn [] (canvas/render-gol-canvas)) 0))}
+      "Randomize"]
+     [:span "Height"
+      [:input {:type      "text"
+               :value     (-> grid deref :height)
+               :on-change (fn [evt]
+                            (re-frame/dispatch [::events/gol-update-height evt (js/parseInt (-> evt .-target .-value))]))}]]
+     [:span "Width"
+      [:input {:type      "text"
+               :value     (-> grid deref :width)
+               :on-change (fn [evt]
+                            (re-frame/dispatch [::events/gol-update-width evt (js/parseInt (-> evt .-target .-value))]))}]]]))
 
 ;; home
 (defn home-panel []
-  [:div
-   [:h1
-    {:class (styles/level1)}
-    ;; (str "Hello from " @name ". This is the Home Page."" Git version " config/version)
-    "Game of Life"]
+  (let [grid (re-frame/subscribe [::subs/grid])]
+    [:div
+     [:h1
+      {:class (styles/level1)}
+      ;; (str "Hello from " @name ". This is the Home Page."" Git version " config/version)
+      "Game of Life"]
 
-   [:pre
-    "DONE: init db w/defaults and blank grid\n"
-    "DONE: render grid\n"
-    "TODO: controls to change grid height & width\n"
-    "TODO: controls to generate a random board\n"
-    "TODO: controls to save a board state\n"
-    "TODO: controls to edit a board\n"
-    "TODO: controls to single-step; start and pause simulation\n"]
+     (render-grid)
+     (render-grid-controls)
 
-   (render-grid)
+     [:div {:style {:height "1em"}}] ;; blank vertical spacing
+     ;; [:pre (js/JSON.stringify (-> grid deref (dissoc :cells) clj->js) nil 2)]
+     ;; [:div {:style {:height "1em"}}] ;; blank vertical spacing
 
-   [:div {:style {:height "1em"}}] ;; blank vertical spacing
 
-   [:div
-    [:a {:on-click #(re-frame/dispatch [::events/navigate :about])}
-     "go to About Page"]]
-   ])
+     [:div
+      [:a {:on-click #(re-frame/dispatch [::events/navigate :about])}
+       "go to About Page"]]
+     ]))
 
 (defmethod routes/panels :home-panel [] [home-panel])
 
@@ -118,3 +118,25 @@
 (defn main-panel []
   (let [active-panel (re-frame/subscribe [::subs/active-panel])]
     (routes/panels @active-panel)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defn document-key-up [evt]
+  (re-frame/dispatch [::events/document-keyup evt]))
+
+(defn gol-keyhandler []
+  (reagent/create-class
+   {:display-name "gol-keyhandler"
+    :component-will-mount
+    (fn [_component]
+      ;; install the key handler
+      (js/console.log "[INFO|game-of-life.views/sw-keyhandler]: installing key handler")
+      (js/document.addEventListener "keyup" document-key-up false))
+    :component-will-unmount
+    (fn [_component]
+      ;; remove the key handler
+      (js/console.log "[INFO|game-of-life.views/sw-keyhandler]: removing key handler")
+      (js/document.removeEventListener "keyup" document-key-up false))
+    :reagent-render
+    (fn []
+      [:span {:key "gol-keyhandler" :style {:display "none"}}])}))
