@@ -8,6 +8,15 @@ function run_dev {
 
 bake_task web_build_release "Build the cljs website in release mode."
 function web_build_release {
-  npm run release
+  #npm run release
+  test -d resources/build/js/compiled || mkdir -p resources/build/js/compiled
+  cp resources/public/index.html resources/build/
+  cp resources/public/js/compiled/app.js resources/build/js/compiled
+
 }
 
+
+bake_task local_http "Run a local http server (eg: to try out the prod build)"
+function local_http {
+  (cd resources/build; python -m http.server 8000)
+}
