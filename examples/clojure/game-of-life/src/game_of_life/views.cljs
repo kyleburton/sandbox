@@ -74,34 +74,40 @@
       [:input {:type      "text"
                :value     (-> grid deref :height)
                :on-change (fn [evt]
-                            (re-frame/dispatch [::events/gol-update-height evt (js/parseInt (-> evt .-target .-value))]))}]]
+                            (re-frame/dispatch [::events/gol-update-height evt (js/parseInt (-> evt .-target .-value))])
+                            (js/setTimeout (fn [] (canvas/render-gol-canvas)) 0))
+               :on-blur   (fn [evt]
+                            (re-frame/dispatch [::events/gol-resize-matrix evt])
+                            (js/setTimeout (fn [] (canvas/render-gol-canvas)) 0))}]]
      [:span "Width"
       [:input {:type      "text"
                :value     (-> grid deref :width)
                :on-change (fn [evt]
-                            (re-frame/dispatch [::events/gol-update-width evt (js/parseInt (-> evt .-target .-value))]))}]]]))
+                            (re-frame/dispatch [::events/gol-update-width evt (js/parseInt (-> evt .-target .-value))])
+                            (js/setTimeout (fn [] (canvas/render-gol-canvas)) 0))
+               :on-blur   (fn [evt]
+                            (js/setTimeout (fn [] (canvas/render-gol-canvas)) 0)
+                            (re-frame/dispatch [::events/gol-resize-matrix evt]))}]]]))
 
 ;; home
 (defn home-panel []
-  (let [grid (re-frame/subscribe [::subs/grid])]
-    [:div
-     [:h1
-      {:class (styles/level1)}
-      ;; (str "Hello from " @name ". This is the Home Page."" Git version " config/version)
-      "Game of Life"]
+  [:div
+   [:h1
+    {:class (styles/level1)}
+    ;; (str "Hello from " @name ". This is the Home Page."" Git version " config/version)
+    "Game of Life"]
 
-     (render-grid)
-     (render-grid-controls)
+   (render-grid)
+   (render-grid-controls)
 
-     [:div {:style {:height "1em"}}] ;; blank vertical spacing
-     ;; [:pre (js/JSON.stringify (-> grid deref (dissoc :cells) clj->js) nil 2)]
-     ;; [:div {:style {:height "1em"}}] ;; blank vertical spacing
+   [:div {:style {:height "1em"}}] ;; blank vertical spacing
+   ;; [:pre (js/JSON.stringify (-> grid deref (dissoc :cells) clj->js) nil 2)]
+   ;; [:div {:style {:height "1em"}}] ;; blank vertical spacing
 
 
-     [:div
-      [:a {:on-click #(re-frame/dispatch [::events/navigate :about])}
-       "go to About Page"]]
-     ]))
+   [:div
+    [:a {:on-click #(re-frame/dispatch [::events/navigate :about])}
+     "go to About Page"]]])
 
 (defmethod routes/panels :home-panel [] [home-panel])
 

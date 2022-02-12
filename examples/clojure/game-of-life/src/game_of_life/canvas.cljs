@@ -56,6 +56,4 @@
 (comment
   (render-gol-canvas)
   (js/setTimeout #(render-gol-canvas) 1000)
-  ;; (alength (-> (game-of-life.db/grid) :cells))          ;; => 50
-  ;; (alength (-> (game-of-life.db/grid) :cells (aget 0))) ;; => 50
   )

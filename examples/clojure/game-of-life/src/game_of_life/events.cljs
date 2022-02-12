@@ -92,6 +92,12 @@
   {:db (db/go-back db)}))
 
 (re-frame/reg-event-fx
+ ::gol-resize-matrix
+ (fn-traced
+  [{:keys [db]} [_]]
+  {:db (db/resize-matrix! db)}))
+
+(re-frame/reg-event-fx
  ::toggle-cell
  (fn-traced
   [{:keys [db]} [_ yy xx]]

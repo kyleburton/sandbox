@@ -27,7 +27,7 @@
       (aset cells yy xx nil))
     (assoc grid
            :cells cells
-           :generation 0}) 0)))
+           :generation 0)))
 
 (defn generate-grid [grid-specs]
   (let [height    (:height grid-specs)
@@ -56,6 +56,65 @@
      :cells cells
      :generation 0)))
 
+(defn clone-cells [cells]
+  (let [new-cells (js/Array.from cells)]
+    (doseq [ii (range (alength cells))]
+      (aset new-cells ii (js/Array.from (aget cells ii))))
+    new-cells))
+
+(defn resize-cells [cells new-height new-width]
+  (let [new-cells  (make-array nil new-height new-width)
+        old-height (alength cells)
+        old-width  (alength (aget cells 0))]
+    (js/console.log "[INFO|game-of-life.db/resize-cells]: resizing [%o, %o] => [%o, %o]"
+                    old-height old-width
+                    new-height new-width)
+    (doseq [yy (range (min new-height old-height))]
+      (doseq [xx (range (min new-width  old-width))]
+        (js/console.log "[INFO|game-of-life.db/resize-cells]: from [%o, %o] => [%o, %o] at [%o,%o] :: %o"
+                        old-height old-width
+                        new-height new-width
+                        yy
+                        xx
+                        (aget cells yy xx))
+        (aset new-cells yy xx (aget cells yy xx))))
+    (js/console.log "[INFO|game-of-life.db/resize-cells]: completed resizing to [%o, %o]"
+                    new-height new-width)
+    new-cells))
+
+(comment
+  (let [old-matrix (make-array nil 3 3)
+        new-matrix (resize-cells old-matrix 4 4)]
+    (assert
+     (= 3 (alength old-matrix)))
+    (assert
+     (= 3 (alength (aget old-matrix 0))))
+    (assert
+     (= 4 (alength new-matrix)))
+    (assert
+     (= 4 (alength (aget new-matrix 0)))))
+
+  (let [old-matrix (make-array nil 4 4)
+        new-matrix (resize-cells old-matrix 3 3)]
+    (assert
+     (= 4 (alength old-matrix)))
+    (assert
+     (= 4 (alength (aget old-matrix 0))))
+    (assert
+     (= 3 (alength new-matrix)))
+    (assert
+     (= 3 (alength (aget new-matrix 0)))))
+
+
+  )
+
+(defn resize-matrix! [db]
+  (let [old-cells (-> db :grid :cells)
+        new-cells (resize-cells old-cells (-> db :grid :height) (-> db :grid :width))]
+    (assoc-in db [:grid :cells] new-cells)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defn generate-default-db []
   {:name     "Game of Life"
    :grid     (generate-grid grid-defaults)
@@ -75,23 +134,35 @@
   ([db new-board]
    (assoc db :grid new-board)))
 
-;; todo: need to resize the cells to match the new width
 (defn width
   ([]
    (-> re-frame.db/app-db deref :grid :width))
   ([db]
    (-> db :grid :width))
   ([db val]
-   (assoc-in db [:grid :width] val)))
+   (->
+    db
+    (assoc-in [:grid :width] val)
+    #_(assoc-in [:grid :cells]
+                (resize-cells
+                 (-> db :grid :cells)
+                 (-> db :grid :height)
+                 val)))))
 
-;; todo: need to resize the cells to match the new width
 (defn height
   ([]
    (-> re-frame.db/app-db deref :grid :height))
   ([db]
    (-> db :grid :height))
   ([db val]
-   (assoc-in db [:grid :height] val)))
+   (->
+    db
+    (assoc-in [:grid :height] val)
+    #_(assoc-in [:grid :cells]
+                (resize-cells
+                 (-> db :grid :cells)
+                 val
+                 (-> db :grid :width))))))
 
 (def neighbor-index-offsets
   [[-1 -1]
@@ -105,37 +176,39 @@
    [1  0]
    [1  1]])
 
-(defn neighbor-coords [cells yy xx]
+(defn neighbor-coords [cells height width yy xx]
   (map
    (fn [[yoff xoff]]
-     (let [max (alength cells)
+     (let [maxy height
+           maxx width
            nyy (+ yy yoff)
            nyy (cond
                  (= -1 nyy)   (count cells)
-                 (= max nyy)  0
+                 (= maxy nyy)  0
                  :else        nyy)
            nxx (+ xx xoff)
            nxx (cond
                  (= -1 nxx)   (count cells)
-                 (= max nxx)  0
+                 (= maxx nxx)  0
                  :else        nxx)]
        [nyy nxx]))
    neighbor-index-offsets))
 
-(defn neighbors [cells yy xx]
+(defn neighbors [cells height width yy xx]
   (map
    (fn [[yoff xoff]]
-     (let [max (alength cells)
-           nyy (+ yy yoff)
-           nyy (cond
-                 (= -1 nyy)   (dec (count cells))
-                 (= max nyy)  0
-                 :else        nyy)
-           nxx (+ xx xoff)
-           nxx (cond
-                 (= -1 nxx)   (dec (count cells))
-                 (= max nxx)  0
-                 :else        nxx)]
+     (let [maxy height
+           maxx width
+           nyy  (+ yy yoff)
+           nyy  (cond
+                  (= -1 nyy)   (dec (count cells))
+                  (= maxy nyy) 0
+                  :else        nyy)
+           nxx  (+ xx xoff)
+           nxx  (cond
+                  (= -1 nxx)   (dec (count cells))
+                  (= maxx nxx) 0
+                  :else        nxx)]
        (aget cells nyy nxx)))
    neighbor-index-offsets))
 
@@ -147,15 +220,15 @@
       (doseq [yy (range 3)
               xx (range 3)]
         (aset cells yy xx (+ (* yy 3) xx)))
-      (neighbors cells 1 1))
+      (neighbors cells 3 3 1 1))
     '(0 1 2 3 5 6 7 8)))
 
   )
 
-(defn count-num-live-neighbors [cells yy xx]
+(defn count-num-live-neighbors [height width cells yy xx]
   (count
    (filter #(= 1 %)
-           (neighbors cells yy xx))))
+           (neighbors cells height width yy xx))))
 
 (defn next-grid [grid]
   (let [height    (:height grid)
@@ -165,7 +238,7 @@
     (doseq [yy   (range height)
             xx   (range width)
             :let [cell               (aget cells yy xx)
-                  num-live-neighbors (count-num-live-neighbors cells yy xx)]]
+                  num-live-neighbors (count-num-live-neighbors height width cells yy xx)]]
       ;; (js/console.log "[INFO|game-of-life.db/next-grid]: [%o %o]:%s num-live-neighbors=%o" yy xx (if (= 1 cell) "alive" "dead") num-live-neighbors)
       (cond
         ;; Any live cell with two or three live neighbours survives.
@@ -196,12 +269,6 @@
         grid       (dissoc grid :prev-cells)
         grid       (assoc grid :cells prev-cells)]
     (assoc db :grid grid)))
-
-(defn clone-cells [cells]
-  (let [new-cells (js/Array.from cells)]
-    (doseq [ii (range (alength (aget cells 0)))]
-      (aset new-cells ii (js/Array.from (aget cells ii))))
-    new-cells))
 
 (comment
 
