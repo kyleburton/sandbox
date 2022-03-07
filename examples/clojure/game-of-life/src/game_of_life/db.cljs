@@ -30,31 +30,31 @@
            :generation 0)))
 
 (defn generate-grid [grid-specs]
-  (let [height    (:height grid-specs)
-        width     (:width grid-specs)
-        cells     (make-array nil height width)
-        num-alive (atom 0)
-        num-dead  (atom 0)]
-    (doseq [yy   (range height)
-            xx   (range width)
-            :let [alive? (>= (rand 2) 1)]]
-      (if alive?
-        (do
-          (aset cells yy xx 1)
-          (swap! num-alive inc))
-        (do
-          (aset cells yy xx nil)
-          (swap! num-dead inc))))
-    (js/console.log "[INFO|game-of-life.db/generate-grid]: %ox%o (%o) grid %o alive %o dead"
-                    height
-                    width
-                    (* height width)
-                    @num-alive
-                    @num-dead)
-    (assoc
-     (dissoc grid-specs :prev-cells)
-     :cells cells
-     :generation 0)))
+(let [height    (:height grid-specs)
+      width     (:width grid-specs)
+      cells     (make-array nil height width)
+      num-alive (atom 0)
+      num-dead  (atom 0)]
+(doseq [yy   (range height)
+        xx   (range width)
+        :let [alive? (>= (rand 2) 1)]]
+  (if alive?
+    (do
+      (aset cells yy xx 1)
+      (swap! num-alive inc))
+    (do
+      (aset cells yy xx nil)
+      (swap! num-dead inc))))
+(js/console.log "[INFO|game-of-life.db/generate-grid]: %ox%o (%o) grid %o alive %o dead"
+                height
+                width
+                (* height width)
+                @num-alive
+                @num-dead)
+(assoc
+ (dissoc grid-specs :prev-cells)
+ :cells cells
+ :generation 0)))
 
 (defn clone-cells [cells]
   (let [new-cells (js/Array.from cells)]
@@ -116,23 +116,23 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defn generate-default-db []
-  {:name     "Game of Life"
-   :grid     (generate-grid grid-defaults)
-   :ui-state {:running false}})
+{:name     "Game of Life"
+:grid     (generate-grid grid-defaults)
+:ui-state {:running false}})
 
 (defn start [db]
-  (assoc-in db [:ui-state :running] true))
+(assoc-in db [:ui-state :running] true))
 
 (defn stop [db]
-  (assoc-in db [:ui-state :running] false))
+(assoc-in db [:ui-state :running] false))
 
 (defn grid
-  ([]
-   (-> re-frame.db/app-db deref :grid))
-  ([db]
-   (:grid db))
-  ([db new-board]
-   (assoc db :grid new-board)))
+([]
+(-> re-frame.db/app-db deref :grid))
+([db]
+(:grid db))
+([db new-board]
+(assoc db :grid new-board)))
 
 (defn width
   ([]
@@ -165,16 +165,16 @@
                  (-> db :grid :width))))))
 
 (def neighbor-index-offsets
-  [[-1 -1]
-   [-1  0]
-   [-1  1]
+[[-1 -1]
+[-1  0]
+[-1  1]
 
-   [0 -1]
-   [0  1]
+[0 -1]
+[0  1]
 
-   [1 -1]
-   [1  0]
-   [1  1]])
+[1 -1]
+[1  0]
+[1  1]])
 
 (defn neighbor-coords [cells height width yy xx]
   (map
@@ -290,3 +290,14 @@
     (aset new-cells yy xx new-cell)
     (assoc-in db [:grid :cells]
               new-cells)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; prebuilt objects
+(defn strings->object [strings]
+  nil)
+
+(def objects
+  {:glider (strings->object
+            "XXX"
+            "  X"
+            " X ")})

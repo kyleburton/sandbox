@@ -117,3 +117,13 @@
     :else
     (js/console.log "[INFO|game-of-life.events/$fn]: unrecognized key: %o" (.-key evt)))
   {:db db}))
+
+(re-frame/reg-event-fx
+ ::place-object
+ (fn-traced
+  [{:keys [db]} [_ object]]
+  (js/console.log "[INFO|game-of-life.events/::place-object]: object=%o" object)
+  (case object
+    :glider :ok
+    :hwss   :ok)
+  {:db db}))
