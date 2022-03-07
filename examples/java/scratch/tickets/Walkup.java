@@ -5,7 +5,7 @@ public class Walkup extends Ticket {
     this.price = price;
   }
 
-  public abstract doulbe getPrice() {
+  public doulbe getPrice() {
     return price;
   }
 }
