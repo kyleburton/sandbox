@@ -30,31 +30,31 @@
            :generation 0)))
 
 (defn generate-grid [grid-specs]
-(let [height    (:height grid-specs)
-      width     (:width grid-specs)
-      cells     (make-array nil height width)
-      num-alive (atom 0)
-      num-dead  (atom 0)]
-(doseq [yy   (range height)
-        xx   (range width)
-        :let [alive? (>= (rand 2) 1)]]
-  (if alive?
-    (do
-      (aset cells yy xx 1)
-      (swap! num-alive inc))
-    (do
-      (aset cells yy xx nil)
-      (swap! num-dead inc))))
-(js/console.log "[INFO|game-of-life.db/generate-grid]: %ox%o (%o) grid %o alive %o dead"
-                height
-                width
-                (* height width)
-                @num-alive
-                @num-dead)
-(assoc
- (dissoc grid-specs :prev-cells)
- :cells cells
- :generation 0)))
+  (let [height    (:height grid-specs)
+        width     (:width grid-specs)
+        cells     (make-array nil height width)
+        num-alive (atom 0)
+        num-dead  (atom 0)]
+    (doseq [yy   (range height)
+            xx   (range width)
+            :let [alive? (>= (rand 2) 1)]]
+      (if alive?
+        (do
+          (aset cells yy xx 1)
+          (swap! num-alive inc))
+        (do
+          (aset cells yy xx nil)
+          (swap! num-dead inc))))
+    (js/console.log "[INFO|game-of-life.db/generate-grid]: %ox%o (%o) grid %o alive %o dead"
+                    height
+                    width
+                    (* height width)
+                    @num-alive
+                    @num-dead)
+    (assoc
+     (dissoc grid-specs :prev-cells)
+     :cells      cells
+     :generation 0)))
 
 (defn clone-cells [cells]
   (let [new-cells (js/Array.from cells)]
@@ -69,14 +69,8 @@
     (js/console.log "[INFO|game-of-life.db/resize-cells]: resizing [%o, %o] => [%o, %o]"
                     old-height old-width
                     new-height new-width)
-    (doseq [yy (range (min new-height old-height))]
+    (doseq [yy (range   (min new-height old-height))]
       (doseq [xx (range (min new-width  old-width))]
-        (js/console.log "[INFO|game-of-life.db/resize-cells]: from [%o, %o] => [%o, %o] at [%o,%o] :: %o"
-                        old-height old-width
-                        new-height new-width
-                        yy
-                        xx
-                        (aget cells yy xx))
         (aset new-cells yy xx (aget cells yy xx))))
     (js/console.log "[INFO|game-of-life.db/resize-cells]: completed resizing to [%o, %o]"
                     new-height new-width)
@@ -231,26 +225,37 @@
            (neighbors cells height width yy xx))))
 
 (defn next-grid [grid]
-  (let [height    (:height grid)
-        width     (:width grid)
-        cells     (:cells grid)
-        new-cells (or (:prev-cells grid) (make-array nil height width))]
+  (let [cells      (:cells grid)
+        height     (alength cells)
+        width      (alength (get cells 0))
+        prev-cells (:prev-cells grid)
+        new-cells  (cond ;; if prev-cells is not the same size as cells, we can't use it
+                     (and prev-cells
+                          (= (alength cells)
+                             (alength prev-cells))
+                          (= (alength (aget cells 0))
+                             (alength (aget prev-cells 0))))
+                     prev-cells
+
+                     :else
+                     (make-array nil height width))]
     (doseq [yy   (range height)
             xx   (range width)
             :let [cell               (aget cells yy xx)
-                  num-live-neighbors (count-num-live-neighbors height width cells yy xx)]]
-      ;; (js/console.log "[INFO|game-of-life.db/next-grid]: [%o %o]:%s num-live-neighbors=%o" yy xx (if (= 1 cell) "alive" "dead") num-live-neighbors)
+                  num-live-neighbors (count-num-live-neighbors height width cells yy xx)
+                  alive? (= 1 cell)
+                  dead?  (not alive?)]]
       (cond
         ;; Any live cell with two or three live neighbours survives.
         (and
-         (= 1 cell)
+         alive?
          (or (= 2 num-live-neighbors)
              (= 3 num-live-neighbors)))
         (aset new-cells yy xx 1)
 
         ;; Any dead cell with three live neighbours becomes a live cell.
         (and
-         (nil? cell)
+         dead?
          (= 3 num-live-neighbors))
         (aset new-cells yy xx 1)
 

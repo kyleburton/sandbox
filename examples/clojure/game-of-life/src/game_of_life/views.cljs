@@ -86,8 +86,8 @@
                             (re-frame/dispatch [::events/gol-update-width evt (js/parseInt (-> evt .-target .-value))])
                             (js/setTimeout (fn [] (canvas/render-gol-canvas)) 0))
                :on-blur   (fn [evt]
-                            (js/setTimeout (fn [] (canvas/render-gol-canvas)) 0)
-                            (re-frame/dispatch [::events/gol-resize-matrix evt]))}]]]))
+                            (re-frame/dispatch [::events/gol-resize-matrix evt])
+                            (js/setTimeout (fn [] (canvas/render-gol-canvas)) 0))}]]]))
 
 ;; home
 (defn home-panel []
@@ -103,11 +103,7 @@
    [:div {:style {:height "1em"}}] ;; blank vertical spacing
    ;; [:pre (js/JSON.stringify (-> grid deref (dissoc :cells) clj->js) nil 2)]
    ;; [:div {:style {:height "1em"}}] ;; blank vertical spacing
-
-
-   [:div
-    [:a {:on-click #(re-frame/dispatch [::events/navigate :about])}
-     "go to About Page"]]])
+   ])
 
 (defmethod routes/panels :home-panel [] [home-panel])
 

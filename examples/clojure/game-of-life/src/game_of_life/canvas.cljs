@@ -28,12 +28,17 @@
 
 (defn render-gol-canvas []
   (let [grid      (-> re-frame.db/app-db deref :grid)
+        cells     (:cells grid)
         height    (:height grid)
         width     (:width grid)
         canvas    (.getElementById js/document "grid")
         ctx       (.getContext canvas "2d")
         num-alive (atom 0)]
-    (js/console.log "[INFO|game-of-life.views/test-grid]: height=%o; width=%o" height width)
+    (js/console.log "[INFO|game-of-life.views/test-grid]: height=%o/alen=%o; width=%o/alen=%o"
+                    height
+                    (alength cells)
+                    width
+                    (alength (aget cells 0)))
     (set! (.-fillStyle ctx) "rgb(0,0,0)")
     (.clearRect ctx
                 0
@@ -44,7 +49,7 @@
     (js/console.log "[INFO|game-of-life.views/test-grid]: fillStyle=%o" (.-fillStyle ctx))
     (doseq [yy   (range height)
             xx   (range width)
-            :let [cell (aget (:cells grid) yy xx)]]
+            :let [cell (aget cells yy xx)]]
       (when (= 1 cell)
         (swap! num-alive inc)
         (.beginPath ctx)

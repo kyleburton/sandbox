@@ -8,11 +8,11 @@ function run_dev {
 
 bake_task web_build_release "Build the cljs website in release mode."
 function web_build_release {
-  #npm run release
+  npm run release
+  # npx shadow-cljs release
   test -d resources/build/js/compiled || mkdir -p resources/build/js/compiled
   cp resources/public/index.html resources/build/
   cp resources/public/js/compiled/app.js resources/build/js/compiled
-
 }
 
 
