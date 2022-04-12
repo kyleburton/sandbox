@@ -99,7 +99,7 @@ function cmd.diff {
   echo "[diff] ~/.bash.d"
   git diff --no-index ~/.bash.d ./files/home/kyle/.bash.d
 
-  for fname in .bashrc .dictrc .editrc .gemrc .gitconfig .gitignore .profile .screenrc .tmux.conf .vimrc .config/openbox/rc.xml; do
+  for fname in .bashrc .dictrc .editrc .gemrc .gitconfig .gitignore .profile .tmux.conf .vimrc .config/openbox/rc.xml; do
     echo "[diff] $fname"
     git diff --no-index "$HOME/$fname" "./files/home/kyle/$fname"
   done

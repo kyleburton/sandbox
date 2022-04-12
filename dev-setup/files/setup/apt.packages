@@ -4,7 +4,6 @@ vim-nox
 build-essential
 dkms
 virtualbox-guest-additions-iso
-screen
 openbox
 xautomation
 emacs-nox

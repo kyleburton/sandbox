@@ -1,6 +1,5 @@
 libcurl4-openssl-dev
 ruby
-screen
 whois
 build-essential
 zlib1g-dev

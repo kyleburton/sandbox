@@ -10,3 +10,4 @@ sbcl
 clisp
 jq
 lastpass-cli --with-pinetry
+tmux
