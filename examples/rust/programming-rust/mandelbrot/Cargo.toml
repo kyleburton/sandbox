@@ -6,4 +6,4 @@ authors = ["Kyle Burton <kyle.burton@gmail.com>"]
 [dependencies]
 num = "0.1.27"
 image = "0.6.1"
-crossbeam = "0.2.8"
+crossbeam = "0.7.0"
