@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -Euo pipefail
+
+[[ -n ${DEBUG:-}  ]] && set -x
+
+bake_task run-dev "Run the development server"
+function run-dev {
+    # npx shadow-cljs watch app browser-test karma-test
+    lein with-profile dev run -- --nrepl
+}
+
+bake_task update-deps "Update project.clj dependencies to the latest versions"
+function update-deps {
+    lein ancient upgrade
+}
+
