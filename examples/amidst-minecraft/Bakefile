@@ -3,6 +3,22 @@ set -Euo pipefail
 
 [[ -n ${DEBUG:-}  ]] && set -x
 
+bake_task install-amidst "Install the amidst jar into the local maven repo"
+function install-amidst {
+  (
+    cd ~/code/github.com/toolbox4minecraft/amidst/
+    mvn install:install-file \
+       -Dfile=./target/amidst-v4-7.jar \
+       -DgroupId=amidst \
+       -DartifactId=amidst \
+       -Dversion=4.7 \
+       -Dpackaging=jar \
+       -DgeneratePom=true
+  )
+}
+
+
+
 bake_task run-dev "Run the development server"
 function run-dev {
     # npx shadow-cljs watch app browser-test karma-test

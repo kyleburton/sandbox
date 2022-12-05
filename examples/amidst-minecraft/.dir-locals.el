@@ -2,7 +2,7 @@
 ;;; For more information see (info "(emacs) Directory Variables")
 
 ((clojure-mode
-  (krb-clj-cider-connect-args :host "localhost" :port "4045")
+  (krb-clj-cider-connect-args :host "localhost" :port "4046")
   (krb-clj-cider-connect-fn . cider-connect)
   (ffip-project-root       . "~/code/snapclean.me/amidst-minecraft")
   (krb-ag-search-directory . "~/code/snapclean.me/amidst-minecraft")
