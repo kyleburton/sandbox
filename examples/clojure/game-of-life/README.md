@@ -263,3 +263,14 @@ Please be patient; it may take over 15 seconds to see any output, and over 30 se
 
 The `resources/public/js/compiled` directory is created, containing the compiled `app.js` and
 `manifest.edn` files.
+
+
+## Common Issues or Errors
+
+```
+The required namespace "react-dom" is not available, it was required by "reagent/dom.cljs".
+```
+
+```sh
+npm install
+```
