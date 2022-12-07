@@ -297,8 +297,13 @@
               new-cells)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; prebuilt objects
-(defn strings->object [strings]
+;; prebuilt objects / patterns for the game, the intent is to be
+;; able to "draw" a shape (like a glider) that can then be
+;; selected and placed on the canvas by the user (perhaps
+;; drag & drop).
+;;
+;; NB: this is unimplemented,
+(defn strings->object [& strings]
   nil)
 
 (def objects
