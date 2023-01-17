@@ -1,6 +1,11 @@
 SRCS=gsl_erf.c
 OBJECTS=$(subst .c,.o,$(SRCS))
-CFLAGS=-g -Wall -Werror -std=gnu11 -v $(/usr/bin/pkg-config --cflags gsl)
+# https://embeddedartistry.com/blog/2017/06/07/warnings-weverything-and-the-kitchen-sink/
+# -Wall
+# -Werror
+# -Wpedantic
+# -Weverything
+CFLAGS=-g -Weverything -std=gnu11 -v $(/usr/bin/pkg-config --cflags gsl)
 LDLIBS=$(shell /usr/bin/pkg-config --libs gsl)
 CC=/usr/bin/clang
 
