@@ -6,7 +6,7 @@ OBJECTS=$(subst .c,.o,$(SRCS))
 # -Wpedantic
 # -Weverything
 # -Wunused-result
-CFLAGS=-g -Weverything -std=gnu11 -v $(/usr/bin/pkg-config --cflags gsl)
+CFLAGS=-g -Weverything -std=gnu11 -v $(shell /usr/bin/pkg-config --cflags gsl)
 LDLIBS=$(shell /usr/bin/pkg-config --libs gsl)
 CC=/usr/bin/clang
 

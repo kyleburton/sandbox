@@ -1,0 +1,6 @@
+stddev_bugged.c
+*.o
+*~
+gdb01
+stddev_bugged
+ch02-2
