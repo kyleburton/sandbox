@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+MINECRAFT_VERSION="1.19.3"
+
+function isodate () {
+  date -u +"%Y-%m-%dT%H:%M:%SZ"
+}
+
+bake_task run_bukkit_server "Run Bukkit with local plugins"
+function run_bukkit_server () {
+  set -x
+  if grep -q "eula=false" eula.txt; then
+    echo "Error: you have to accept the EULA, see the file eula.txt"
+    return 1
+  fi
+  java -cp "$BUKKIT_JAR:$(lein classpath):plugins/*:lib/*" -Xms4096M -Xmx4096M # net.canarymod.Main
+}
+
+bake_task local_install_bukkit
+function local_install_bukkit () {
+  # [org.spigotmc/spigot-api "1.9"]
+  mvn install:install-file \
+      -Dfile=./libs/spigot-api-1.9.jar \
+      -DgroupId=org.spigotmc \
+      -DartifactId=spigot-api \
+      -Dversion=1.9 \
+      -Dpackaging=jar
+
+}
+
