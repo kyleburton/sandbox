@@ -4,3 +4,5 @@ stddev_bugged.c
 gdb01
 stddev_bugged
 ch02-2
+.cache/
+compile_commands.json

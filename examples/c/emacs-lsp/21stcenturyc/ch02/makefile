@@ -7,6 +7,7 @@ CFLAGS=-g \
 -v \
 $(shell /usr/bin/pkg-config --cflags gsl) \
 $(shell /usr/bin/pkg-config --cflags glib-2.0) \
+-I $(HOME)/code/github.com/b-k/21st-Century-Examples \
 --system-header-prefix=glib # disable warnings for headers starting with 'glib'
 
 LDLIBS=$(shell /usr/bin/pkg-config --libs gsl) $(shell /usr/bin/pkg-config --libs glib-2.0)
