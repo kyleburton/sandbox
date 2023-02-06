@@ -28,7 +28,6 @@ $(MAIN).c:
 clean:
 	$(RM) ./*.o ./$(MAIN)
 
-
 config:
 	@echo MAIN=$(MAIN)
 	@echo SRCS=$(SRCS)
