@@ -9,3 +9,9 @@ compile_commands.json
 ch02-2-3
 dict.c
 keyval.c
+gcov.makefile
+dict_test
+dict_test-dict_test.gcda
+dict_test-dict_test.gcno
+dict_test.c
+dict_test.c.gcov
