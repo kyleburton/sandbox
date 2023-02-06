@@ -35,3 +35,9 @@ config:
 	@echo CFLAGS=$(CFLAGS)
 	@echo LDLIBS=$(LDLIBS)
 	@echo CC=$(CC)
+
+dict.c:
+	cp $(HOME)/code/github.com/b-k/21st-Century-Examples/dict.c ./
+
+keyval.c:
+	cp $(HOME)/code/github.com/b-k/21st-Century-Examples/keyval.c ./
