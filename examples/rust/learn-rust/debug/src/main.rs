@@ -12,6 +12,12 @@ struct Person<'a> {
     age: u8
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+struct Person2 {
+    name: String,
+    age: u8
+}
+
 
 fn main () {
     println!("{:?} months in a year.", 12);
@@ -26,5 +32,14 @@ fn main () {
     let age = 27;
     let peter = Person { name, age };
 
-    println!("{:#?}", peter);
+    println!("peter-{:#?}", peter);
+
+    println!("name={name}");
+    println!("age={age}");
+
+    let name2 = "Peter";
+    let age2 = 27;
+    let peter2 = Person2 { name:name2.to_string(), age:age2 };
+    println!("peter={:#?}", peter2);
+
 }
