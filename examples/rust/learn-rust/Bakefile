@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+set -eEuo pipefail
+
+bake_task new "New Cargo Project"
+function new () {
+    local name
+    name="$1"
+
+    if [[ -z "$name" ]]; then
+        >&2 echo "Error: missing project 'name'"
+        return 1
+    fi
+
+    cargo new "$name"
+    cat <<EOF  > "$name"/.gitignore
+target/
+EOF
+    touch "$name"/Cargo.lock
+    git add "$name"
+    echo "cd \"$name\""
+}
