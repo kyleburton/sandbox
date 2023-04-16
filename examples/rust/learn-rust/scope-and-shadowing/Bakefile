@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -eEuo pipefail
+bake_task run "build and run the project"
+function run () {
+    cargo b && ./target/debug/scope-and-shadowing
+}
+
+bake_default_task run
