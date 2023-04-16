@@ -18,5 +18,10 @@ target/
 EOF
     touch "$name"/Cargo.lock
     git add "$name"
+    (
+        cd "$name"
+        cargo b
+    )
     echo "cd \"$name\""
+    echo "cargo b && ./target/debug/$name"
 }
