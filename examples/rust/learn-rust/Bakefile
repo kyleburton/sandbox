@@ -33,6 +33,12 @@ EOF
         cd "$name"
         cargo b && "./target/debug/$name"
         git add .
+#         cat <<EOF > .tmp.bashrc
+# source ~/.bashrc
+# PS1="inference: \$PS1 "
+# EOF
+#         echo "don't forget to exit the subshell"
+#         bash --rcfile .tmp.bashrc
     )
     echo "cd \"$name\""
 }
