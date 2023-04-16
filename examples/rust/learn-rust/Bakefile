@@ -2,6 +2,8 @@
 
 set -eEuo pipefail
 
+[[ -n "${DEBUG:-}" ]] && set -x
+
 bake_task new "New Cargo Project"
 function new () {
     local name
@@ -21,16 +23,16 @@ EOF
 set -eEuo pipefail
 bake_task run "build and run the project"
 function run () {
-    cargo b && ./target/debug/$name
+    cargo b && "./target/debug/$name"
 }
 
 bake_default_task run
 EOF
     touch "$name"/Cargo.lock
-    git add "$name"
     (
         cd "$name"
-        bake
+        cargo b && "./target/debug/$name"
+        git add .
     )
     echo "cd \"$name\""
 }
