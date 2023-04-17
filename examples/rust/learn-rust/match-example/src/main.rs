@@ -1,3 +1,6 @@
+use rand::Rng;
+use std::str::FromStr;
+
 #[allow(dead_code)]
 enum  Color {
     Red,
@@ -8,6 +11,42 @@ enum  Color {
     HSL(u32, u32, u32),
     CMY(u32, u32, u32),
     CMYK(u32, u32, u32, u32),
+}
+
+enum Temperature {
+    Celsius(i32),
+    Farenheit(i32),
+}
+
+fn age() -> u32 {
+    // 15
+    let mut rng = rand::thread_rng();
+    rng.gen::<u32>() % 37
+}
+
+fn some_number() -> Option<u32> {
+    // Some(42)
+    let mut rng = rand::thread_rng();
+    Some((rng.gen::<u32>() % 3) + 40)
+}
+
+enum Frob {
+    Bar,
+    Baz,
+    Qux(u32),
+}
+
+fn get_count_item(s: &str) -> (u64, &str) {
+    let mut it = s.split(' ');
+    let (Some(count_str), Some(item)) = (it.next(), it.next()) else {
+        panic!("Can't segment count item pair: '{s}'");
+    };
+
+    let Ok(count) = u64::from_str(count_str) else {
+        panic!("Can't parse integer: '{count_str}'");
+    };
+
+    (count, item)
 }
 
 fn main() {
@@ -126,5 +165,124 @@ fn main() {
         Foo { x: (1, b), y } => println!("First of x is 1, b={}, y={}", y, b),
         Foo { y: 2, x: i} => println!("y is 2, i={:?}", i),
         Foo { y, .. } => println!("y={}, we don't care about x", y),
+    }
+
+    println!("----------------------------------------");
+    println!("guards");
+
+    // let temperature = Temperature::Celsius(35);
+    // let temperature = Temperature::Farenheit(23);
+    let temperature = Temperature::Farenheit(102);
+
+    match temperature {
+        Temperature::Celsius(t) if t > 30 => println!("{}C is above 30 Celcius", t),
+        Temperature::Celsius(t)  => println!("{}C is at or below 30 Celcius", t),
+
+        Temperature::Farenheit(t) if t > 86 => println!("{}F is above 86 Farenheit", t),
+        Temperature::Farenheit(t)  => println!("{}F is at or below 86 Farenheit", t),
+    }
+
+    let number: u8 = 4;
+    match number {
+        ii if ii == 0 => println!("Zero!"),
+        ii if ii > 0 => println!("Greater than zero"),
+        _ => unreachable!("Should never get here"),
+    }
+
+    println!("----------------------------------------");
+    println!("binding");
+
+    println!("tell me what type of person you are");
+    match age() {
+        0 => println!("I haven't celebrated my first birthday yet"),
+        n @ 1 ..= 12 => println!("I'm a child of age {:?}", n),
+        n @ 13 ..= 19 => println!("I'm a teen of age {:?}", n),
+        n => println!("I'm an old person of age {:?}", n),
+    }
+
+    match some_number() {
+        Some(nn @ 42) => println!("The answer: {}", nn),
+        Some(nn) => println!("Not interesting ...: {}", nn),
+        _ => (),
+    }
+
+    let optional = Some(7);
+    match optional {
+        Some(i) => {
+            println!("This is a really long string and `{:?}`", i);
+        },
+        _ => {}
+    }
+
+    let number = Some(7);
+    let _letter: Option<i32> = None;
+    let emoticon: Option<i32> = None;
+
+    if let Some(i) = number {
+        println!("matched {:?}", i);
+    } else {
+        println!("didn't match a number, let's go with a letter");
+    }
+
+    let i_like_letters = false;
+    if let Some(i) = emoticon {
+        println!("Matched: {:?}", i);
+    } else if i_like_letters {
+        println!("Didn't match a number.  Let's go with a letter!");
+    } else {
+        println!("I don't like letters, let's go with an emoticon :)");
+    }
+
+    let a = Frob::Bar;
+    let b = Frob::Baz;
+    // let c = Frob::Qux(160);
+    let c = Frob::Qux(100);
+
+    if let Frob::Bar = a {
+        println!("a is a foobar");
+    }
+
+    if let Frob::Bar = b {
+        println!("b is a foobar");
+    }
+
+    if let Frob::Qux(value) = c {
+        println!("c is {}", value);
+    }
+
+    if let Frob::Qux(_value @ 100) = c {
+        println!("c is one hundred");
+    }
+
+    assert_eq!(get_count_item("3 chairs"), (3, "chairs"));
+
+
+    let mut optional = Some(0);
+
+    loop {
+        match optional {
+            Some(i) => {
+                if i > 9 {
+                    println!("Greater than 9, quit!");
+                    optional = None;
+                } else {
+                    println!("`i` is `{:?}`. Try again.", i);
+                    optional = Some(i+1);
+                }
+            },
+            _ => { break; }
+        }
+    }
+
+    let mut optional = Some(0);
+
+    while let Some(ii) = optional {
+        if ii > 9 {
+            println!("Greater than 9, quit!");
+            optional = None;
+        } else {
+            println!("`ii` is `{:?}`. Try again.", ii);
+            optional = Some(ii+1);
+        }
     }
 }
