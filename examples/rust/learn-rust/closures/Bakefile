@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -eEuo pipefail
+bake_task run "build and run the project"
+function run () {
+    clear
+    cargo b && "./target/debug/closures"
+}
+
+bake_default_task run
