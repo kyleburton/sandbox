@@ -23,6 +23,7 @@ EOF
 set -eEuo pipefail
 bake_task run "build and run the project"
 function run () {
+    clear
     cargo b && "./target/debug/$name"
 }
 
