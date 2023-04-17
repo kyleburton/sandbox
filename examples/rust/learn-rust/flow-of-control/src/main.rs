@@ -71,4 +71,65 @@ fn main() {
     };
 
     assert_eq!(result, 20);
+
+    println!("----------------------------------------");
+
+    let mut nn = 1;
+    while nn < 101 {
+        if nn % 15 == 0 {
+            println!("nn: fizzbuzz");
+        } else if nn % 3 == 0 {
+            println!("nn: fizz");
+        } else if nn % 5 == 0 {
+            println!("nn: buzz");
+        } else {
+            println!("nn: {}", nn);
+        }
+        nn += 1;
+    }
+
+    println!("----------------------------------------");
+    // for loops: https://doc.rust-lang.org/rust-by-example/flow_control/for.html
+    for mm in 1..=100 {
+        if mm % 15 == 0 {
+            println!("mm: fizzbuzz");
+        } else if mm % 3 == 0 {
+            println!("mm: fizz");
+        } else if mm % 5 == 0 {
+            println!("mm: buzz");
+        } else {
+            println!("mm: {}", mm);
+        }
+    }
+
+    let names = vec!["Bob", "Frank", "Ferris"];
+    for name in names.iter() {
+        match name {
+            &"Ferris" => println!("There is a rusacean among us! ({})", name),
+            _ => println!("Hello {}", name),
+        }
+    }
+
+
+    // into_iter() "consumes" the vec
+    // also, the iterator doesn't result in a ref to a str, just a str
+    let names2 = vec!["Bob", "Frank", "Ferris"];
+    for name in names2.into_iter() {
+        match name {
+            "Ferris" => println!("There is a rusacean among us! ({})", name),
+            _ => println!("Hello {}", name),
+        }
+    }
+
+
+    let mut names3 = vec!["Bob".to_string(), "Frank".to_string(), "Ferris".to_string()];
+    for name in names3.iter_mut() {
+        *name = match name.as_str() {
+            "Ferris" => format!("There is a rusacean among us! ({})", name),
+            _ => format!("Hello {}", name),
+        }
+    }
+
+    println!("names3: {:?}", names3)
+
 }
