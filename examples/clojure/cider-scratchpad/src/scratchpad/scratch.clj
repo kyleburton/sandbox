@@ -8,7 +8,8 @@
    [clojure.java.io               :as io]
    [schema.core                   :as s]
    [clojure.math.combinatorics    :as combo]
-   [com.rpl.specter               :as specter])
+   [com.rpl.specter               :as specter]
+   [clojure.data.json             :as json])
   (:import
    [scratchpad.heap BinHeap]
    [org.jsoup Jsoup]))
@@ -38,33 +39,6 @@
   (combo/permutation-index [:orange :banana :apple])
   5
 
-
-  )
-
-(comment
-
-  (def versions
-    (->
-     "https://raw.githubusercontent.com/cognitect-labs/aws-api/master/latest-releases.edn"
-     slurp
-     read-string))
-
-  (spit
-   "foo.foo"
-   (vec
-    (concat
-     [(-> versions :api first)
-      (-> versions :endpoints first)]
-     (-> versions :services))))
-
-  (with-open [wtr (io/writer "foo.foo")]
-    (doseq [ent (vec
-                 (concat
-                  [(-> versions :api first)
-                   (-> versions :endpoints first)]
-                  (-> versions :services)))]
-      (.write wtr (str ent))
-      (.write wtr "\n")))
 
   )
 
@@ -397,4 +371,56 @@
                           (rand-grade)
                           (rand-grade)))))
 
+  )
+
+(defn parse-project-file [project-file]
+  (let [[_ _project-name _version-string & pairs] (-> project-file slurp read-string)
+        project-info (apply hash-map pairs)]
+    project-info))
+
+(comment
+
+  (def versions
+    (->
+     "https://raw.githubusercontent.com/cognitect-labs/aws-api/master/latest-releases.edn"
+     slurp
+     read-string))
+
+  (spit
+   "foo.foo"
+   (vec
+    (concat
+     [(-> versions :api first)
+      (-> versions :endpoints first)]
+     (-> versions :services))))
+
+  (with-open [wtr (io/writer "foo.foo")]
+    (doseq [ent (vec
+                 (concat
+                  [(-> versions :api first)
+                   (-> versions :endpoints first)]
+                  (-> versions :services)))]
+      (.write wtr (str ent))
+      (.write wtr "\n")))
+
+
+  (let [;; grab all the project dependencies
+        dependencies (->
+                      (parse-project-file "project.clj")
+                      :dependencies)
+        ;; filter for those that start with com.cognitect.aws
+        aws-deps     (filter (fn [[dep _ver]]
+                               (.startsWith (str dep) "com.cognitect.aws")) dependencies)
+        ;; look up the new versions
+        updated-aws-deps (reduce
+                          (fn [acc [aws-dep _ver]]
+                            (let [new-dep-info (get versions aws-dep)]
+                              (conj acc [aws-dep (get new-dep-info ':mvn/version)])))
+                          {}
+                          aws-deps)]
+    (with-open[wtr (io/writer "foo.foo")]
+     (doseq [ent updated-aws-deps]
+       (.write wtr (str ent))
+       (.write wtr "\n")))
+    updated-aws-deps)
   )

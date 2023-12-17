@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -eEuo pipefail
+
+
+bake_task clang-show-all-language-versions
+function clang-show-all-language-versions () {
+  touch clang-show-all-language-versions.cpp
+  clang++ --std=invalid ./clang-show-all-language-versions.cpp || :
+  rm clang-show-all-language-versions.cpp
+}
+
+bake_task g++-show-all-language-versions
+function g++-show-all-language-versions () {
+  g++ -v --help 2>&1 | grep -- '^  -std=c++'
+}
