@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+bake_task build
+function build () {
+  clang++ -g -o ex19 -std=c++17 ex19.cpp
+  clang++ -g -o ex24 -std=c++17 ex24.cpp
+  clang++ -g -o ex26 -std=c++17 ex26.cpp
+}
