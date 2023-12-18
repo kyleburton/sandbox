@@ -3,7 +3,22 @@ set -Eeuo pipefail
 
 bake_task build
 function build () {
-  clang++ -g -o ex19 -std=c++17 ex19.cpp
-  clang++ -g -o ex24 -std=c++17 ex24.cpp
-  clang++ -g -o ex26 -std=c++17 ex26.cpp
+  for fname in *.cpp; do
+    ofile="$(basename "$fname" .cpp)"
+    clang++ -g -o "$ofile" -std=c++17 "$fname"
+  done
+}
+
+
+
+bake_task clang-show-all-language-versions
+function clang-show-all-language-versions () {
+  touch clang-show-all-language-versions.cpp
+  clang++ --std=invalid ./clang-show-all-language-versions.cpp || :
+  rm clang-show-all-language-versions.cpp
+}
+
+bake_task g++-show-all-language-versions
+function g++-show-all-language-versions () {
+  g++ -v --help 2>&1 | grep -- '^  -std=c++'
 }
