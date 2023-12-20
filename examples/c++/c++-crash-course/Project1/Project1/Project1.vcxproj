@@ -106,6 +106,7 @@
       <ConformanceMode>true</ConformanceMode>
       <Optimization>Disabled</Optimization>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>C:/Users/kyleb/code/immer;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -131,6 +132,8 @@
   <ItemGroup>
     <ClCompile Include="ch03.cpp" />
     <ClCompile Include="ch04.cpp" />
+    <ClCompile Include="ch05.cpp" />
+    <ClCompile Include="ch06.cpp" />
     <ClCompile Include="ex1.cpp" />
     <ClCompile Include="ex2.cpp" />
   </ItemGroup>

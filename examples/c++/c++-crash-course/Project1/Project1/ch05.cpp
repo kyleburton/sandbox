@@ -320,7 +320,7 @@ void ch05_main5() {
 	delete db;
 }
 
-int main() {
+void ch05_main() {
 	// ch05_main1();
 	// ch05_main2();
 	// ch05_main3();

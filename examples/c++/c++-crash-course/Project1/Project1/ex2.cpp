@@ -212,7 +212,7 @@ void main5() {
 	// setlocale(LC_NUMERIC, "");
 	// printf("gg=%'lld\n", gg);
 
-	printf("Yabba %x!\n", 3669732608);
+	printf("Yabba %I64x!\n", 3669732608);
 	printf("Three are %u,%o leaves here.\n", 69, 69);
 
 	// std::cout << "mug: " << U'\U0001F37A' << std::endl;
@@ -369,6 +369,8 @@ struct Calculator {
 		case Operation::Divide:
 			return xx / yy;
 			break;
+		default:
+			return ~0;
 		}
 	}
 
@@ -386,6 +388,8 @@ struct Calculator {
 		case Operation::Divide:
 			return "divide";
 			break;
+		default:
+			return "*unknon operation*";
 		}
 	}
 

@@ -396,7 +396,7 @@ void ch04_main6() {
 	t3.set_name("t3");
 }
 
-int main() {
+int ch04_main() {
 	// ch04_main1();
 	// ch04_main2();
 	// ch04_main3();
