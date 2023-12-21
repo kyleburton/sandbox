@@ -4,6 +4,7 @@
 #include <map>
 #include <vector>
 #include <algorithm>
+#include <cstdint>
 
 void carbon_thaw(const int& encased_solo) {
 	std::cout << "carbon_thaw encased_solo=" << encased_solo << std::endl;
@@ -200,10 +201,18 @@ void ch06_main2() {
 	//std::cout << "mode(nums2)=" << mode(nums2, sizeof(nums2) / sizeof(nums2[0])) << std::endl;
 	std::cout << "mean2(nums2)=" << mean2<sizeof(nums2) / sizeof(nums2[0])>(nums2) << std::endl;
 
-	
+	std::cout << std::hex;
+	std::cout << "std::numeric_limits<unsigned int>::max()      = 0x" << std::numeric_limits<unsigned int>::max() << std::endl;
+	std::cout << "std::numeric_limits<unsigned long>::max()     = 0x" << std::numeric_limits<unsigned long>::max() << std::endl;
+	std::cout << "std::numeric_limits<unsigned long long>::max()= 0x" << std::numeric_limits<unsigned long long>::max() << std::endl;
+
+	std::cout << "std::numeric_limits<uint16_t>::max()          = 0x" << std::numeric_limits<uint16_t>::max() << std::endl;
+	std::cout << "std::numeric_limits<uint32_t>::max()          = 0x" << std::numeric_limits<uint32_t>::max() << std::endl;
+	std::cout << "std::numeric_limits<uint64_t>::max()          = 0x" << std::numeric_limits<uint64_t>::max() << std::endl;
+	std::cout << std::dec;
 }
 
-int main() {
+int ch06_main() {
 	// ch06_main1();
 	ch06_main2();
 	return 0;

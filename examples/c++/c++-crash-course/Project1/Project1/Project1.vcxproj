@@ -134,8 +134,14 @@
     <ClCompile Include="ch04.cpp" />
     <ClCompile Include="ch05.cpp" />
     <ClCompile Include="ch06.cpp" />
+    <ClCompile Include="ch08FibonacciIterator.cpp" />
+    <ClCompile Include="ch08.cpp" />
+    <ClCompile Include="ch08FibonacciRange.cpp" />
     <ClCompile Include="ex1.cpp" />
     <ClCompile Include="ex2.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ch08.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
