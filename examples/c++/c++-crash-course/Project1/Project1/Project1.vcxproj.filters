@@ -42,6 +42,9 @@
     <ClCompile Include="ch08FibonacciRange.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ch09.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ch08.h">

@@ -137,6 +137,7 @@
     <ClCompile Include="ch08FibonacciIterator.cpp" />
     <ClCompile Include="ch08.cpp" />
     <ClCompile Include="ch08FibonacciRange.cpp" />
+    <ClCompile Include="ch09.cpp" />
     <ClCompile Include="ex1.cpp" />
     <ClCompile Include="ex2.cpp" />
   </ItemGroup>
