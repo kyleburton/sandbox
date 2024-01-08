@@ -72,7 +72,7 @@ constexpr bool all(Fn function, In* input, size_t length) {
 	return true;
 }
 
-int main(int argc, char** argv) {
+int ch09_main(int argc, char** argv) {
 	printf("sum1 is: %d\n", sum1(2, 4, 6, 8, 10, 12));
 	printf("sum2 is: %d\n", sum2(2, 4, 6, 8, 10, 12));
 
@@ -99,11 +99,11 @@ int main(int argc, char** argv) {
 	printf("count_gt_200: %d\n", count_gt_200);
 
 	int hist[26]{};
-	int sum_lengths = fold([](auto elt, auto acc) { return acc + strlen(elt);  }, argv, argc, 0);
+	size_t sum_lengths = fold([](auto elt, auto acc) { return acc + strlen(elt);  }, argv, argc, (size_t)0);
 	for (int ii = 0; ii < argc; ++ii) {
 		printf("argv[%02d]='%s'\n", ii, argv[ii]);
 	}
-	printf("sum_lengths=%d\n", sum_lengths);
+	printf("sum_lengths=%zu\n", sum_lengths);
 	count_argv_chars(argc, argv, hist);
 	for (int ii = 0; ii < 26; ++ii) {
 		printf("%c: ", ('a'+ii));
