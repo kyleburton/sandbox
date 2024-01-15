@@ -67,28 +67,8 @@ private:
 	const T& publish;
 };
 
-struct AutoBrake {
-	AutoBrake(IServiceBus& bus)
-		: collision_threshold_s{}
-		, speed_mps{} {
-
-	}
-	void set_collision_threshold_s(double tt) {
-		collision_threshold_s = tt;
-	}
-	double get_collision_threshold() {
-		return collision_threshold_s;
-	}
-	double get_speed_mps() {
-		return speed_mps;
-	}
-private:
-	double collision_threshold_s;
-	double speed_mps;
-};
-
 ////////////////////////////////////////////////////////////////////////////////
-// Tests
+// Tests for V1
 void initial_speed_is_zero_v1() {
 	AutoBrake_v1 auto_brake{ [](const BrakeCommand&) {} };
 	assert_that(auto_brake.get_speed_mps() == 0L, "Expected initial speed to be 0");
@@ -138,6 +118,7 @@ void no_alert_when_crash_not_imminent_v1() {
 	assert_that(0 == brake_commands_published, "expected no brake commands to be published, some were published!");
 }
 
+////////////////////////////////////////////////////////////////////////////////
 struct MockServiceBus : IServiceBus {
 	void publish(const BrakeCommand& cmd) override {
 		commands_published++;
@@ -155,6 +136,90 @@ struct MockServiceBus : IServiceBus {
 	SpeedUpdateCallback speed_update_callback{};
 	CarDetectedCallback car_detected_callback{};
 };
+
+////////////////////////////////////////////////////////////////////////////////
+// AutoBrake V2
+struct AutoBrake {
+	AutoBrake(IServiceBus& bus)
+		: collision_threshold_s{ 5 }
+		, speed_mps{} {
+		bus.subscribe([this](const SpeedUpdate& update) {
+			speed_mps = update.velocity_mps;
+			});
+		bus.subscribe([this, &bus](const CarDetected& update) {
+			const auto relative_velocity_mps = speed_mps - update.velocity_mps;
+			const auto time_to_collision_s = update.distance_m / relative_velocity_mps;
+			if (time_to_collision_s > 0
+				&& time_to_collision_s <= collision_threshold_s) {
+				bus.publish(BrakeCommand{ time_to_collision_s });
+			}});
+	}
+
+	void set_collision_threshold_s(double tt) {
+		if (tt < 1) {
+			throw std::exception{ "Collision cannot be less than 1" };
+		}
+		collision_threshold_s = tt;
+	}
+	double get_collision_threshold() {
+		return collision_threshold_s;
+	}
+	double get_speed_mps() {
+		return speed_mps;
+	}
+private:
+	double collision_threshold_s;
+	double speed_mps;
+};
+
+////////////////////////////////////////////////////////////////////////////////
+// Test for V2
+
+void initial_speed_is_zero() {
+	MockServiceBus bus {};
+	AutoBrake auto_brake{ bus };
+	assert_that(auto_brake.get_speed_mps() == 0L, "speed not equal to 0");
+}
+
+void initial_sensitivity_is_five() {
+	MockServiceBus bus{};
+	AutoBrake auto_brake{ bus };
+	assert_that(auto_brake.get_collision_threshold() == 5L, "initial sensitivity is not 5");
+}
+
+void sensitivity_must_be_greater_than_1() {
+	MockServiceBus bus{};
+	AutoBrake auto_brake{ bus };
+	try {
+		auto_brake.set_collision_threshold_s(0.5L);
+	}
+	catch (const std::exception&) {
+		return;
+	}
+	assert_that(false, "no exception thrown calling set_collision_threshold_s with invalid value (0.5L)");
+}
+
+void speed_is_saved() {
+	MockServiceBus bus{};
+	AutoBrake auto_brake{ bus };
+
+	bus.speed_update_callback(SpeedUpdate{ 100L });
+	assert_that(100L == auto_brake.get_speed_mps(), "speed not saved to 100");
+	bus.speed_update_callback(SpeedUpdate{ 50L });
+	assert_that(50L  == auto_brake.get_speed_mps(), "speed not saved to 50");
+	bus.speed_update_callback(SpeedUpdate{ 0L });
+	assert_that(0L   == auto_brake.get_speed_mps(), "speed not saved to 0");
+}
+
+void no_alert_when_crash_not_imminent() {
+	MockServiceBus bus{};
+	AutoBrake auto_brake{ bus };
+
+	auto_brake.set_collision_threshold_s(2L);
+	bus.speed_update_callback(SpeedUpdate{ 100L });
+	bus.car_detected_callback(CarDetected{ 1000L, 50L });
+	assert_that(bus.commands_published == 0, "Brake commands were published.");
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -177,12 +242,20 @@ int main (int argc, char** argv) {
 	// assert_that(1 + 2 > 2, "Something is wrong, math doesn't check out!");
 	// assert_that(24 == 42, "This assertion will generate an exception.");
 	std::pair<TestFn, const char*> tests[]{
-		{ initial_speed_is_zero_v1 ,"Initial speed is zero"},
-		{ initial_sensitivity_is_five_v1 ,"Initial sensitivity is five"},
-		{ sensitivity_must_be_greater_than_one_v1 ,"Sensitivty should always be positive"},
-		{ speed_is_saved_v1 ,"speed is saved"},
-		{ alerts_when_crash_imminent_v1 ,"alerts when crash imminent"},
-		{ no_alert_when_crash_not_imminent_v1 ,"no alert when a crash is not imminent"},
+		{ initial_speed_is_zero_v1,                "v1: Initial speed is zero"},
+		{ initial_sensitivity_is_five_v1,          "v1: Initial sensitivity is five"},
+		{ sensitivity_must_be_greater_than_one_v1, "v1: Sensitivty should always be positive"},
+		{ speed_is_saved_v1,                       "v1: speed is saved"},
+		{ alerts_when_crash_imminent_v1,           "v1: alerts when crash imminent"},
+		{ no_alert_when_crash_not_imminent_v1,     "v1: no alert when a crash is not imminent"},
+
+		// v2 tests
+		{ initial_speed_is_zero,                   "v2: Initial speed is zero"},
+		{ initial_sensitivity_is_five,             "v2: Initial sensitivity is five"},
+		{ sensitivity_must_be_greater_than_1,      "v2: Sensitivty should always be positive"},
+		{ speed_is_saved,                          "v2: speed is saved"},
+		{ no_alert_when_crash_not_imminent,        "v2: no alert when a crash is not imminent"},
+
 	};
 	long num_tests_run{}, num_tests_passed{}, num_tests_failed{};
 	for (auto pair : tests) {
