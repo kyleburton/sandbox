@@ -178,138 +178,51 @@ private:
 ////////////////////////////////////////////////////////////////////////////////
 // Test for V2
 
-/*
-void initial_speed_is_zero() {
-	MockServiceBus bus {};
-	AutoBrake auto_brake{ bus };
-	assert_that(auto_brake.get_speed_mps() == 0L, "speed not equal to 0");
-}
-*/
-
-TEST_CASE("initial car speed is zero") {
-	MockServiceBus bus{};
-	AutoBrake auto_brake{ bus };
-	REQUIRE(auto_brake.get_speed_mps() == 0);
-}
-
-/*
-void initial_sensitivity_is_five() {
-	MockServiceBus bus{};
-	AutoBrake auto_brake{ bus };
-	assert_that(auto_brake.get_collision_threshold() == 5L, "initial sensitivity is not 5");
-}
-*/
-
-TEST_CASE("initial sensitivity is five") {
-	MockServiceBus bus{};
-	AutoBrake auto_brake{ bus };
-	// REQUIRE(auto_brake.get_collision_threshold() == 5L);
-	REQUIRE(auto_brake.get_collision_threshold() == Catch::Approx(5L));
-}
-
-/*
-void sensitivity_must_be_greater_than_1() {
-	MockServiceBus bus{};
-	AutoBrake auto_brake{ bus };
-	try {
-		auto_brake.set_collision_threshold_s(0.5L);
-	}
-	catch (const std::exception&) {
-		return;
-	}
-	assert_that(false, "no exception thrown calling set_collision_threshold_s with invalid value (0.5L)");
-}
-*/
-
-TEST_CASE("sensitivity must always be greater than 1") {
-	MockServiceBus bus{};
-	AutoBrake auto_brake{ bus };
-	// REQUIRE_THROWS(auto_brake.set_collision_threshold_s(0.5L));
-	// REQUIRE_THROWS_AS(auto_brake.set_collision_threshold_s(0.5L), std::exception);
-    // "Error: collision_threshold may not be less than 1.0"
-	// REQUIRE_THROWS_WITH(auto_brake.set_collision_threshold_s(0.5L), Catch::Matchers::Contains("collision_threshold") && Catch::Matchers::Contains("may not be less than"));
-	REQUIRE_THROWS_WITH(auto_brake.set_collision_threshold_s(0.5L), "Collision threshold cannot be less than 1");
-}
-
-
-/*
-void speed_is_saved() {
-	MockServiceBus bus{};
-	AutoBrake auto_brake{ bus };
-
-	bus.speed_update_callback(SpeedUpdate{ 100L });
-	assert_that(100L == auto_brake.get_speed_mps(), "speed not saved to 100");
-	bus.speed_update_callback(SpeedUpdate{ 50L });
-	assert_that(50L  == auto_brake.get_speed_mps(), "speed not saved to 50");
-	bus.speed_update_callback(SpeedUpdate{ 0L });
-	assert_that(0L   == auto_brake.get_speed_mps(), "speed not saved to 0");
-}
-
-*/
-
-TEST_CASE("speed is saved when updated") {
-	MockServiceBus bus{};
-	AutoBrake auto_brake{ bus };
-
-	bus.speed_update_callback(SpeedUpdate{ 100L });
-	REQUIRE(100L == auto_brake.get_speed_mps());
-	bus.speed_update_callback(SpeedUpdate{ 50L });
-	REQUIRE(50L == auto_brake.get_speed_mps());
-	bus.speed_update_callback(SpeedUpdate{ 0L });
-	REQUIRE(0L == auto_brake.get_speed_mps());
-}
-
-/*
-void no_alert_when_crash_not_imminent() {
-	MockServiceBus bus{};
-	AutoBrake auto_brake{ bus };
-
-	auto_brake.set_collision_threshold_s(2L);
-	bus.speed_update_callback(SpeedUpdate{ 100L });
-	bus.car_detected_callback(CarDetected{ 1000L, 50L });
-	assert_that(bus.commands_published == 0, "Brake commands were published.");
-}
-*/
-
-TEST_CASE("no alert when a crash is not imminent") {
-	MockServiceBus bus{};
-	AutoBrake auto_brake{ bus };
-
-	auto_brake.set_collision_threshold_s(2L);
-	bus.speed_update_callback(SpeedUpdate{ 100L });
-	bus.car_detected_callback(CarDetected{ 1000L, 50L });
-	REQUIRE(bus.commands_published == 0);
-}
-
-/*
-void alert_when_imminent() {
-	MockServiceBus bus{};
-	AutoBrake auto_brake{ bus };
-
-	auto_brake.set_collision_threshold_s(10L);
-	bus.speed_update_callback(SpeedUpdate{ 100L });
-	bus.car_detected_callback(CarDetected{ 100L, 0L });
-	assert_that(bus.commands_published == 1, "expected 1 (and only 1) brake command to be published.");
-	assert_that(bus.last_command.time_to_collision_s == 1L, "time to collision not computed correctly.");
-}
-*/
-
-TEST_CASE("an alert is fired when a crash is imminent") {
-	MockServiceBus bus{};
-	AutoBrake auto_brake{ bus };
-
-	auto_brake.set_collision_threshold_s(10L);
-	bus.speed_update_callback(SpeedUpdate{ 100L });
-	bus.car_detected_callback(CarDetected{ 100L, 0L });
-	REQUIRE(bus.commands_published == 1);
-	REQUIRE(bus.last_command.time_to_collision_s == 1L);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-
-// catch2
 TEST_CASE("AutoBrake") {
-	// unit test here
+	MockServiceBus bus{};
+	AutoBrake auto_brake{ bus };
+
+	SECTION("initial car speed is zero") {
+		REQUIRE(auto_brake.get_speed_mps() == 0);
+	}
+
+	SECTION("initial sensitivity is five") {
+		// REQUIRE(auto_brake.get_collision_threshold() == 5L);
+		REQUIRE(auto_brake.get_collision_threshold() == Catch::Approx(5L));
+	}
+
+	SECTION("sensitivity must always be greater than 1") {
+		// REQUIRE_THROWS(auto_brake.set_collision_threshold_s(0.5L));
+		// REQUIRE_THROWS_AS(auto_brake.set_collision_threshold_s(0.5L), std::exception);
+		// "Error: collision_threshold may not be less than 1.0"
+		// REQUIRE_THROWS_WITH(auto_brake.set_collision_threshold_s(0.5L), Catch::Matchers::Contains("collision_threshold") && Catch::Matchers::Contains("may not be less than"));
+		REQUIRE_THROWS_WITH(auto_brake.set_collision_threshold_s(0.5L), "Collision threshold cannot be less than 1");
+	}
+
+	SECTION("speed is saved when updated") {
+		bus.speed_update_callback(SpeedUpdate{ 100L });
+		REQUIRE(100L == auto_brake.get_speed_mps());
+		bus.speed_update_callback(SpeedUpdate{ 50L });
+		REQUIRE(50L == auto_brake.get_speed_mps());
+		bus.speed_update_callback(SpeedUpdate{ 0L });
+		REQUIRE(0L == auto_brake.get_speed_mps());
+	}
+
+	SECTION("no alert when a crash is not imminent") {
+		auto_brake.set_collision_threshold_s(2L);
+		bus.speed_update_callback(SpeedUpdate{ 100L });
+		bus.car_detected_callback(CarDetected{ 1000L, 50L });
+		REQUIRE(bus.commands_published == 0);
+	}
+
+	SECTION("an alert is fired when a crash is imminent") {
+		auto_brake.set_collision_threshold_s(10L);
+		bus.speed_update_callback(SpeedUpdate{ 100L });
+		bus.car_detected_callback(CarDetected{ 100L, 0L });
+		REQUIRE(bus.commands_published == 1);
+		REQUIRE(bus.last_command.time_to_collision_s == 1L);
+	}
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////
