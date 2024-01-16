@@ -71,7 +71,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>C:\Users\kyleb\code\sandbox\examples\c++\c++-crash-course\software\Catch2-3.5.2\src;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\kyleb\code\sandbox\examples\c++\c++-crash-course\software\catch2;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

@@ -2,7 +2,7 @@
 #include <functional>
 
 #define CATCH_CONFIG_MAIN
-#include "catch2/catch_all.hpp"
+#include "catch_amalgamated.hpp"
 
 
 constexpr void assert_that(bool statement, const char* message) {
