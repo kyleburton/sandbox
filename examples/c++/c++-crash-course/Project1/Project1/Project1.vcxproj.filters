@@ -48,6 +48,9 @@
     <ClCompile Include="ch10.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\software\catch2\catch_amalgamated.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ch08.h">

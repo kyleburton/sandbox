@@ -133,6 +133,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\software\catch2\catch_amalgamated.cpp" />
     <ClCompile Include="ch03.cpp" />
     <ClCompile Include="ch04.cpp" />
     <ClCompile Include="ch05.cpp" />
