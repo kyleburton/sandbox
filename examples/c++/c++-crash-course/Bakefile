@@ -22,3 +22,19 @@ bake_task g++-show-all-language-versions
 function g++-show-all-language-versions () {
   g++ -v --help 2>&1 | grep -- '^  -std=c++'
 }
+
+bake_task install "Install / set up software"
+function install () {
+	test -d ./software || mkdir ./software
+
+	# vcpkg install catch2:x64-windows
+	(
+	cd ./software
+	test -d ./catch2 || mkdir ./catch2
+	test -f ./catch2/catch_amalgamated.cpp || curl -L -o ./catch2/catch_amalgamated.cpp https://github.com/catchorg/Catch2/releases/download/v3.5.2/catch_amalgamated.cpp
+	test -f ./catch2/catch_amalgamated.hpp || curl -L -o ./catch2/catch_amalgamated.hpp https://github.com/catchorg/Catch2/releases/download/v3.5.2/catch_amalgamated.hpp
+	# test -f Catch2-3.5.2.tar.gz || curl -L -o Catch2-3.5.2.tar.gz "https://github.com/catchorg/Catch2/archive/refs/tags/v3.5.2.tar.gz"
+	# test -d Catch2-3.5.2 || tar xzvf Catch2-3.5.2.tar.gz 
+	# echo "Add ./software/Catch2-3.5.2/src/catch2 to your Visual Studio Project / Solution"
+        )
+}

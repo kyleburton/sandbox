@@ -1,6 +1,9 @@
 #include <stdexcept>
 #include <functional>
 
+#define CATCH_CONFIG_MAIN
+#include "catch2/catch_all.hpp"
+
 
 constexpr void assert_that(bool statement, const char* message) {
 	if (!statement) throw std::runtime_error{ message };
@@ -221,6 +224,17 @@ void no_alert_when_crash_not_imminent() {
 	assert_that(bus.commands_published == 0, "Brake commands were published.");
 }
 
+void alert_when_imminent() {
+	MockServiceBus bus{};
+	AutoBrake auto_brake{ bus };
+
+	auto_brake.set_collision_threshold_s(10L);
+	bus.speed_update_callback(SpeedUpdate{ 100L });
+	bus.car_detected_callback(CarDetected{ 100L, 0L });
+	assert_that(bus.commands_published == 1, "expected 1 (and only 1) brake command to be published.");
+	assert_that(bus.last_command.time_to_collision_s == 1L, "time to collision not computed correctly.");
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 bool run_test(void(*unit_test)(), const char* name) {
@@ -255,6 +269,7 @@ int main (int argc, char** argv) {
 		{ sensitivity_must_be_greater_than_1,      "v2: Sensitivty should always be positive"},
 		{ speed_is_saved,                          "v2: speed is saved"},
 		{ no_alert_when_crash_not_imminent,        "v2: no alert when a crash is not imminent"},
+        { alert_when_imminent,                     "v2: alerts when collision imminent"},
 
 	};
 	long num_tests_run{}, num_tests_passed{}, num_tests_failed{};
