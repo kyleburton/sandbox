@@ -1,6 +1,7 @@
-bake_task build 
-function build () {
+[[ -n "$DEBUG" ]] && set -x
+bake_task run-tests 
+function run-tests () {
   test -d gtest_tests || cmake -S . -B gtest_tests
   cmake --build gtest_tests
-  cd gtest_tests && ctest
+  cd gtest_tests && ctest -VV
 }

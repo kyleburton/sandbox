@@ -25,3 +25,5 @@ target_link_libraries(
 	)
 include(GoogleTest)
 gtest_discover_tests(gtest_tests)
+
+include_directories(AFTER SYSTEM ./Project1)

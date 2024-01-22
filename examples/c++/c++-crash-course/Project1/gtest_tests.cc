@@ -11,3 +11,9 @@ TEST(AutoBrakeTest, InitialCarSpeedIsZero) {
 	AutoBrake auto_brake{ bus };
 	ASSERT_FLOAT_EQ(0, auto_brake.get_speed_mps());
 }
+
+struct MyTestFixture : ::testing::Test {};
+
+TEST_F(MyTestFixture, MyTestA) {
+// 	
+}
