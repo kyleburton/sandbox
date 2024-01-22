@@ -1,4 +1,4 @@
-[[ -n "$DEBUG" ]] && set -x
+[[ -n "${DEBUG:-}" ]] && set -x
 bake_task run-tests 
 function run-tests () {
   test -d gtest_tests || cmake -S . -B gtest_tests
