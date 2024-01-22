@@ -1,0 +1,6 @@
+bake_task build 
+function build () {
+  test -d gtest_tests || cmake -S . -B gtest_tests
+  cmake --build gtest_tests
+  cd gtest_tests && ctest
+}
