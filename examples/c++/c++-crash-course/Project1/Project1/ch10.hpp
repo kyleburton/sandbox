@@ -69,7 +69,7 @@ struct AutoBrake {
 		}
 		collision_threshold_s = tt;
 	}
-	double get_collision_threshold() {
+	double get_collision_threshold_s() {
 		return collision_threshold_s;
 	}
 	double get_speed_mps() {

@@ -113,7 +113,7 @@ TEST_CASE("AutoBrake") {
 
 	SECTION("initial sensitivity is five") {
 		// REQUIRE(auto_brake.get_collision_threshold() == 5L);
-		REQUIRE(auto_brake.get_collision_threshold() == Catch::Approx(5L));
+		REQUIRE(auto_brake.get_collision_threshold_s() == Catch::Approx(5L));
 	}
 
 	SECTION("sensitivity must always be greater than 1") {

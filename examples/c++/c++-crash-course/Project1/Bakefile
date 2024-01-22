@@ -3,5 +3,5 @@ bake_task run-tests
 function run-tests () {
   test -d gtest_tests || cmake -S . -B gtest_tests
   cmake --build gtest_tests
-  cd gtest_tests && ctest -VV
+  cd gtest_tests && ctest -V
 }
