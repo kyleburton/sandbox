@@ -21,7 +21,8 @@ add_executable(
 )
 target_link_libraries(
 	gtest_tests
-	GTest::gtest_main
+	GTest::gtest
+	GTest::gmock
 	)
 include(GoogleTest)
 gtest_discover_tests(gtest_tests)
