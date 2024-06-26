@@ -306,6 +306,10 @@ func MatrixToString(mat [][]int) string {
 	return sb.String()
 }
 
+func IsStringRotation(s1, s2 string) bool {
+	return strings.Contains(s1+s1, s2)
+}
+
 func main() {
 	fmt.Printf("here\n")
 	for _, ch := range "thing" {

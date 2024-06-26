@@ -197,3 +197,10 @@ func TestRotateMatrix(t *testing.T) {
 		m3res,
 	)
 }
+
+func TestStringRotation(t *testing.T) {
+	assert.Equal(t, true, IsStringRotation("", ""))
+	assert.Equal(t, true, IsStringRotation("a", "a"))
+	assert.Equal(t, false, IsStringRotation("waterbottle", "watermellon"))
+	assert.Equal(t, true, IsStringRotation("waterbottle", "erbottlewat"))
+}
