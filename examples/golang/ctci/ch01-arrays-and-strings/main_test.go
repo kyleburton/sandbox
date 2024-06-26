@@ -155,3 +155,45 @@ func TestOneAway(t *testing.T) {
 	assert.Equal(t, false, OneAway("this", "this"))
 	assert.Equal(t, true, OneAway("this", "thin"))
 }
+
+func TestRotateMatrix(t *testing.T) {
+	m1 := [][]int{
+		{0, 1},
+		{2, 3},
+	}
+	t.Logf("Matrix\n%s", MatrixToString(m1))
+	RotateMatrix(m1)
+	t.Logf("Matrix\n%s", MatrixToString(m1))
+
+	m2 := [][]int{
+		{0, 1},
+		{2, 3},
+	}
+	RotateMatrix(m2)
+	m2res := [][]int{
+		{1, 3},
+		{0, 2},
+	}
+	assert.Equal(t,
+		m2,
+		m2res,
+	)
+
+	m3 := [][]int{
+		{0x0, 0x1, 0x2, 0x3},
+		{0x4, 0x5, 0x6, 0x7},
+		{0x8, 0x9, 0xA, 0xB},
+		{0xC, 0xD, 0xE, 0xF},
+	}
+	RotateMatrix(m3)
+	m3res := [][]int{
+		{0x3, 0x7, 0xB, 0xF},
+		{0x2, 0x6, 0xA, 0xE},
+		{0x1, 0x5, 0x9, 0xD},
+		{0x0, 0x4, 0x8, 0xC},
+	}
+	assert.Equal(t,
+		m3,
+		m3res,
+	)
+}

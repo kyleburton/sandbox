@@ -279,6 +279,33 @@ func OneAway(s1, s2 string) bool {
 	return Edist(s1, s2) == 1
 }
 
+func RotateMatrix(mat [][]int) {
+	var tmp int
+	xlen := len(mat[0])
+
+	for xx := 0; xx < int(xlen/2); xx += 1 {
+		for yy := 0; yy < int(xlen/2); yy += 1 {
+			tmp = mat[xx][yy]
+			mat[xx][yy] = mat[yy][xlen-1-xx]
+			mat[yy][xlen-1-xx] = mat[xlen-1-xx][xlen-1-yy]
+			mat[xlen-1-xx][xlen-1-yy] = mat[xlen-1-yy][xx]
+			mat[xlen-1-yy][xx] = tmp
+		}
+	}
+}
+
+func MatrixToString(mat [][]int) string {
+	var sb strings.Builder
+	for xx := 0; xx < len(mat); xx += 1 {
+		sb.WriteString("[")
+		for yy := 0; yy < len(mat[0]); yy += 1 {
+			sb.WriteString(fmt.Sprintf("%d,", mat[xx][yy]))
+		}
+		sb.WriteString("]\n")
+	}
+	return sb.String()
+}
+
 func main() {
 	fmt.Printf("here\n")
 	for _, ch := range "thing" {
