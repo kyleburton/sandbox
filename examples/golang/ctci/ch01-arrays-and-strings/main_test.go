@@ -122,3 +122,36 @@ func TestStringCompression(t *testing.T) {
 	// assert.Equal(t, tstr, res)
 	// assert.Nil(t, err)
 }
+
+func TestZeroMatrix(t *testing.T) {
+	m1 := [][]int{}
+	ZeroMatrix(m1)
+	assert.Equal(t, m1, m1)
+
+	m2 := [][]int{
+		[]int{0, 1, 2},
+		[]int{3, 4, 5},
+	}
+
+	ZeroMatrix(m2)
+	assert.Equal(t, m2, [][]int{
+		[]int{0, 0, 0},
+		[]int{0, 4, 5},
+	})
+}
+
+func TestEdist(t *testing.T) {
+	assert.Equal(t, 0, Edist("", ""))
+	assert.Equal(t, 0, Edist("a", "a"))
+	assert.Equal(t, 1, Edist("car", "bar"))
+	assert.Equal(t, 2, Edist("car", "acr"))
+	assert.Equal(t, 2, Edist("c", "car"))
+	assert.Equal(t, 3, Edist("car", "bug"))
+}
+
+func TestOneAway(t *testing.T) {
+	assert.Equal(t, false, OneAway("", ""))
+	assert.Equal(t, false, OneAway("other thing", "more stuff"))
+	assert.Equal(t, false, OneAway("this", "this"))
+	assert.Equal(t, true, OneAway("this", "thin"))
+}

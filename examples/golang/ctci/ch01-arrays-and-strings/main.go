@@ -207,6 +207,78 @@ func StringCompression(ss string) string {
 	return sb.String()
 }
 
+func ZeroMatrix(m [][]int) {
+	zero_coords := make([][]int, 0)
+
+	for yy := range len(m) {
+		for xx := range len(m[yy]) {
+			if 0 == m[yy][xx] {
+				zero_coords = append(zero_coords, []int{yy, xx})
+			}
+		}
+	}
+
+	for _, coord := range zero_coords {
+		for xx := range len(m[0]) {
+			m[coord[0]][xx] = 0
+		}
+		for yy := range len(m) {
+			m[yy][coord[1]] = 0
+		}
+	}
+}
+
+func Edist(s1, s2 string) int {
+	if s1 == s2 {
+		return 0
+	}
+
+	len1 := len(s1) + 1
+	mat := make([][]int, len1)
+	for ii := range len1 {
+		mat[ii] = make([]int, len(s2)+1)
+	}
+
+	for ii := range len1 {
+		mat[ii][0] = ii
+	}
+
+	len2 := len(s2) + 1
+	for jj := range len2 {
+		mat[0][jj] = jj
+	}
+
+	for ii := 1; ii < len1; ii += 1 {
+		for jj := 1; jj < len2; jj += 1 {
+			ch1 := s1[ii-1]
+			ch2 := s2[jj-1]
+			base_cost := 0
+			if ch1 != ch2 {
+				base_cost += 1
+			}
+
+			c1 := mat[ii-1][jj-1] + base_cost
+			c2 := mat[ii][jj-1] + 1
+			c3 := mat[ii-1][jj] + 1
+
+			cost := c1
+			if c2 < cost {
+				cost = c2
+			}
+			if c3 < cost {
+				cost = c3
+			}
+			mat[ii][jj] = cost
+		}
+	}
+
+	return mat[len(s1)][len(s2)]
+}
+
+func OneAway(s1, s2 string) bool {
+	return Edist(s1, s2) == 1
+}
+
 func main() {
 	fmt.Printf("here\n")
 	for _, ch := range "thing" {
