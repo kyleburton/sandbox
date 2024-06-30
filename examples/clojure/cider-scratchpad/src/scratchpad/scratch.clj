@@ -9,7 +9,8 @@
    [schema.core                   :as s]
    [clojure.math.combinatorics    :as combo]
    [com.rpl.specter               :as specter]
-   [clojure.data.json             :as json])
+   [clojure.data.json             :as json]
+   [clojure.string                :as string])
   (:import
    [scratchpad.heap BinHeap]
    [org.jsoup Jsoup]))
@@ -419,8 +420,47 @@
                           {}
                           aws-deps)]
     (with-open[wtr (io/writer "foo.foo")]
-     (doseq [ent updated-aws-deps]
-       (.write wtr (str ent))
-       (.write wtr "\n")))
+      (doseq [ent updated-aws-deps]
+        (.write wtr (str ent))
+        (.write wtr "\n")))
     updated-aws-deps)
+  )
+
+
+(comment
+
+
+  (def wikipedia-us-states (slurp "/home/kyle/Downloads/List of U.S. state and territory abbreviations - Wikipedia.html"))
+  (count wikipedia-us-states) ;; 481633
+
+  (def doc (lp/make-parser wikipedia-us-states))
+
+  (def main-table
+    (lp/extract
+     (lp/make-parser wikipedia-us-states)
+     [[:ft "<table class=\"wikitable"]
+      [:ft "<span class=\"flagicon\">"]
+      [:rt "<tbody>"]]
+     [[:ft "</tbody>"]]))
+
+  (.substring main-table 0 10000)
+
+  (defn extract-state-code [[_name-of-region _status-of-region _iso-code _ansi-code _ansi-num usps _usgc _gpo _ap _other-abbreviations]]
+    (if (.contains usps "<")
+      (-> usps (.split "<" 2) first)
+      usps))
+
+  (def rows
+    (lp/html-table->matrix main-table))
+
+  (def state-codes
+   (->>
+    rows
+    (map extract-state-code)
+    (filter #(not (empty? %)))))
+
+  (spit "/home/kyle/us-state-codes.txt"
+   (string/join rows "\n"))
+
+
   )
