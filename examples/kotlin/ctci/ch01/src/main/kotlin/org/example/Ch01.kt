@@ -126,6 +126,62 @@ fun OneAway(first: String, second: String): Boolean {
     return EditDistance(first, second) <= 1
 }
 
+fun CompressString(s: String): Any {
+    if (s == "") {
+        return ""
+    }
+    val sb = StringBuilder()
+    var pos = 0
+    while (pos < s.length) {
+        var ch = s[pos]
+        var count = 1
+        while(pos<s.length-1 && ch == s[pos+1]) {
+            pos++
+            count++
+        }
+        sb.append(ch)
+        sb.append(count)
+        pos++
+
+    }
+    return sb.toString()
+}
+
+fun ParseIntPrefix(s: String) : Pair<Int, String> {
+    var count = 0;
+    var numDigits = 0;
+    for (ch in s) {
+        if (!ch.isDigit()) { break }
+        count *= 10
+        count += ch.digitToInt()
+        ++numDigits
+    }
+    return Pair(count, s.substring(numDigits))
+}
+
+fun DecompressString(s: String): String {
+    val sb = StringBuilder()
+
+    if (s.length < 2) { return s }
+
+    var s2 = s
+    while (s2.length > 0) {
+        var ch = s2.substring(0, 1)
+        s2 = s2.substring(1)
+        var count : Int = 0
+        var res = ParseIntPrefix(s2)
+        count = res.first
+        s2 = res.second
+        while(count>0) {
+            sb.append(ch)
+            count--
+        }
+    }
+
+    return sb.toString()
+}
+
+
 fun main() {
     println("isUnique")
     assert(isUnique("")) { "Expected empty string to be unique" }
@@ -196,6 +252,18 @@ fun main() {
     )) {
         val result = OneAway(tri.first, tri.second)
         assert(result == tri.third) { "Expected OneAway(${tri.first}, ${tri.second}) to be ${tri.third} it was ${result}"}
+    }
+
+    for (pair in listOf(
+        Pair("a", "a1"),
+        Pair("aabcccccaaa", "a2b1c5a3"),
+        Pair("abcdef", "a1b1c1d1e1f1"),
+        Pair("aaaaaaaaaaaaaaaaaaaaaaaaa", "a25")
+    )) {
+        val res1 = CompressString(pair.first)
+        val res2 = DecompressString(pair.second)
+        assert(res1 == pair.second) {"Failed CompressString test case ${pair} got ${res1}"}
+        assert(res2 == pair.first)  {"Failed DeompressString test case ${pair} got ${res2}"}
     }
 }
 

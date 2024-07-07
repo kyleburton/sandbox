@@ -445,10 +445,10 @@
 
   (.substring main-table 0 10000)
 
-  (defn extract-state-code [[_name-of-region _status-of-region _iso-code _ansi-code _ansi-num usps _usgc _gpo _ap _other-abbreviations]]
-    (if (.contains usps "<")
-      (-> usps (.split "<" 2) first)
-      usps))
+  (defn extract-state-code [[name-of-region _status-of-region _iso-code _ansi-code _ansi-num usps _usgc _gpo _ap _other-abbreviations]]
+    (if (.contains ^String usps "<")
+      [name-of-region (-> ^String usps (.split "<" 2) first)]
+      [name-of-region usps]))
 
   (def rows
     (lp/html-table->matrix main-table))
@@ -460,7 +460,7 @@
     (filter #(not (empty? %)))))
 
   (spit "/home/kyle/us-state-codes.txt"
-   (string/join rows "\n"))
+        (string/join "\n" (sort state-codes)))
 
 
   )
