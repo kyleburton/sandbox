@@ -1,7 +1,7 @@
 package org.example
 
-import java.net.URL
 import kotlin.math.min
+import kotlin.math.sqrt
 
 fun isUnique (s: String) : Boolean {
     val seen = s.toSet()
@@ -181,6 +181,58 @@ fun DecompressString(s: String): String {
     return sb.toString()
 }
 
+fun intListToMatrix(intArray: Array<Int>): Array<IntArray> {
+    val dim = sqrt(intArray.size.toDouble()).toInt()
+    val m: Array<IntArray> = Array(dim) { IntArray(dim)}
+    for ( ii in 0..<dim ) {
+        for ( jj in 0..<dim) {
+            m[ii][jj] = intArray[ii*dim + jj]
+        }
+    }
+    return m
+}
+
+fun RotateMatrix(mat : Array<IntArray>): Array<IntArray> {
+    // start w/the outer, then each inner "square"
+    var tmp : Int
+    var xlen = mat[0].size
+
+    for (xx in 0..<(xlen/2)) {
+        for (yy in 0..<(xlen/2)) {
+            tmp = mat[xx][yy]
+            mat[xx][yy] = mat[yy][xlen-1-xx]
+            mat[yy][xlen-1-xx] = mat[xlen-1-xx][xlen-1-yy]
+            mat[xlen-1-xx][xlen-1-yy] = mat[xlen-1-yy][xx]
+            mat[xlen-1-yy][xx] = tmp
+        }
+    }
+
+    return mat
+}
+
+fun cloneMatrix(mat : Array<IntArray>): Array<IntArray> {
+    val m2: Array<IntArray> = Array(mat.size) { IntArray(mat[0].size)}
+    for (yy in 0..<mat.size) {
+        for ( xx in 0..<mat[0].size) {
+            m2[yy][xx] = mat[yy][xx]
+        }
+    }
+    return m2
+}
+
+fun matrixToString(mat : Array<IntArray>) : String {
+    val sb = StringBuilder()
+
+    for (yy in 0..<mat.size) {
+        for (xx in 0..<mat[0].size) {
+            sb.append(mat[yy][xx].toString())
+            sb.append(",")
+        }
+        sb.append("\n")
+    }
+
+    return sb.toString()
+}
 
 fun main() {
     println("isUnique")
@@ -229,6 +281,7 @@ fun main() {
         assert(result == tri.third) { "Expected pallindromePermutation(${tri.first}, ${tri.second}) to be true, it was ${result}" }
     }
 
+    println("EditDistance")
     // EditDistance("ab","ac", debug = true)
     // EditDistance("this","that", debug = true)
     for (tri in listOf(
@@ -240,10 +293,11 @@ fun main() {
         Triple("this", "that", 2),
         Triple("then", "than", 1)
     )) {
-    val result = EditDistance(tri.first, tri.second)
+        val result = EditDistance(tri.first, tri.second)
         assert(tri.third == result) { "Expected EditDistance(${tri.first}, ${tri.second}}) to be ${tri.third}, it was: ${result}} tri=${tri}"}
     }
 
+    println("OneAway")
     for (tri in listOf(
         Triple("", "", true),
         Triple("then", "than", true),
@@ -254,6 +308,7 @@ fun main() {
         assert(result == tri.third) { "Expected OneAway(${tri.first}, ${tri.second}) to be ${tri.third} it was ${result}"}
     }
 
+    println("CompressString/DecompressString")
     for (pair in listOf(
         Pair("a", "a1"),
         Pair("aabcccccaaa", "a2b1c5a3"),
@@ -264,6 +319,53 @@ fun main() {
         val res2 = DecompressString(pair.second)
         assert(res1 == pair.second) {"Failed CompressString test case ${pair} got ${res1}"}
         assert(res2 == pair.first)  {"Failed DeompressString test case ${pair} got ${res2}"}
+    }
+
+    println("intListToMatrix")
+    val m = intListToMatrix(arrayOf(
+        1,2,3,4,
+        5,6,7,8,
+        9,10,11,12,
+        13,14,15,16
+    ))
+    assert(m.size == 4)
+    assert(m[0].size == 4)
+
+    println("RotateMatrix")
+    for (pair : Pair<Array<IntArray>,Array<IntArray>> in listOf(
+        Pair(intListToMatrix(arrayOf(
+                1,2,3,4,
+                5,6,7,8,
+                9,10,11,12,
+                13,14,15,16
+            )),
+            intListToMatrix(arrayOf(
+                4,8,12,16,
+                3,7,11,15,
+                2,6,10,14,
+                1,5,9,13
+            ))),
+        Pair(intListToMatrix(
+            arrayOf(
+                1,2,
+                3,4
+            )),
+            intListToMatrix(
+                arrayOf(
+                    2,4,
+                    1,3
+                )))
+    )){
+        val res = RotateMatrix(cloneMatrix(pair.first))
+        val expectedStr = matrixToString((pair.second))
+        val resStr = matrixToString(res)
+        println("RotateMatrix =====>")
+        println(matrixToString(pair.first))
+        println("====================")
+        println(expectedStr)
+        println("====================")
+        println(resStr)
+        assert(resStr == expectedStr) { "Failed test case ${pair} got ${resStr}" }
     }
 }
 
