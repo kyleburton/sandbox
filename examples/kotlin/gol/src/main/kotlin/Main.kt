@@ -9,7 +9,6 @@ import javax.swing.ImageIcon
 import javax.swing.JFrame
 import javax.swing.JLabel
 import javax.swing.WindowConstants
-import kotlin.math.min
 import kotlin.random.Random
 
 /**
@@ -23,7 +22,8 @@ import kotlin.random.Random
  */
 
 class GameOfLife(val size: Int) {
-    var bitSet : java.util.BitSet
+    var bitSet : BitSet
+    var newSet : BitSet
     var round : Int = 0
     companion object {
         val MaxSize = Math.sqrt(Integer.MAX_VALUE.toDouble()).toInt()
@@ -35,6 +35,7 @@ class GameOfLife(val size: Int) {
         }
 
         bitSet = java.util.BitSet(size*size)
+        newSet = java.util.BitSet(size*size)
     }
 
     fun getMaxSize(): Int {
@@ -42,6 +43,10 @@ class GameOfLife(val size: Int) {
     }
 
     fun isSet(yy: Int, xx: Int) : Boolean {
+        return bitSet.get(yy*size+xx)
+        if (bitSet == null) {
+            return false
+        }
         return bitSet.get(yy*size+xx)
     }
 
@@ -129,8 +134,11 @@ class GameOfLife(val size: Int) {
     }
 
     fun tick() {
+        newSet.clear()
         round++
-        val newSet : java.util.BitSet = bitSet.clone() as BitSet
+        var liveCount : Int = 0
+        var deadCount : Int = 0
+        // val newSet : java.util.BitSet = set.clone() as BitSet
         /**
          * Any live cell with fewer than two live neighbours dies, as if by underpopulation.
          * Any live cell with two or three live neighbours lives on to the next generation.
@@ -141,30 +149,39 @@ class GameOfLife(val size: Int) {
             for (xx in 0..<size) {
                 val pos = yy*size + xx
                 val numLive = numLiveNeighbors(bitSet, size, yy, xx)
-                val isAlive = newSet.get(pos)
+                val isAlive = bitSet.get(pos)
                 if (isAlive && numLive < 2) {
                     // underpopulation
                     newSet.clear(pos)
+                    deadCount++
                     continue
                 }
                 if (isAlive && (numLive == 2 || numLive == 3)) {
                     // live on to the next generation
                     newSet.set(pos)
+                    liveCount++
+                    continue
                 }
                 if (isAlive && numLive > 3) {
                     // overpopulation
                     newSet.clear(pos)
+                    deadCount++
                     continue
                 }
                 if (!isAlive && (numLive == 3)) {
                     // reproduction
                     newSet.set(pos)
+                    liveCount++
+                    continue
                 }
                 // println("[${yy},${xx}] = ${isAlive} :: ${numLive}")
-
+                deadCount++
             }
         }
+        var tmp : BitSet = bitSet
         bitSet = newSet
+        newSet = tmp
+        println("tick(): liveCount=${liveCount}; deadCount=${deadCount}; #cells=${size*size}; density=${liveCount.toDouble() / (size.toDouble()*size.toDouble())}")
     }
 }
 
@@ -216,7 +233,7 @@ class GolViewer(val size: Int) {
     }
 
     fun display(gol : GameOfLife) {
-        val dims = max(size, 1024)
+        val frameSize = frame.contentPane.size
         var image = BufferedImage(size, size, BufferedImage.TYPE_INT_RGB)
         // TODO: fill the image based on gol
 
@@ -230,33 +247,36 @@ class GolViewer(val size: Int) {
                 image.setRGB(xx, yy, color)
             }
         }
-        if (size < dims) {
-            println("[${gol.round}] Scaling the image from ${size} to ${dims}")
-            label.icon = ImageIcon(image.getScaledInstance(dims, dims, Image.SCALE_SMOOTH))
-        }
-        else {
-            label.icon = ImageIcon(image)
-        }
+        // println("[${gol.round}] Scaling the image from ${size} to ${frameSize}")
+        label.icon = ImageIcon(image.getScaledInstance(/* width = */ frameSize.width, /* height = */ frameSize.height, /* hints = */ Image.SCALE_SMOOTH))
 
     }
 }
 
 fun main() {
     println("MaxSize: ${GameOfLife.MaxSize}")
+    // val msize = 4
     // val msize = 16
     // val msize = 256
-    val msize = 512
-    // val msize = 4
+    // val msize = 512
+    val msize = 1024
     var game = GameOfLife(msize)
+    var viewer = GolViewer(game.size)
     game.randomize()
+    viewer.display(game)
     // game.print()
     // var maxTicks = 10
-    var maxTicks = 1024
-    var viewer = GolViewer(game.size)
+    // var maxTicks = 1024
+    var maxTicks = Int.MAX_VALUE
+    var start = System.nanoTime()
     for (round in 0..maxTicks) {
         game.tick()
         // game.print()
         viewer.display(game)
         // Thread.sleep(10)
+        var elapsed = System.nanoTime() - start
+        var elapsedSeconds: Double = elapsed / (1000.0*1000.0*1000.0)
+        var frameRate: Double = game.round / elapsedSeconds
+        println("frameRate=${frameRate} round=${round} elapsed=${elapsedSeconds}")
     }
 }
