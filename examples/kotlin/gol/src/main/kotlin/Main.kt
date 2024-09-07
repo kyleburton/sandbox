@@ -9,6 +9,8 @@ import javax.swing.ImageIcon
 import javax.swing.JFrame
 import javax.swing.JLabel
 import javax.swing.WindowConstants
+import kotlin.collections.HashMap
+import kotlin.collections.HashSet
 import kotlin.random.Random
 
 /**
@@ -21,13 +23,24 @@ import kotlin.random.Random
  *  * sparse matrix - after the first generation, most of the canvas/matrix will be dead, a possible optimization is to only track live cells
  */
 
-class GameOfLife(val size: Int) {
-    var bitSet : BitSet
-    var newSet : BitSet
+abstract class GameOfLife(val size: Int) {
     var round : Int = 0
     companion object {
         val MaxSize = Math.sqrt(Integer.MAX_VALUE.toDouble()).toInt()
     }
+
+    fun getMaxSize(): Int {
+        return MaxSize
+    }
+
+    abstract fun isSet(yy: Int, xx: Int) : Boolean
+    abstract fun tick()
+    abstract fun randomize()
+}
+
+class GameOfLifeBitSet(size: Int) : GameOfLife(size) {
+    var bitSet : BitSet
+    var newSet : BitSet
 
     init {
         if (size > MaxSize) {
@@ -38,19 +51,11 @@ class GameOfLife(val size: Int) {
         newSet = java.util.BitSet(size*size)
     }
 
-    fun getMaxSize(): Int {
-        return MaxSize
-    }
-
-    fun isSet(yy: Int, xx: Int) : Boolean {
-        return bitSet.get(yy*size+xx)
-        if (bitSet == null) {
-            return false
-        }
+    override fun isSet(yy: Int, xx: Int) : Boolean {
         return bitSet.get(yy*size+xx)
     }
 
-    fun randomize() {
+    override fun randomize() {
         for (idx in 0..<bitSet.size()) {
             val rnd = Random.Default.nextBits(1)
             if ((rnd and 1) == 1) {
@@ -133,7 +138,7 @@ class GameOfLife(val size: Int) {
         return count
     }
 
-    fun tick() {
+    override fun tick() {
         newSet.clear()
         round++
         var liveCount : Int = 0
@@ -182,6 +187,104 @@ class GameOfLife(val size: Int) {
         bitSet = newSet
         newSet = tmp
         println("tick(): liveCount=${liveCount}; deadCount=${deadCount}; #cells=${size*size}; density=${liveCount.toDouble() / (size.toDouble()*size.toDouble())}")
+    }
+}
+
+typealias Coord = Pair<Int,Int>
+class GameOfLifeSparse(size: Int) : GameOfLife(size) {
+    var liveCells : MutableSet<Coord>
+    init {
+        liveCells = HashSet<Coord>()
+    }
+
+    override fun isSet(yy: Int, xx: Int): Boolean {
+        return liveCells.contains((Coord(yy, xx)))
+    }
+
+    fun countLiveNeighbors(): Map<Coord,Int> {
+        var liveNeighborCounts : MutableMap<Coord, Int> = (HashMap<Coord,Int>() as Map<Coord, Int>).toMutableMap()
+        for (coord in liveCells) {
+            var yy = coord.first
+            var xx = coord.second
+            var up = yy - 1
+            var left = xx - 1
+            var right = xx + 1
+            var down = yy + 1
+
+            if (up == -1) {
+                up = size-1
+            }
+            if (left == -1) {
+                left = size-1
+            }
+
+            if (down == size) {
+                down = 0
+            }
+            if (right == size) {
+                right = 0
+            }
+
+            for (cc in listOf(
+                Coord(up,left),   Coord(up,xx),    Coord(up,right),
+                Coord(yy,left),  /*Coord(yy,xx),*/ Coord(yy,right),
+                Coord(down,left), Coord(down,xx),  Coord(down,right))) {
+                liveNeighborCounts[cc] = liveNeighborCounts.getOrDefault(cc, 0) + 1
+            }
+        }
+
+        return liveNeighborCounts
+    }
+
+    override fun tick() {
+        ++round
+        var liveNeighborCounts = countLiveNeighbors()
+        var newLiveCells = HashSet<Coord>()
+        var liveCount : Int = 0
+        var deadCount : Int = 0
+
+        for ( (coord,numLiveNeighbors) in liveNeighborCounts) {
+            val isAlive = liveCells.contains(coord)
+            if (isAlive && numLiveNeighbors < 2) {
+                // underpopulation
+                deadCount++
+                continue
+            }
+            if (isAlive && (numLiveNeighbors == 2 || numLiveNeighbors == 3)) {
+                // live on to the next generation
+                newLiveCells.add(coord)
+                liveCount++
+                continue
+            }
+            if (isAlive && numLiveNeighbors > 3) {
+                // overpopulation
+                deadCount++
+                continue
+            }
+            if (!isAlive && (numLiveNeighbors == 3)) {
+                // reproduction
+                newLiveCells.add(coord)
+                liveCount++
+                continue
+            }
+            // println("[${yy},${xx}] = ${isAlive} :: ${numLive}")
+            deadCount++
+
+        }
+        println("tick(): liveCount=${liveCount}; deadCount=${deadCount}; #cells=${size*size}; density=${liveCount.toDouble() / (size.toDouble()*size.toDouble())}")
+
+        liveCells = newLiveCells
+    }
+
+    override fun randomize() {
+        for (yy in 0..<size) {
+            for (xx in 0..<size) {
+                val rnd = Random.Default.nextBits(1)
+                if ((rnd and 1) == 1) {
+                    liveCells.add(Coord(yy, xx))
+                }
+            }
+        }
     }
 }
 
@@ -235,7 +338,6 @@ class GolViewer(val size: Int) {
     fun display(gol : GameOfLife) {
         val frameSize = frame.contentPane.size
         var image = BufferedImage(size, size, BufferedImage.TYPE_INT_RGB)
-        // TODO: fill the image based on gol
 
         // img.setRGB(x, y, 0xff0000)
         for (yy in 0..<gol.size) {
@@ -257,14 +359,16 @@ fun main() {
     println("MaxSize: ${GameOfLife.MaxSize}")
     // val msize = 4
     // val msize = 16
+    // val msize = 32
     // val msize = 256
-    // val msize = 512
-    val msize = 1024
-    var game = GameOfLife(msize)
+    val msize = 512
+    // val msize = 1024
+    var game : GameOfLife = GameOfLifeBitSet(msize) // 2.3k rounds 35 fps
+    // var game : GameOfLife = GameOfLifeSparse(msize) // 5k rounds 31 fps
     var viewer = GolViewer(game.size)
     game.randomize()
     viewer.display(game)
-    // game.print()
+     // game.print()
     // var maxTicks = 10
     // var maxTicks = 1024
     var maxTicks = Int.MAX_VALUE
@@ -276,7 +380,8 @@ fun main() {
         // Thread.sleep(10)
         var elapsed = System.nanoTime() - start
         var elapsedSeconds: Double = elapsed / (1000.0*1000.0*1000.0)
-        var frameRate: Double = game.round / elapsedSeconds
+        var frameRate: Double = game.round.toDouble() / elapsedSeconds.toDouble()
+
         println("frameRate=${frameRate} round=${round} elapsed=${elapsedSeconds}")
     }
 }
