@@ -26,6 +26,7 @@ TODO: test, `[` and `[[`, crucially: how to get help
 TODO: my most common text processing utilities and patterns
 TODO: Co-opting patterns from other langs: annotations
 TODO: Flags and options, easier than you might think
+TODO: bash arrays, how to "accumulate" command line args to pass to another command
 TODO: How to implement your own custom command line completion
 TODO: re-use: logging library
 TODO: trapping EXIT - https://www.putorius.net/using-trap-to-exit-bash-scripts-cleanly.html
