@@ -10,18 +10,17 @@ I have noticed more and more that software engineers I work with find bash to be
 
 # Posts
 
-* [Fundamental's, Warts and Oddities: String Substitution](20241020-fundamental-warts-and-oddities-stringsub.md)
+* [Fundamentals, my Idioms and Some Best Practices](202410270-idioms-and-practices.md)
+* [Fundamentals, Warts and Oddities: String Substitution](20241020-fundamental-warts-and-oddities-stringsub.md)
 * [Co-opting Patterns from other languages: Case Statements](20241019-patterns-from-other-langs.md)
 
+# Resources
 
+* [Julia Evans "Wizard Zines" - Bite Size Bash](https://wizardzines.com/zines/bite-size-bash/), and [a preview](https://wizardzines.com/comics/environment-variables/).  All of Julia's writing is excellent and all of the 'zines are great introductions to Unix and Linux.
+* [Linux Documentation Project - Bash Beginner's Guide](https://tldp.org/LDP/Bash-Beginners-Guide/html/Bash-Beginners-Guide.html)
 
 # Future Post Ideas
 ```
-TODO: best practices, shellcheck, personal idioms
-      * set -eEuo pipefail, every time <- this + shellcheck assuaged a significant amount of "bash is terrible"
-      * use a 'main'
-      * function arguments: use shift, pass along argv "$@" and "$*"
-      * use defaults "${foo:-default}"
 TODO: test, `[` and `[[`, crucially: how to get help
 TODO: my most common text processing utilities and patterns
 TODO: Co-opting patterns from other langs: annotations
