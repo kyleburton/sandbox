@@ -14,15 +14,22 @@ I have noticed more and more that software engineers I work with find bash to be
 * [Fundamentals, Warts and Oddities: String Substitution](20241020-fundamental-warts-and-oddities-stringsub.md)
 * [Co-opting Patterns from other languages: Case Statements](20241019-patterns-from-other-langs.md)
 
-# Resources
+# Resources & References
+
+These are resources that I used to learn or that I have found to be inspiring:
 
 * [Julia Evans "Wizard Zines" - Bite Size Bash](https://wizardzines.com/zines/bite-size-bash/), and [a preview](https://wizardzines.com/comics/environment-variables/).  All of Julia's writing is excellent and all of the 'zines are great introductions to Unix and Linux.
 * [Linux Documentation Project - Bash Beginner's Guide](https://tldp.org/LDP/Bash-Beginners-Guide/html/Bash-Beginners-Guide.html)
+* [O'Reilly's Learning the Bash shell](https://www.oreilly.com/library/view/learning-the-bash/0596009658/)
+* [O'Reilly's Linux in a Nutshell](https://www.oreilly.com/library/view/linux-in-a/9780596806088/)
+* [10 Must Have Books for System Administrators](https://www.adminschoice.com/10-must-have-oreilly-books-for-system-administrators)
+* [O'Reilly's Bash Cookbook](https://www.oreilly.com/library/view/bash-cookbook-2nd/9781491975329/) by JP Vossen (who I've had the pleasure of meeting in person)
 
 # Future Post Ideas
 ```
 TODO: test, `[` and `[[`, crucially: how to get help
 TODO: my most common text processing utilities and patterns
+TODO: logical forms, loops (for, while, read)
 TODO: Co-opting patterns from other langs: annotations
 TODO: Flags and options, easier than you might think
 TODO: bash arrays, how to "accumulate" command line args to pass to another command
@@ -30,4 +37,9 @@ TODO: How to implement your own custom command line completion
 TODO: re-use: logging library
 TODO: trapping EXIT - https://www.putorius.net/using-trap-to-exit-bash-scripts-cleanly.html
 TODO: foreground, background, multi-processing and wait
+TODO: congruency between SQL and command line utilities
+TODO: history hacks: staying in place, the '#' trick for composing commands
+TODO: the '#' trick for pasting possibly dangerous commands
+TODO: find, grep, xargs for manipulating sets of files
+TODO: cooked, uncooked, clear and reset (blocking vs non-blocking stdin!)
 ```
