@@ -26,20 +26,19 @@ These are resources that I used to learn or that I have found to be inspiring:
 * [O'Reilly's Bash Cookbook](https://www.oreilly.com/library/view/bash-cookbook-2nd/9781491975329/) by JP Vossen (who I've had the pleasure of meeting in person)
 
 # Future Post Ideas
-```
-TODO: [test, `[` and `[[`, crucially: how to get help](20241029-test-and-how-to-get-help.md)
-TODO: my most common text processing utilities and patterns
-TODO: logical forms, loops (for, while, read)
-TODO: Co-opting patterns from other langs: annotations
-TODO: [Flags and options, easier than you might think](20241029-flags-and-options.md)
-TODO: bash arrays, how to "accumulate" command line args to pass to another command
-TODO: How to implement your own custom command line completion
-TODO: re-use: logging library
-TODO: trapping EXIT - https://www.putorius.net/using-trap-to-exit-bash-scripts-cleanly.html
-TODO: foreground, background, multi-processing and wait
-TODO: congruency between SQL and command line utilities
-TODO: history hacks: staying in place, the '#' trick for composing commands
-TODO: the '#' trick for pasting possibly dangerous commands
-TODO: find, grep, xargs for manipulating sets of files
-TODO: cooked, uncooked, clear and reset (blocking vs non-blocking stdin!)
-```
+
+* [test, `[` and `[[`, crucially: how to get help](20241029-test-and-how-to-get-help.md)
+* my most common text processing utilities and patterns
+* logical forms, loops (for, while, read)
+* Co-opting patterns from other langs: annotations
+* [Flags and options, easier than you might think](20241029-flags-and-options.md)
+* bash arrays, how to "accumulate" command line args to pass to another command
+* How to implement your own custom command line completion
+* re-use: logging library
+* trapping EXIT - https://www.putorius.net/using-trap-to-exit-bash-scripts-cleanly.html
+* foreground, background, multi-processing and wait
+* congruency between SQL and command line utilities
+* history hacks: staying in place, the '#' trick for composing commands
+* the '#' trick for pasting possibly dangerous commands
+* find, grep, xargs for manipulating sets of files
+* cooked, uncooked, clear and reset (blocking vs non-blocking stdin!)
