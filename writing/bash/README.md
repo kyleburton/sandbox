@@ -27,11 +27,11 @@ These are resources that I used to learn or that I have found to be inspiring:
 
 # Future Post Ideas
 ```
-TODO: test, `[` and `[[`, crucially: how to get help
+TODO: [test, `[` and `[[`, crucially: how to get help](20241029-test-and-how-to-get-help.md)
 TODO: my most common text processing utilities and patterns
 TODO: logical forms, loops (for, while, read)
 TODO: Co-opting patterns from other langs: annotations
-TODO: Flags and options, easier than you might think
+TODO: [Flags and options, easier than you might think](20241029-flags-and-options.md)
 TODO: bash arrays, how to "accumulate" command line args to pass to another command
 TODO: How to implement your own custom command line completion
 TODO: re-use: logging library
