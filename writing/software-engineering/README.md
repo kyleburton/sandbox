@@ -34,7 +34,7 @@ Build/execution/deployment/verification - our tooling here is our build tooling 
 
 We give up more flexibility, to gain certainty.
 
-# Operational Domain
+### Operational Domain
 
 The Operational Domain is where our systems are "alive", where they run, handle request, service users and customers. Our tools here are even more constrained both in what we can do and in what is available to us, if we were prescient, we have configurable run-time parameters, we have telemetry, monitoring (of infra, of service, of business logic).  We have hopefully built in diagnostic endpoints to provide additional visibility that allow us to observe live system state or behaviors, or leverage things like distributed tracing.
 
