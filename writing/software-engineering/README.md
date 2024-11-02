@@ -2,7 +2,7 @@ Posts I've had in mind & would like to write
 
 ## Kyle's Hierarchy of Success
 
-[Slide Deck](https://docs.google.com/presentation/d/1VdAWJKMi7QmsLSJfcTdEJEHFcEgJs6cjFfBfqjkzYBQ/edit#slide=id.g310c4173436_0_273) - can I flesh this out itno a post or talk to offer to a conference?
+[Slide Deck](https://docs.google.com/presentation/d/1VdAWJKMi7QmsLSJfcTdEJEHFcEgJs6cjFfBfqjkzYBQ/edit#slide=id.g310c4173436_0_273) - can I flesh this out into a post or talk to offer to a conference?
 
 ## The Stages of Knowledge Acquisition
 
