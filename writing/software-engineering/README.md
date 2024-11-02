@@ -1,5 +1,9 @@
 Posts I've had in mind & would like to write
 
+## Kyle's Hierarchy of Success
+
+[Slide Deck](https://docs.google.com/presentation/d/1VdAWJKMi7QmsLSJfcTdEJEHFcEgJs6cjFfBfqjkzYBQ/edit#slide=id.g310c4173436_0_273) - can I flesh this out itno a post or talk to offer to a conference?
+
 ## The Stages of Knowledge Acquisition
 
 The four stages of knowledge acquisition and how I see this in the Jr/Mid/Sr engineers I interview and have worked with: What you don't know you don't know | What you know you don't know | What you know you know | What you don't know you know.  How the relative ratio of these changes over your career, ways you can use this model to grow, how you can use this to assess (and often help) other engineers.
