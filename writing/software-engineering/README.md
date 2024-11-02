@@ -9,7 +9,7 @@ Posts I've had in mind & would like to write
 The four stages of knowledge acquisition and how I see this in the Jr/Mid/Sr engineers I interview and have worked with: What you don't know you don't know | What you know you don't know | What you know you know | What you don't know you know.  How the relative ratio of these changes over your career, ways you can use this model to grow, how you can use this to assess (and often help) other engineers.
 
 Related:
-* [Did I Ever Show you my IDE?](https://docs.google.com/presentation/d/1axt7WDq-tkbDRsm0hEDwjjiddlvmnlpGcoznzAe_8o4/edit#slide=id.p)
+* [Did I Ever Show you my IDE?](https://docs.google.com/presentation/d/1axt7WDq-tkbDRsm0hEDwjjiddlvmnlpGcoznzAe_8o4/edit#slide=id.p), [Nick Mcavoy's Your IDE Sucks](https://docs.google.com/presentation/d/1iQ710sKdjW2mCNTE2JB_k5N0jSHf8E79Lk552HdfjUk/edit#slide=id.p)
 * [Four Stages of Competence](https://en.wikipedia.org/wiki/Four_stages_of_competence)
 * [Shu Ha Ri](https://en.wikipedia.org/wiki/Four_stages_of_competence)
 * [Dreyfus model of skill acquisition](https://en.wikipedia.org/wiki/Dreyfus_model_of_skill_acquisition)
