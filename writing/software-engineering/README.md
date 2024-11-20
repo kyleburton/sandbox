@@ -78,3 +78,9 @@ Wow, this article is full of good stuff...
 ## How to listen to competing ideas
 
 This is skill, it's something that I think I've seen engineers have difficulty learning - folks too often approach this from the perspective of it being a competition between "my" vs "their" idea.  It is a clash in a sense, though the challenge is to fundamentally understand the problem you are both attempting to solve - where those understandings differ, creating a shared understanding and then assessing the ideas presented (solutions, designs, implementations).
+
+# Resources
+
+Essays, Ideas or other writing that may be worth expanding on:
+
+* https://fs.blog/chestertons-fence/
