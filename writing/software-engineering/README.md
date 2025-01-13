@@ -85,3 +85,4 @@ Essays, Ideas or other writing that may be worth expanding on:
 
 * https://fs.blog/chestertons-fence/
 * https://norikitech.com/posts/functional-affirmations/
+* https://dwheeler.com/essays/debugging-agans.html
