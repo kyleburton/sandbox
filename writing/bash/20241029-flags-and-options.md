@@ -18,6 +18,7 @@ flags.sh
 --format=<format>  set the output format
 --help             show this help text
 END
+  return 1
 }
 
 log () {

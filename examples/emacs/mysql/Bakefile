@@ -1,0 +1,32 @@
+#!/bin/bash
+
+bake_task docker-mysql "stop and restart the mysql container"
+docker-mysql () {
+    mysql_docker_version="mariadb:11.6"
+    if [[ -z "$(docker images -q "$mysql_docker_version")" ]]; then
+        docker pull "$mysql_docker_version"
+    fi
+
+    set -x
+    mysql_container_name="emacs-mysql"
+    if [ -n "$(docker ps -a -q -f name="$mysql_container_name")" ]; then
+        if [ "$(docker ps -aq -f status=exited -f name="$mysql_container_name")" ]; then
+            docker rm "$mysql_container_name"
+        fi
+    fi
+
+    if [ -n "$(docker ps -q -f name="$mysql_container_name")" ]; then
+        docker stop --name "$mysql_container_name"
+    fi
+
+    docker run \
+           -p 33306:3306 \
+           --env MARIADB_ROOT_PASSWORD=password \
+           -d \
+           --name "$mysql_container_name" "$mysql_docker_version"
+}
+
+bake_task mysql "run the mysql shell"
+mysql () {
+    command mysql -P 33306 --host=127.0.0.1 --user=root  --password=password
+}
