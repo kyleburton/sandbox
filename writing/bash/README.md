@@ -16,6 +16,7 @@ I have noticed more and more that software engineers I work with find bash to be
 * [Fundamentals, Warts and Oddities: String Substitution](20241020-fundamental-warts-and-oddities-stringsub.md)
 * [Co-opting Patterns from other languages: Case Statements](20241019-patterns-from-other-langs.md)
 * [Flags and options, easier than you might think](20241029-flags-and-options.md)
+* [Foreground, Background and Wait - Bash's Job Control](20250427-foreground-background-and-wait.md)
 
 # Resources & References
 
@@ -30,6 +31,8 @@ These are resources that I used to learn or that I have found to be inspiring:
 
 # Future Post Ideas
 
+* interacting with the command line: making the most of bash's keybindings and history
+* history hacks: staying in place, the '#' trick for composing commands
 * [test, `[` and `[[`, crucially: how to get help](20241029-test-and-how-to-get-help.md)
 * my most common text processing utilities and patterns
 * logical forms, loops (for, while, read)
@@ -38,9 +41,7 @@ These are resources that I used to learn or that I have found to be inspiring:
 * How to implement your own custom command line completion
 * re-use: logging library
 * trapping EXIT - https://www.putorius.net/using-trap-to-exit-bash-scripts-cleanly.html
-* foreground, background, multi-processing and wait
-* congruency between SQL and command line utilities
-* history hacks: staying in place, the '#' trick for composing commands
+* congruency between SQL and the gnu utilities (grep, cut, sort, head, tail, join)
 * the '#' trick for pasting possibly dangerous commands
 * find, grep, xargs for manipulating sets of files
-* cooked, uncooked, clear and reset (blocking vs non-blocking stdin!)
+* cooked, uncooked terminal mode, clear and reset (blocking vs non-blocking stdin!)
