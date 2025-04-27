@@ -1,13 +1,3 @@
-Bash's string substitution looked super terse and confusing to me for a long long time, though once I learned it I now use it frequently.
-
-Want to strip a prefix or suffix from a variable? Want to strip the minimum or the maximum?  Use bash's string substitution.
-
-There are two types of substitution: one to strip a prefix `#` and `##`, one to strip a suffix `%` and `%%`.  The two forms are "minimal" and "maximal" - `#` strips the minimum prefix while `##` strips the maximum prefix.  These prefixes support [bash's glob syntax](https://tldp.org/LDP/abs/html/globbingref.html), though you can also use hardcoded text.
-
-In my opinion, this is best understood through examples and best learned by trying it out on your own.
-
-
-```bash
 #!/bin/bash
 ########################################
 file_name=/home/kyle/code/github.com/kyleburton/sandbox/writing/bash/20241020-fundamental-warts-and-oddities-stringsub.md
@@ -55,4 +45,3 @@ echo "strip the first four chars:                 ${file_name#????}"
 
 # Strip the last four chars
 echo "strip the last four chars:                 ${file_name%????}"
-```
