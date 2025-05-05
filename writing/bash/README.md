@@ -12,7 +12,7 @@ I have noticed more and more that software engineers I work with find bash to be
 
 # Posts
 
-* [Fundamentals, my Idioms and Some Best Practices](202410270-idioms-and-practices.md)
+* [Fundamentals, my Idioms and Some Best Practices](20241027-idioms-and-practices.md)
 * [Fundamentals, Warts and Oddities: String Substitution](20241020-fundamental-warts-and-oddities-stringsub.md)
 * [Co-opting Patterns from other languages: Case Statements](20241019-patterns-from-other-langs.md)
 * [Flags and options, easier than you might think](20241029-flags-and-options.md)
@@ -22,6 +22,7 @@ I have noticed more and more that software engineers I work with find bash to be
 
 These are resources that I used to learn or that I have found to be inspiring:
 
+* [FSF's Bash Reference Manual](https://www.gnu.org/software/bash/manual/bash.html)
 * [Julia Evans "Wizard Zines" - Bite Size Bash](https://wizardzines.com/zines/bite-size-bash/), and [a preview](https://wizardzines.com/comics/environment-variables/).  All of Julia's writing is excellent and all of the 'zines are great introductions to Unix and Linux.
 * [Linux Documentation Project - Bash Beginner's Guide](https://tldp.org/LDP/Bash-Beginners-Guide/html/Bash-Beginners-Guide.html)
 * [O'Reilly's Learning the Bash shell](https://www.oreilly.com/library/view/learning-the-bash/0596009658/)
@@ -29,9 +30,12 @@ These are resources that I used to learn or that I have found to be inspiring:
 * [10 Must Have Books for System Administrators](https://www.adminschoice.com/10-must-have-oreilly-books-for-system-administrators)
 * [O'Reilly's Bash Cookbook](https://www.oreilly.com/library/view/bash-cookbook-2nd/9781491975329/) by JP Vossen (who I've had the pleasure of meeting in person)
 
+# Works in Progress
+* [Interacting With the Command Line: Making the Most of bash's Keybindings and History](20250427-interacting-with-the-commandline.md)
+
 # Future Post Ideas
 
-* interacting with the command line: making the most of bash's keybindings and history
+* debugging, logging and seeing what your script is doing
 * history hacks: staying in place, the '#' trick for composing commands
 * [test, `[` and `[[`, crucially: how to get help](20241029-test-and-how-to-get-help.md)
 * my most common text processing utilities and patterns

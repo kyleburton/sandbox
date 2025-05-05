@@ -1,4 +1,15 @@
+# OSX and Your Default Interactive Shell
+
+In 2025, while Apple continues to ship `bash`, they have changed the default shell to be `zsh` (which is a fine shell), and regressed the version they ship ([likely due to the Copyright](https://apple.stackexchange.com/questions/208312/why-does-apple-ship-bash-3-2) that newer versions of bash are distributed with).  If you find it valuable to write your shell scripts using `bash` and want it to be your interactive shell, you can install it via `homebrew` and set it as your default shell.  [This stackoverflow post covers the steps](https://stackoverflow.com/questions/77052638/changing-default-shell-from-zsh-to-bash-on-macos-catalina-and-beyond).
+
+# Choose Different Habits for Scripting vs Interactive Use
+
 While shell scripting with can be a gentle ramp up from just using the command line (you can literally take what you type at the command line and put it into a `*.sh` file as the starting basis for your scripts), there are a few practices that I've found to eliminate or reduce surprises, gotchas and save me from having to spend time debugging.
+
+* Set the "shebang"
+* Use `shellcheck`
+* Enable error checking
+* Use a `main`
 
 The first is adding the common [shebang](https://www.tutorialspoint.com/using-shebang-hash-in-linux-scripts). at the top of your script:
 
@@ -145,3 +156,75 @@ This syntax `${1:-}` is very useful when using the `set -u` option, allowing you
 ```
 
 Prints the current directory in long format (`-l`), sorted by time (`-t`), reversed (`-r`), with files sizes in "human readable" format (`-h`) and also prints the current datetime.
+
+## Capture Output for Analysis
+
+Processes have three standard [file descriptors](https://en.wikipedia.org/wiki/File_descriptor) or handles, `STDIN` or `0`, `STDOUT` or `1` and `STDERR` or `2`.  Standard Input is where the program will take input from, which is tyipcally the terminal though can be from a file or output from another program via a pipe.  Standard Output is where the program's data should go, useful output that is worth capturing or piped into another program for further processing.  Finally, Standard Error is where the program's error messaging should go - anything that is not meant to be a part of the program's intended, normal function.
+
+I often find that I want to search or filter the output of a program after it has been run, sometimes I want to preserve the outputs from different runs and compare them.  I also often want to see the output as the program is running.  Unix has a small utility that helps do exacly that: `tee`.  The mnemonic for `tee` is that it is like a T-junction in plumbing, splitting the flow from one stream into two.
+
+### `my-task.sh`
+
+```bash
+#!/bin/bash
+set -eEuo pipefail
+>&2 echo "[$(date)] stderr: a message"
+echo "[$(date)] stdout: a message"
+```
+
+```bash
+> bash ./my-task.sh
+[2025-05-05T16:17:03Z] stderr: a message
+[2025-05-05T16:17:03Z] stdout: a message
+```
+
+Redirecting the output by default only captures `STDOUT`:
+
+```bash
+> bash ./my-task.sh > out.txt
+[2025-05-05T16:17:03Z] stderr: a message
+> cat out.txt
+[2025-05-05T16:19:43Z] stdout: a message
+```
+
+Note that `>` is short hand for explicitly redirecting `STDOUT` `1>` (file descriptor 1).
+
+We can chose to redirect only `STDOUT`:
+
+```bash
+> bash ./my-task.sh 2> out.txt
+[2025-05-05T16:20:26Z] stdout: a message
+> cat out.txt
+[2025-05-05T16:20:26Z] stderr: a message
+```
+
+We can capture `STDOUT` and `STDERR` to different files
+
+```bash
+> bash ./my-task.sh > out.txt 2> err.txt
+> cat out.txt
+[2025-05-05T16:23:33Z] stdout: a message
+> cat err.txt
+[2025-05-05T16:23:33Z] stderr: a message
+
+```
+
+And we can capture both to the same file by first redirecting `STDOUT` and then "sending `STDERR` to the same place as `STDOUT`":
+
+```bash
+> bash ./my-task.sh > out.txt 2>&1
+> cat out.txt
+[2025-05-05T16:21:57Z] stderr: a message
+[2025-05-05T16:21:57Z] stdout: a message
+```
+
+Finally, we can both see and capture all of the output using `tee` by redirecting `STDERR` to the same place as `STDOUT` (`2>&1`) and then sending `STDOUT` through a pipe to `tee`:
+
+```bash
+> bash writing/bash/20241027-idioms-and-practices/my-task.sh 2>&1 | tee out.txt
+[2025-05-05T16:23:14Z] stderr: a message
+[2025-05-05T16:23:14Z] stdout: a message
+> cat out.txt
+[2025-05-05T16:26:06Z] stderr: a message
+[2025-05-05T16:26:06Z] stdout: a message
+```
