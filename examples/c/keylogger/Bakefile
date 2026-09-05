@@ -1,0 +1,10 @@
+#!/bin/bash
+set -Eeuo pipefail
+
+bake_default_task build
+
+bake_task build
+function build () {
+    bake_echo_green "building ..."
+    bear -- make
+}
