@@ -1,3 +1,6 @@
 main
 main.dbg
 .cache
+constants.h
+constants.c
+loggedkeys.csv

